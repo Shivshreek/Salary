@@ -119,6 +119,7 @@
             </div>
             
             <div class="p-6">
+                <!-- IMPORTANT: Removed onsubmit from HTML to handle in module script -->
                 <form id="employee-form" class="space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="space-y-2">
@@ -179,7 +180,8 @@
                             <i data-lucide="arrow-left" class="w-4 h-4"></i>
                             Back to Login
                         </button>
-                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg transition-colors shadow-sm flex items-center gap-2">
+                        <!-- Added explicit type submit and onclick handler just in case -->
+                        <button type="submit" id="continue-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg transition-colors shadow-sm flex items-center gap-2">
                             Continue to Calculator
                             <i data-lucide="arrow-right" class="w-4 h-4"></i>
                         </button>
@@ -524,6 +526,7 @@
             window.handleLogout = handleLogout;
             window.kickUser = kickUser;
             window.goBackToLogin = goBackToLogin;
+            window.showApp = showApp; // FIXED: Expose showApp to window so the form can call it
         }
 
         // --- LOGIN LOGIC ---
@@ -609,7 +612,13 @@
 
             } catch (e) {
                 console.error("Session creation failed", e);
-                alert("Database Error: " + e.message);
+                
+                // --- IMPROVED ERROR HANDLING FOR PERMISSIONS ---
+                if (e.message.includes("Missing or insufficient permissions") || e.code === 'permission-denied') {
+                    alert("FIREBASE RULES ERROR:\n\nYour database is blocking this write operation.\n\nFIX:\n1. Go to Firebase Console > Firestore Database > Rules\n2. Change to: allow read, write: if true;\n3. Publish");
+                } else {
+                    alert("Database Error: " + e.message);
+                }
             }
         }
 
@@ -692,6 +701,16 @@
                 }
                 
                 lucide.createIcons();
+            }, (error) => {
+                // --- IMPROVED ERROR HANDLING FOR SNAPSHOTS ---
+                console.error("Snapshot error:", error);
+                if (error.code === 'permission-denied') {
+                     const list = document.getElementById('active-users-list');
+                     list.innerHTML = `<div class="p-4 bg-red-50 text-red-700 rounded-lg text-sm">
+                        <strong>Permission Denied:</strong><br>
+                        Check Firebase Console Rules. Allow read/write access.
+                     </div>`;
+                }
             });
         }
 
@@ -709,7 +728,10 @@
                         otp: null
                     });
                     showEmployeeDetailsForm();
-                } catch(e) { console.error(e); }
+                } catch(e) { 
+                    console.error(e);
+                    if (e.code === 'permission-denied') alert("Permission Denied: Check Firebase Rules");
+                }
             } else {
                 errorMsg.textContent = "Incorrect OTP. Ask Admin for code.";
                 errorMsg.classList.remove('hidden');
@@ -810,8 +832,15 @@
             document.getElementById('slipDOJ').textContent = doj;
             document.getElementById('slipMonthYear').textContent = `${month}, ${year}`;
             
-            // Show the main app
-            showApp();
+            // Show the main app - ensure showApp is defined
+            if (typeof showApp === 'function') {
+                showApp();
+            } else if (window.showApp) {
+                window.showApp();
+            } else {
+                console.error("showApp function is not defined");
+                alert("Error: Could not load calculator. Please refresh and try again.");
+            }
         });
 
         function formatNum(num) {
