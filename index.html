@@ -110,6 +110,85 @@
         </div>
     </div>
 
+    <!-- EMPLOYEE DETAILS FORM (Hidden by default) -->
+    <div id="employee-details-form" class="hidden min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+            <div class="bg-slate-800 p-6 text-center">
+                <h2 class="text-xl font-bold text-white">Employee Details</h2>
+                <p class="text-slate-400 text-sm mt-1">Fill in your information to generate salary slip</p>
+            </div>
+            
+            <div class="p-6">
+                <form id="employee-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-700">Employee Code *</label>
+                            <input type="text" id="emp-code" class="input-cell w-full px-3 py-2 rounded-lg text-slate-800" required>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-700">Month *</label>
+                            <select id="salary-month" class="input-cell w-full px-3 py-2 rounded-lg text-slate-800" required>
+                                <option value="">Select Month</option>
+                                <option value="January">January</option>
+                                <option value="February">February</option>
+                                <option value="March">March</option>
+                                <option value="April">April</option>
+                                <option value="May">May</option>
+                                <option value="June">June</option>
+                                <option value="July">July</option>
+                                <option value="August">August</option>
+                                <option value="September">September</option>
+                                <option value="October" selected>October</option>
+                                <option value="November">November</option>
+                                <option value="December">December</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-700">Employee Name *</label>
+                            <input type="text" id="emp-name" class="input-cell w-full px-3 py-2 rounded-lg text-slate-800" required>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-700">Father/Husband Name *</label>
+                            <input type="text" id="father-name" class="input-cell w-full px-3 py-2 rounded-lg text-slate-800" required>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-700">Date of Joining *</label>
+                            <input type="date" id="doj" class="input-cell w-full px-3 py-2 rounded-lg text-slate-800" required>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-700">Year *</label>
+                            <select id="salary-year" class="input-cell w-full px-3 py-2 rounded-lg text-slate-800" required>
+                                <option value="2024">2024</option>
+                                <option value="2025" selected>2025</option>
+                                <option value="2026">2026</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="pt-4 flex justify-between">
+                        <button type="button" onclick="goBackToLogin()" class="px-4 py-2 text-slate-600 hover:text-slate-800 font-medium flex items-center gap-2">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                            Back to Login
+                        </button>
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg transition-colors shadow-sm flex items-center gap-2">
+                            Continue to Calculator
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- MAIN APP CONTENT (Hidden by default) -->
     <div id="app-content" class="hidden p-4 md:p-8">
         <div class="max-w-6xl mx-auto space-y-6">
@@ -128,10 +207,13 @@
                         </p>
                     </div>
                 </div>
-                <button onclick="handleLogout()" class="text-sm text-slate-500 hover:text-red-600 font-medium flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors">
-                    <i data-lucide="log-out" class="w-4 h-4"></i>
-                    Logout
-                </button>
+                <div class="flex items-center gap-4">
+                    <span id="current-user-info" class="text-sm text-slate-600"></span>
+                    <button onclick="handleLogout()" class="text-sm text-slate-500 hover:text-red-600 font-medium flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                        Logout
+                    </button>
+                </div>
             </div>
 
             <!-- ADMIN DASHBOARD (Hidden unless admin) -->
@@ -205,12 +287,25 @@
                             <div class="space-y-1">
                                 <label class="text-sm font-medium text-slate-700 flex justify-between">
                                     Variable Hours
-                                    <span id="rateDisplay" class="text-xs text-blue-600 font-medium bg-blue-50 px-2 py-0.5 rounded">Rate: 144.52</span>
+                                    <span class="text-xs text-blue-600 font-medium bg-blue-50 px-2 py-0.5 rounded">Rate: 90.00</span>
                                 </label>
                                 <div class="relative">
                                     <i data-lucide="clock" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
                                     <input type="number" id="varHours" value="58.47" oninput="calculate()" class="input-cell w-full pl-9 pr-3 py-2 rounded-lg text-slate-800">
                                 </div>
+                            </div>
+
+                            <!-- Variable Rate (User Controlled) -->
+                            <div class="space-y-1">
+                                <label class="text-sm font-medium text-slate-700 flex justify-between">
+                                    Variable Rate (per hour)
+                                    <span id="rateDisplay" class="text-xs text-blue-600 font-medium bg-blue-50 px-2 py-0.5 rounded">₹144.52</span>
+                                </label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">₹</span>
+                                    <input type="number" id="varRate" value="144.52" step="0.01" oninput="calculate()" class="input-cell w-full pl-8 pr-3 py-2 rounded-lg text-slate-800">
+                                </div>
+                                <p class="text-xs text-slate-500">Enter the hourly rate for variable pay</p>
                             </div>
 
                             <!-- Food Allowance -->
@@ -247,20 +342,20 @@
                             
                             <!-- Title Row -->
                             <div class="border-b-2 border-slate-800 text-center py-2 font-bold text-lg bg-slate-50">
-                                PAY SLIP (October, 2025)
+                                PAY SLIP (<span id="slipMonthYear">October, 2025</span>)
                             </div>
 
                             <!-- Personal Info Grid -->
                             <div class="grid grid-cols-2 border-b border-slate-400">
                                 <div class="p-2 border-r border-slate-400 space-y-1">
-                                    <div class="flex"><span class="w-24 text-slate-500">Emp Code:</span> <span>6138</span></div>
-                                    <div class="flex"><span class="w-24 text-slate-500">Emp Name:</span> <span>Shivshree Kumar</span></div>
-                                    <div class="flex"><span class="w-24 text-slate-500">F/H Name:</span> <span>Santosh Kumar</span></div>
+                                    <div class="flex"><span class="w-24 text-slate-500">Emp Code:</span> <span id="slipEmpCode">6138</span></div>
+                                    <div class="flex"><span class="w-24 text-slate-500">Emp Name:</span> <span id="slipEmpName">Shivshree Kumar</span></div>
+                                    <div class="flex"><span class="w-24 text-slate-500">F/H Name:</span> <span id="slipFatherName">Santosh Kumar</span></div>
                                 </div>
                                 <div class="p-2 space-y-1">
                                     <div class="flex"><span class="w-24 text-slate-500">PF. No.:</span> <span>------</span></div>
                                     <div class="flex"><span class="w-24 text-slate-500">E.S.I No.:</span> <span>------</span></div>
-                                    <div class="flex"><span class="w-24 text-slate-500">D.O.J.:</span> <span>2025-04-15</span></div>
+                                    <div class="flex"><span class="w-24 text-slate-500">D.O.J.:</span> <span id="slipDOJ">2025-04-15</span></div>
                                 </div>
                             </div>
 
@@ -353,6 +448,38 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- Excel Formula Guide -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mt-8">
+                <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <i data-lucide="file-spreadsheet" class="w-5 h-5 text-green-600"></i>
+                    Excel Formula Cheat Sheet
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-slate-600 border border-slate-200">
+                        <thead class="text-xs text-slate-700 uppercase bg-slate-100">
+                            <tr>
+                                <th class="px-4 py-3 border-r border-slate-200">Cell</th>
+                                <th class="px-4 py-3 border-r border-slate-200">Heading</th>
+                                <th class="px-4 py-3">Formula</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200">
+                            <tr>
+                                <td class="px-4 py-2 font-mono text-xs bg-slate-50 border-r border-slate-200">G2</td>
+                                <td class="px-4 py-2 font-medium border-r border-slate-200">Earned Basic</td>
+                                <td class="px-4 py-2 font-mono text-blue-600">=(A2/B2)*C2</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2 font-mono text-xs bg-slate-50 border-r border-slate-200">J2</td>
+                                <td class="px-4 py-2 font-medium border-r border-slate-200">NET PAY</td>
+                                <td class="px-4 py-2 font-mono font-bold text-green-600">=G2 + (D2*90) + E2 - (G2*12%) - F2</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -377,6 +504,7 @@
         // Global Variables
         let currentSessionId = null;
         let currentUserRole = null;
+        let currentUserData = null;
         let pendingOTP = null; 
         let db = null;
         let auth = null;
@@ -395,6 +523,7 @@
             window.handleVerifyOTP = handleVerifyOTP;
             window.handleLogout = handleLogout;
             window.kickUser = kickUser;
+            window.goBackToLogin = goBackToLogin;
         }
 
         // --- LOGIN LOGIC ---
@@ -410,14 +539,14 @@
                 // 1. Trigger Google Popup
                 const result = await signInWithPopup(auth, provider);
                 const user = result.user;
+                currentUserData = user;
                 
                 // 2. Check Identity
                 if (user.email === 'shivshreek@gmail.com') {
                     // --- ADMIN LOGIN ---
                     currentUserRole = 'admin';
                     await createSession(user, 'admin', 'active');
-                    showApp();
-                    initAdminDashboard();
+                    showEmployeeDetailsForm();
                 } else {
                     // --- USER LOGIN (Requires OTP) ---
                     currentUserRole = 'user';
@@ -579,7 +708,7 @@
                         status: 'active',
                         otp: null
                     });
-                    showApp();
+                    showEmployeeDetailsForm();
                 } catch(e) { console.error(e); }
             } else {
                 errorMsg.textContent = "Incorrect OTP. Ask Admin for code.";
@@ -618,9 +747,40 @@
             `;
         }
 
-        function showApp() {
+        function showEmployeeDetailsForm() {
             document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('employee-details-form').classList.remove('hidden');
+            
+            // Pre-fill employee name from Google account if available
+            if (currentUserData && currentUserData.displayName) {
+                document.getElementById('emp-name').value = currentUserData.displayName;
+            }
+            
+            // Set default date of joining to today
+            const today = new Date();
+            document.getElementById('doj').value = today.toISOString().split('T')[0];
+            
+            lucide.createIcons();
+        }
+
+        function goBackToLogin() {
+            document.getElementById('employee-details-form').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+        }
+
+        function showApp() {
+            document.getElementById('employee-details-form').classList.add('hidden');
             document.getElementById('app-content').classList.remove('hidden');
+            
+            // Show user info in header
+            document.getElementById('current-user-info').textContent = 
+                `Logged in as: ${currentUserData.displayName || 'User'} (${currentUserRole})`;
+            
+            // Initialize admin dashboard if admin
+            if (currentUserRole === 'admin') {
+                initAdminDashboard();
+            }
+            
             lucide.createIcons();
         }
 
@@ -630,6 +790,29 @@
 
     <script>
         lucide.createIcons();
+
+        // Handle employee details form submission
+        document.getElementById('employee-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const empCode = document.getElementById('emp-code').value;
+            const empName = document.getElementById('emp-name').value;
+            const fatherName = document.getElementById('father-name').value;
+            const doj = document.getElementById('doj').value;
+            const month = document.getElementById('salary-month').value;
+            const year = document.getElementById('salary-year').value;
+            
+            // Update payslip with employee details
+            document.getElementById('slipEmpCode').textContent = empCode;
+            document.getElementById('slipEmpName').textContent = empName;
+            document.getElementById('slipFatherName').textContent = fatherName;
+            document.getElementById('slipDOJ').textContent = doj;
+            document.getElementById('slipMonthYear').textContent = `${month}, ${year}`;
+            
+            // Show the main app
+            showApp();
+        });
 
         function formatNum(num) {
             return num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -641,12 +824,12 @@
             const workingDays = parseFloat(document.getElementById('workingDays').value) || 23;
             const presentDays = parseFloat(document.getElementById('presentDays').value) || 0;
             const varHours = parseFloat(document.getElementById('varHours').value) || 0;
+            const varRate = parseFloat(document.getElementById('varRate').value) || 0;
             const foodAllowStructure = parseFloat(document.getElementById('foodAllow').value) || 0;
             const busDed = parseFloat(document.getElementById('busDed').value) || 0;
 
-            // Calculate variable rate based on basic salary
-            const variableRate = (basic * 0.005) + 35;
-            document.getElementById('rateDisplay').textContent = `Rate: ${formatNum(variableRate)}`;
+            // Update rate display
+            document.getElementById('rateDisplay').textContent = `₹${formatNum(varRate)}`;
 
             // Calculations
             // 1. Earned Basic: (Basic / Working) * Present
@@ -655,8 +838,8 @@
                 earnedBasic = (basic / workingDays) * presentDays;
             }
 
-            // 2. Variable Amount: Hours * calculated rate
-            const varAmt = varHours * variableRate;
+            // 2. Variable Amount: Hours * user-defined rate
+            const varAmt = varHours * varRate;
 
             // 3. PF: 12% of Full Basic (not earned basic)
             const pf = basic * 0.12;
@@ -704,6 +887,7 @@
             document.getElementById('workingDays').value = 23;
             document.getElementById('presentDays').value = 17;
             document.getElementById('varHours').value = 58.47;
+            document.getElementById('varRate').value = 144.52;
             document.getElementById('foodAllow').value = 3000;
             document.getElementById('busDed').value = 750;
             calculate();
