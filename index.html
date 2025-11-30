@@ -28,23 +28,45 @@
         .hidden {
             display: none;
         }
-        .device-card {
-            transition: all 0.3s;
-        }
-        .device-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-        }
         .animate-spin { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+
+        /* Print Styles */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #payslip-container, #payslip-container * {
+                visibility: visible;
+            }
+            #payslip-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                padding: 20px;
+                box-shadow: none;
+                border: none;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen">
 
+    <!-- LOADING SCREEN (Initial Check) -->
+    <div id="loading-screen" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center">
+        <div class="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+        <p class="text-slate-500 font-medium animate-pulse">Restoring Session...</p>
+    </div>
+
     <!-- LOGIN SCREEN -->
-    <div id="login-screen" class="min-h-screen flex items-center justify-center p-4">
+    <div id="login-screen" class="hidden min-h-screen flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden border border-slate-200 relative">
             
             <!-- Logo Header -->
@@ -98,7 +120,7 @@
                         Verify Identity
                     </button>
                     
-                    <button onclick="location.reload()" class="text-xs text-slate-400 hover:text-slate-600 underline mt-4">Cancel Login</button>
+                    <button onclick="handleLogout()" class="text-xs text-slate-400 hover:text-slate-600 underline mt-4">Cancel Login</button>
                 </div>
 
             </div>
@@ -119,7 +141,6 @@
             </div>
             
             <div class="p-6">
-                <!-- IMPORTANT: Removed onsubmit from HTML to handle in module script -->
                 <form id="employee-form" class="space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="space-y-2">
@@ -180,7 +201,6 @@
                             <i data-lucide="arrow-left" class="w-4 h-4"></i>
                             Back to Login
                         </button>
-                        <!-- Added explicit type submit and onclick handler just in case -->
                         <button type="submit" id="continue-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg transition-colors shadow-sm flex items-center gap-2">
                             Continue to Calculator
                             <i data-lucide="arrow-right" class="w-4 h-4"></i>
@@ -220,7 +240,6 @@
 
             <!-- ADMIN DASHBOARD (Hidden unless admin) -->
             <div id="admin-dashboard" class="hidden space-y-6">
-                
                 <!-- 1. PENDING REQUESTS -->
                 <div id="pending-section" class="hidden bg-white rounded-xl shadow-md border border-yellow-200 overflow-hidden">
                     <div class="px-6 py-4 border-b border-yellow-100 bg-yellow-50 flex justify-between items-center">
@@ -230,9 +249,7 @@
                         </h3>
                         <span class="text-xs font-mono bg-white text-yellow-700 px-2 py-1 rounded border border-yellow-200 font-bold">ACTION REQUIRED</span>
                     </div>
-                    <div class="p-6 space-y-3" id="pending-users-list">
-                        <!-- Pending Users Injected Here -->
-                    </div>
+                    <div class="p-6 space-y-3" id="pending-users-list"></div>
                 </div>
 
                 <!-- 2. ACTIVE USERS -->
@@ -246,7 +263,6 @@
                     </div>
                     <div class="p-6">
                         <div id="active-users-list" class="space-y-3">
-                            <!-- Active Users Injected Here -->
                             <div class="text-center py-4 text-slate-400 text-sm">Loading sessions...</div>
                         </div>
                     </div>
@@ -297,7 +313,7 @@
                                 </div>
                             </div>
 
-                            <!-- Variable Rate (User Controlled) -->
+                            <!-- Variable Rate -->
                             <div class="space-y-1">
                                 <label class="text-sm font-medium text-slate-700 flex justify-between">
                                     Variable Rate (per hour)
@@ -307,7 +323,6 @@
                                     <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">₹</span>
                                     <input type="number" id="varRate" value="144.52" step="0.01" oninput="calculate()" class="input-cell w-full pl-8 pr-3 py-2 rounded-lg text-slate-800">
                                 </div>
-                                <p class="text-xs text-slate-500">Enter the hourly rate for variable pay</p>
                             </div>
 
                             <!-- Food Allowance -->
@@ -337,7 +352,7 @@
 
                 <!-- RIGHT COLUMN: PAY SLIP PREVIEW -->
                 <div class="lg:col-span-8">
-                    <div class="bg-white shadow-lg p-6 md:p-8 min-h-[600px] flex flex-col items-center rounded-xl border border-slate-200">
+                    <div class="bg-white shadow-lg p-6 md:p-8 min-h-[600px] flex flex-col items-center rounded-xl border border-slate-200" id="payslip-container">
                         
                         <!-- THE PAY SLIP TABLE -->
                         <div class="w-full max-w-2xl bg-white border-2 border-slate-800 text-slate-900 text-sm font-medium shadow-2xl">
@@ -388,7 +403,6 @@
                                     </tr>
                                 </thead>
                                 <tbody class="text-sm">
-                                    <!-- Row 1: Basic & PF -->
                                     <tr>
                                         <td>Basic</td>
                                         <td class="text-right" id="slipStructBasic">25,941.00</td>
@@ -398,24 +412,21 @@
                                             <span id="slipPF">2,992.92</span>
                                         </td>
                                     </tr>
-                                    <!-- Row 2: ESI (Spacer) -->
                                     <tr>
                                         <td class="h-8"></td>
                                         <td></td>
                                         <td></td>
                                         <td class="flex justify-between text-slate-500">
                                             <span>ESI:</span>
-                                            <span>0.00</span>
+                                            <span id="slipESI">0.00</span>
                                         </td>
                                     </tr>
-                                    <!-- Row 3: Variable Allowance -->
                                     <tr>
                                         <td>Monthly V.Allowance</td>
                                         <td class="text-right text-slate-400">--</td>
                                         <td class="text-right" id="slipVarAmt">8,449.35</td>
                                         <td></td>
                                     </tr>
-                                    <!-- Row 4: Food & Bus -->
                                     <tr>
                                         <td>Food Allowance</td>
                                         <td class="text-right" id="slipStructFood">3,000.00</td>
@@ -425,7 +436,6 @@
                                             <span id="slipBus">750</span>
                                         </td>
                                     </tr>
-                                    <!-- Row 5: Totals -->
                                     <tr class="font-bold border-t-2 border-slate-800">
                                         <td>Total Rs.</td>
                                         <td class="text-right text-slate-400">--</td>
@@ -443,8 +453,11 @@
 
                         </div>
                         
-                        <div class="mt-8 text-xs text-slate-400 text-center">
-                            This document is a computer generated draft based on the inputs provided.
+                        <div class="mt-8 text-xs text-slate-400 text-center flex gap-4 no-print">
+                            <p>This document is a computer generated draft.</p>
+                            <button onclick="window.print()" class="text-blue-600 hover:underline flex items-center gap-1 font-bold">
+                                <i data-lucide="printer" class="w-4 h-4"></i> Print Payslip
+                            </button>
                         </div>
 
                     </div>
@@ -489,8 +502,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, updateDoc, doc, serverTimestamp, query, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, updateDoc, doc, serverTimestamp, query, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- PRODUCTION CONFIGURATION ---
         const firebaseConfig = {
@@ -511,6 +524,7 @@
         let db = null;
         let auth = null;
         let provider = null;
+        let sessionUnsubscribe = null;
 
         async function initApp() {
             // 1. Initialize Firebase
@@ -526,7 +540,87 @@
             window.handleLogout = handleLogout;
             window.kickUser = kickUser;
             window.goBackToLogin = goBackToLogin;
-            window.showApp = showApp; // FIXED: Expose showApp to window so the form can call it
+            window.showApp = showApp;
+
+            // 2. CHECK SESSION PERSISTENCE
+            onAuthStateChanged(auth, async (user) => {
+                const loadingScreen = document.getElementById('loading-screen');
+                const loginScreen = document.getElementById('login-screen');
+
+                if (user) {
+                    // User is signed in to Firebase, check for stored Session ID
+                    const storedSessionId = localStorage.getItem('salary_app_session_id');
+                    
+                    if (storedSessionId) {
+                        currentSessionId = storedSessionId;
+                        currentUserData = user;
+                        // Assume user unless admin email
+                        currentUserRole = (user.email === 'shivshreek@gmail.com') ? 'admin' : 'user';
+                        
+                        // Re-attach listener to the existing session
+                        attachSessionListener(currentSessionId);
+                    } else {
+                        // Signed in but no session ID (maybe cleared cache), sign out to be safe
+                        await signOut(auth);
+                        loadingScreen.classList.add('hidden');
+                        loginScreen.classList.remove('hidden');
+                    }
+                } else {
+                    // Not signed in
+                    loadingScreen.classList.add('hidden');
+                    loginScreen.classList.remove('hidden');
+                }
+            });
+        }
+
+        function attachSessionListener(sessionId) {
+            // Stop previous listener if any
+            if (sessionUnsubscribe) sessionUnsubscribe();
+
+            sessionUnsubscribe = onSnapshot(doc(db, 'sessions', sessionId), (docSnapshot) => {
+                const data = docSnapshot.data();
+                const loadingScreen = document.getElementById('loading-screen');
+                const loginScreen = document.getElementById('login-screen');
+
+                if (!data) {
+                    // Session deleted from DB
+                    handleLogout();
+                    return;
+                }
+
+                if (data.status === 'active') {
+                    loadingScreen.classList.add('hidden');
+                    loginScreen.classList.add('hidden');
+                    showEmployeeDetailsForm(); // Or go straight to app if we persisted that state too
+                } else if (data.status === 'kicked') {
+                    document.body.innerHTML = getKickedUI();
+                } else if (data.status === 'inactive') {
+                    // Logged out
+                    handleLogout();
+                } else if (data.status === 'pending_otp') {
+                    // Restore OTP screen
+                    loadingScreen.classList.add('hidden');
+                    loginScreen.classList.remove('hidden');
+                    document.getElementById('login-form').classList.add('hidden');
+                    document.getElementById('otp-form').classList.remove('hidden');
+                    // We need to restore the OTP from local state or just generate new one? 
+                    // Actually if we refreshed, we lost the pendingOTP variable.
+                    // For security, if they refresh on OTP screen, we probably should reset or fetch from DB (if we were storing it safely, but we store it in DB for admin to see).
+                    // Simplified: If pending and refreshed, show OTP screen but user might need to ask Admin for code again if we don't fetch it.
+                    // Since 'data.otp' is in the document, we can see it here but usually we shouldn't show it to the user.
+                    // Let's just allow them to enter it.
+                    pendingOTP = data.otp; 
+                    
+                    document.getElementById('user-email-display').textContent = data.email;
+                    // Mock photo if missing
+                    const photo = data.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.displayName)}`;
+                    document.getElementById('user-avatar-display').src = photo;
+                }
+            }, (error) => {
+                console.error("Session sync error:", error);
+                alert("Session Error. Please login again.");
+                handleLogout();
+            });
         }
 
         // --- LOGIN LOGIC ---
@@ -539,35 +633,19 @@
             errorMsg.classList.add('hidden');
 
             try {
-                // 1. Trigger Google Popup
                 const result = await signInWithPopup(auth, provider);
                 const user = result.user;
                 currentUserData = user;
                 
-                // 2. Check Identity
                 if (user.email === 'shivshreek@gmail.com') {
-                    // --- ADMIN LOGIN ---
                     currentUserRole = 'admin';
                     await createSession(user, 'admin', 'active');
-                    showEmployeeDetailsForm();
+                    // Session created -> Listener triggers -> shows App
                 } else {
-                    // --- USER LOGIN (Requires OTP) ---
                     currentUserRole = 'user';
-                    
-                    // Generate OTP
                     const otp = Math.floor(100000 + Math.random() * 900000).toString();
                     pendingOTP = otp; 
-
-                    // Create Session with PENDING status
                     await createSession(user, 'user', 'pending_otp', otp);
-
-                    // Show OTP UI
-                    document.getElementById('login-form').classList.add('hidden');
-                    document.getElementById('otp-form').classList.remove('hidden');
-                    
-                    // Show user info on OTP screen
-                    document.getElementById('user-email-display').textContent = user.email;
-                    document.getElementById('user-avatar-display').src = user.photoURL || "https://ui-avatars.com/api/?name="+user.displayName;
                 }
 
             } catch (error) {
@@ -575,8 +653,7 @@
                 btn.disabled = false;
                 btn.innerHTML = `<i data-lucide="log-in" class="w-5 h-5 mr-2"></i> Sign in with Google`;
                 lucide.createIcons();
-                
-                errorMsg.innerHTML = `<strong>Login Failed:</strong> ${error.code}<br><span class="text-xs">Did you enable Google Auth in Console?</span>`;
+                errorMsg.innerHTML = `<strong>Login Failed:</strong> ${error.code}<br><span class="text-xs">Error details in console.</span>`;
                 errorMsg.classList.remove('hidden');
             }
         }
@@ -586,7 +663,6 @@
             const platform = navigator.platform;
             
             try {
-                // Using root collection 'sessions'
                 const sessionsRef = collection(db, 'sessions');
                 const docRef = await addDoc(sessionsRef, {
                     uid: user.uid,
@@ -601,21 +677,16 @@
                     loginTime: serverTimestamp()
                 });
                 currentSessionId = docRef.id;
+                
+                // SAVE SESSION ID TO LOCAL STORAGE
+                localStorage.setItem('salary_app_session_id', currentSessionId);
 
-                // Listen to MY session
-                onSnapshot(doc(db, 'sessions', currentSessionId), (doc) => {
-                    const data = doc.data();
-                    if (data && data.status === 'kicked') {
-                        document.body.innerHTML = getKickedUI();
-                    }
-                });
+                attachSessionListener(currentSessionId);
 
             } catch (e) {
                 console.error("Session creation failed", e);
-                
-                // --- IMPROVED ERROR HANDLING FOR PERMISSIONS ---
-                if (e.message.includes("Missing or insufficient permissions") || e.code === 'permission-denied') {
-                    alert("FIREBASE RULES ERROR:\n\nYour database is blocking this write operation.\n\nFIX:\n1. Go to Firebase Console > Firestore Database > Rules\n2. Change to: allow read, write: if true;\n3. Publish");
+                if (e.code === 'permission-denied') {
+                    alert("FIREBASE PERMISSION ERROR: Please check Database Rules in Console.");
                 } else {
                     alert("Database Error: " + e.message);
                 }
@@ -640,21 +711,17 @@
                 
                 snapshot.forEach((doc) => {
                     const data = doc.data();
-                    if (doc.id === currentSessionId) return; // Skip self
+                    if (doc.id === currentSessionId) return; 
 
                     const isMobile = /iPhone|iPad|iPod|Android/i.test(data.device);
-                    const deviceIcon = isMobile ? 'smartphone' : 'monitor';
                     
-                    // Fallback avatar if Google photo is missing
+                    // Fallback avatar
                     const avatar = data.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.displayName)}&background=random`;
 
-                    // 1. PENDING SESSIONS (Login Requests)
                     if (data.status === 'pending_otp') {
                         pendingCount++;
                         const el = document.createElement('div');
                         el.className = 'flex items-center justify-between p-4 bg-yellow-50 rounded-lg border border-yellow-200 shadow-sm';
-                        
-                        // Show Profile Pic & Name
                         el.innerHTML = `
                             <div class="flex items-center gap-3">
                                 <img src="${avatar}" class="w-10 h-10 rounded-full border-2 border-white shadow-sm" alt="User">
@@ -670,8 +737,6 @@
                         `;
                         pendingList.appendChild(el);
                     }
-                    
-                    // 2. ACTIVE SESSIONS
                     else if (data.status === 'active') {
                         activeCount++;
                         const el = document.createElement('div');
@@ -701,16 +766,6 @@
                 }
                 
                 lucide.createIcons();
-            }, (error) => {
-                // --- IMPROVED ERROR HANDLING FOR SNAPSHOTS ---
-                console.error("Snapshot error:", error);
-                if (error.code === 'permission-denied') {
-                     const list = document.getElementById('active-users-list');
-                     list.innerHTML = `<div class="p-4 bg-red-50 text-red-700 rounded-lg text-sm">
-                        <strong>Permission Denied:</strong><br>
-                        Check Firebase Console Rules. Allow read/write access.
-                     </div>`;
-                }
             });
         }
 
@@ -727,11 +782,8 @@
                         status: 'active',
                         otp: null
                     });
-                    showEmployeeDetailsForm();
-                } catch(e) { 
-                    console.error(e);
-                    if (e.code === 'permission-denied') alert("Permission Denied: Check Firebase Rules");
-                }
+                    // Listener will handle UI update
+                } catch(e) { console.error(e); }
             } else {
                 errorMsg.textContent = "Incorrect OTP. Ask Admin for code.";
                 errorMsg.classList.remove('hidden');
@@ -739,12 +791,16 @@
         }
 
         async function handleLogout() {
+            // Remove from local storage
+            localStorage.removeItem('salary_app_session_id');
+            
             if (currentSessionId) {
                 try {
+                    // Update DB to inactive
                     await updateDoc(doc(db, 'sessions', currentSessionId), { status: 'inactive' });
-                    await signOut(auth);
                 } catch(e) { console.error(e); }
             }
+            await signOut(auth);
             location.reload();
         }
         
@@ -763,7 +819,7 @@
                         </div>
                         <h2 class="text-2xl font-bold text-red-700 mb-2">Access Revoked</h2>
                         <p class="text-slate-600 mb-6">The administrator has logged you out.</p>
-                        <button onclick="location.reload()" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 font-medium">Return to Login</button>
+                        <button onclick="localStorage.removeItem('salary_app_session_id'); location.reload()" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 font-medium">Return to Login</button>
                     </div>
                 </div>
             `;
@@ -771,14 +827,13 @@
 
         function showEmployeeDetailsForm() {
             document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('loading-screen').classList.add('hidden');
             document.getElementById('employee-details-form').classList.remove('hidden');
             
-            // Pre-fill employee name from Google account if available
             if (currentUserData && currentUserData.displayName) {
                 document.getElementById('emp-name').value = currentUserData.displayName;
             }
             
-            // Set default date of joining to today
             const today = new Date();
             document.getElementById('doj').value = today.toISOString().split('T')[0];
             
@@ -794,11 +849,9 @@
             document.getElementById('employee-details-form').classList.add('hidden');
             document.getElementById('app-content').classList.remove('hidden');
             
-            // Show user info in header
             document.getElementById('current-user-info').textContent = 
                 `Logged in as: ${currentUserData.displayName || 'User'} (${currentUserRole})`;
             
-            // Initialize admin dashboard if admin
             if (currentUserRole === 'admin') {
                 initAdminDashboard();
             }
@@ -806,7 +859,7 @@
             lucide.createIcons();
         }
 
-        // Initialize
+        // Initialize is called at end of script
         initApp();
     </script>
 
@@ -817,7 +870,6 @@
         document.getElementById('employee-form').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Get form values
             const empCode = document.getElementById('emp-code').value;
             const empName = document.getElementById('emp-name').value;
             const fatherName = document.getElementById('father-name').value;
@@ -825,21 +877,16 @@
             const month = document.getElementById('salary-month').value;
             const year = document.getElementById('salary-year').value;
             
-            // Update payslip with employee details
             document.getElementById('slipEmpCode').textContent = empCode;
             document.getElementById('slipEmpName').textContent = empName;
             document.getElementById('slipFatherName').textContent = fatherName;
             document.getElementById('slipDOJ').textContent = doj;
             document.getElementById('slipMonthYear').textContent = `${month}, ${year}`;
             
-            // Show the main app - ensure showApp is defined
             if (typeof showApp === 'function') {
                 showApp();
             } else if (window.showApp) {
                 window.showApp();
-            } else {
-                console.error("showApp function is not defined");
-                alert("Error: Could not load calculator. Please refresh and try again.");
             }
         });
 
@@ -857,53 +904,56 @@
             const foodAllowStructure = parseFloat(document.getElementById('foodAllow').value) || 0;
             const busDed = parseFloat(document.getElementById('busDed').value) || 0;
 
-            // Update rate display
             document.getElementById('rateDisplay').textContent = `₹${formatNum(varRate)}`;
 
-            // Calculations
-            // 1. Earned Basic: (Basic / Working) * Present
+            // 1. Earned Basic
             let earnedBasic = 0;
             if(workingDays > 0) {
                 earnedBasic = (basic / workingDays) * presentDays;
             }
 
-            // 2. Variable Amount: Hours * user-defined rate
+            // 2. Variable Amount
             const varAmt = varHours * varRate;
 
-            // 3. PF: 12% of Earned Basic
-            const pf = earnedBasic * 0.12;
-
-            // 4. Food Allowance (Fixed)
+            // 3. Food Allowance
             const earnedFood = foodAllowStructure; 
 
-            // 5. Total Earnings
+            // 4. Gross Earnings (for ESI Check)
             const totalEarnings = earnedBasic + varAmt + earnedFood;
 
-            // 6. Total Deductions
-            const totalDeductions = pf + busDed;
+            // 5. PF Calculation (12% of Earned Basic)
+            const pf = earnedBasic * 0.12;
 
-            // 7. Net Pay
+            // 6. ESI Calculation
+            // Rule: 0.75% of Gross if Gross <= 21000, else 0
+            let esi = 0;
+            if (totalEarnings <= 21000) {
+                esi = totalEarnings * 0.0075;
+            }
+
+            // 7. Total Deductions
+            const totalDeductions = pf + busDed + esi;
+
+            // 8. Net Pay
             const netPay = totalEarnings - totalDeductions;
 
             // --- UPDATE PREVIEW ---
             
-            // Attendance Row
             document.getElementById('slipWorkingDays').textContent = workingDays;
             document.getElementById('slipPresentDays').textContent = presentDays;
             document.getElementById('slipVarHours').textContent = varHours;
 
-            // Structure Column
             document.getElementById('slipStructBasic').textContent = formatNum(basic);
             document.getElementById('slipStructFood').textContent = formatNum(foodAllowStructure);
 
-            // Payable Column
             document.getElementById('slipPayableBasic').textContent = formatNum(earnedBasic);
             document.getElementById('slipVarAmt').textContent = formatNum(varAmt);
             document.getElementById('slipPayableFood').textContent = formatNum(earnedFood);
             
-            // Deductions & Totals
+            // Deductions
             document.getElementById('slipPF').textContent = formatNum(pf);
             document.getElementById('slipBus').textContent = formatNum(busDed);
+            document.getElementById('slipESI').textContent = formatNum(esi); // Updated ESI display
             
             document.getElementById('slipTotalEarnings').textContent = formatNum(totalEarnings);
             document.getElementById('slipTotalDeductions').textContent = formatNum(totalDeductions);
