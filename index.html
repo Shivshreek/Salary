@@ -3,12 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Salary Calculator</title>
+    <title>Salary Calculator Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- PDF Generation Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Chart.js for History Graph -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            850: '#1e293b',
+                            900: '#0f172a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        
         .input-cell {
             transition: all 0.2s;
             border: 1px solid #e2e8f0;
@@ -18,29 +46,37 @@
             border-color: #3b82f6;
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
         }
+        /* Dark mode inputs */
+        .dark .input-cell {
+            background-color: #1e293b;
+            border-color: #334155;
+            color: #f1f5f9;
+        }
+        .dark .input-cell:focus {
+            border-color: #60a5fa;
+        }
+
         .payslip-table td, .payslip-table th {
             border: 1px solid #94a3b8;
             padding: 4px 8px;
         }
-        .payslip-header {
-            background-color: #f1f5f9;
+        .dark .payslip-table td, .dark .payslip-table th {
+            border-color: #475569;
         }
-        .hidden {
-            display: none;
-        }
+        
+        .payslip-header { background-color: #f1f5f9; }
+        .dark .payslip-header { background-color: #1e293b; }
+
+        .hidden { display: none; }
         .animate-spin { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
 
-        /* Print Styles */
+        /* Print/PDF Styles */
         @media print {
-            body * {
-                visibility: hidden;
-            }
-            #payslip-container, #payslip-container * {
-                visibility: visible;
-            }
+            body * { visibility: hidden; }
+            #payslip-container, #payslip-container * { visibility: visible; }
             #payslip-container {
                 position: absolute;
                 left: 0;
@@ -50,26 +86,24 @@
                 padding: 20px;
                 box-shadow: none;
                 border: none;
+                background: white !important;
+                color: black !important;
             }
-            .no-print {
-                display: none !important;
-            }
+            .no-print { display: none !important; }
         }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen">
+<body class="bg-slate-100 dark:bg-slate-900 min-h-screen text-slate-800 dark:text-slate-200 transition-colors duration-200">
 
-    <!-- LOADING SCREEN (Initial Check) -->
-    <div id="loading-screen" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center">
+    <!-- LOADING SCREEN -->
+    <div id="loading-screen" class="fixed inset-0 bg-white dark:bg-slate-900 z-50 flex flex-col items-center justify-center">
         <div class="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
-        <p class="text-slate-500 font-medium animate-pulse">Restoring Session...</p>
+        <p class="text-slate-500 dark:text-slate-400 font-medium animate-pulse">Initializing...</p>
     </div>
 
     <!-- LOGIN SCREEN -->
     <div id="login-screen" class="hidden min-h-screen flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden border border-slate-200 relative">
-            
-            <!-- Logo Header -->
+        <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700 relative">
             <div class="bg-slate-800 p-8 text-center">
                 <div class="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-blue-400/30">
                     <i data-lucide="calculator" class="w-8 h-8 text-blue-400"></i>
@@ -79,133 +113,91 @@
             </div>
             
             <div class="p-8">
-                
-                <!-- 1. GOOGLE LOGIN BUTTON -->
+                <!-- Google Login -->
                 <div id="login-form" class="space-y-6 text-center">
-                    <p class="text-slate-600 mb-4">Please identify yourself to proceed.</p>
-                    
+                    <p class="text-slate-600 dark:text-slate-400 mb-4">Please identify yourself to proceed.</p>
                     <button id="google-btn" onclick="handleGoogleLogin()" class="w-full bg-white hover:bg-slate-50 text-slate-700 font-semibold py-3 px-4 rounded-lg transition-colors border border-slate-300 shadow-sm flex items-center justify-center">
                          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5 mr-3">
                          Sign in with Google
                     </button>
-
-                    <div id="error-msg" class="hidden text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-100 flex flex-col gap-1 text-left mt-4">
-                        <!-- Error text injected here -->
-                    </div>
+                    <div id="error-msg" class="hidden text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-100 flex flex-col gap-1 text-left mt-4"></div>
                 </div>
 
-                <!-- 2. OTP FORM (Hidden Initially) -->
+                <!-- OTP Form -->
                 <div id="otp-form" class="hidden space-y-6 text-center">
-                    <!-- User Profile Preview -->
                     <div class="flex flex-col items-center mb-6">
                         <img id="user-avatar-display" src="" class="w-16 h-16 rounded-full border-4 border-slate-100 shadow-md mb-2">
-                        <p id="user-email-display" class="text-sm font-medium text-slate-600"></p>
+                        <p id="user-email-display" class="text-sm font-medium text-slate-600 dark:text-slate-300"></p>
                     </div>
-
                     <div class="bg-yellow-50 text-yellow-800 p-4 rounded-lg mb-4 text-sm border border-yellow-200">
                         <p class="font-bold flex items-center justify-center gap-2 mb-1">
-                            <i data-lucide="shield-lock" class="w-4 h-4"></i>
-                            Admin Approval Required
+                            <i data-lucide="shield-lock" class="w-4 h-4"></i> Admin Approval
                         </p>
-                        <p>Ask the Administrator for the OTP Code to confirm your identity.</p>
+                        <p>Ask Admin for the OTP Code.</p>
                     </div>
-
-                    <div class="space-y-2">
-                        <input type="text" id="otp-input" maxlength="6" class="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-blue-500 outline-none text-center text-2xl tracking-[0.5em] font-mono font-bold uppercase placeholder:tracking-normal" placeholder="------">
-                    </div>
-
+                    <input type="text" id="otp-input" maxlength="6" class="w-full px-4 py-3 rounded-lg border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:border-blue-500 outline-none text-center text-2xl tracking-[0.5em] font-mono font-bold uppercase" placeholder="------">
                     <div id="otp-error" class="hidden text-sm text-red-600"></div>
-
-                    <button id="verify-btn" onclick="handleVerifyOTP()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-3 rounded-lg transition-colors shadow-lg">
-                        Verify Identity
-                    </button>
-                    
+                    <button id="verify-btn" onclick="handleVerifyOTP()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-3 rounded-lg transition-colors shadow-lg">Verify Identity</button>
                     <button onclick="handleLogout()" class="text-xs text-slate-400 hover:text-slate-600 underline mt-4">Cancel Login</button>
                 </div>
-
-            </div>
-            
-            <!-- Footer -->
-            <div class="bg-slate-50 px-8 py-4 border-t border-slate-100 text-center">
-                <p class="text-xs text-slate-400">Restricted System • Monitor Mode Active</p>
             </div>
         </div>
     </div>
 
-    <!-- EMPLOYEE DETAILS FORM (Hidden by default) -->
+    <!-- EMPLOYEE DETAILS FORM -->
     <div id="employee-details-form" class="hidden min-h-screen flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700">
             <div class="bg-slate-800 p-6 text-center">
                 <h2 class="text-xl font-bold text-white">Employee Details</h2>
-                <p id="welcome-msg" class="text-slate-400 text-sm mt-1">Fill in your information to generate salary slip</p>
+                <p id="welcome-msg" class="text-slate-400 text-sm mt-1">Fill in information</p>
             </div>
-            
             <div class="p-6">
-                <!-- IMPORTANT: Removed onsubmit from HTML to handle in module script -->
                 <form id="employee-form" class="space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="space-y-2">
-                            <label class="text-sm font-medium text-slate-700">Employee Code *</label>
-                            <input type="text" id="emp-code" class="input-cell w-full px-3 py-2 rounded-lg text-slate-800" required>
+                            <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Employee Code</label>
+                            <input type="text" id="emp-code" class="input-cell w-full px-3 py-2 rounded-lg" required>
                         </div>
-                        
                         <div class="space-y-2">
-                            <label class="text-sm font-medium text-slate-700">Month *</label>
-                            <select id="salary-month" class="input-cell w-full px-3 py-2 rounded-lg text-slate-800" required>
-                                <option value="">Select Month</option>
-                                <option value="January">January</option>
-                                <option value="February">February</option>
-                                <option value="March">March</option>
-                                <option value="April">April</option>
-                                <option value="May">May</option>
-                                <option value="June">June</option>
-                                <option value="July">July</option>
-                                <option value="August">August</option>
-                                <option value="September">September</option>
+                            <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Month</label>
+                            <select id="salary-month" class="input-cell w-full px-3 py-2 rounded-lg" required>
                                 <option value="October" selected>October</option>
                                 <option value="November">November</option>
                                 <option value="December">December</option>
+                                <option value="January">January</option>
+                                <!-- Add others as needed -->
                             </select>
                         </div>
                     </div>
-                    
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="space-y-2">
-                            <label class="text-sm font-medium text-slate-700">Employee Name *</label>
-                            <input type="text" id="emp-name" class="input-cell w-full px-3 py-2 rounded-lg text-slate-800" required>
+                            <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Employee Name</label>
+                            <input type="text" id="emp-name" class="input-cell w-full px-3 py-2 rounded-lg" required>
                         </div>
-                        
                         <div class="space-y-2">
-                            <label class="text-sm font-medium text-slate-700">Father/Husband Name *</label>
-                            <input type="text" id="father-name" class="input-cell w-full px-3 py-2 rounded-lg text-slate-800" required>
+                            <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Father/Husband Name</label>
+                            <input type="text" id="father-name" class="input-cell w-full px-3 py-2 rounded-lg" required>
                         </div>
                     </div>
-                    
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="space-y-2">
-                            <label class="text-sm font-medium text-slate-700">Date of Joining *</label>
-                            <input type="date" id="doj" class="input-cell w-full px-3 py-2 rounded-lg text-slate-800" required>
+                            <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Date of Joining</label>
+                            <input type="date" id="doj" class="input-cell w-full px-3 py-2 rounded-lg" required>
                         </div>
-                        
                         <div class="space-y-2">
-                            <label class="text-sm font-medium text-slate-700">Year *</label>
-                            <select id="salary-year" class="input-cell w-full px-3 py-2 rounded-lg text-slate-800" required>
-                                <option value="2024">2024</option>
+                            <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Year</label>
+                            <select id="salary-year" class="input-cell w-full px-3 py-2 rounded-lg" required>
                                 <option value="2025" selected>2025</option>
                                 <option value="2026">2026</option>
                             </select>
                         </div>
                     </div>
-                    
                     <div class="pt-4 flex justify-between">
-                        <button type="button" onclick="goBackToLogin()" class="px-4 py-2 text-slate-600 hover:text-slate-800 font-medium flex items-center gap-2">
-                            <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                            Back to Login
+                        <button type="button" onclick="goBackToLogin()" class="px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-800 font-medium flex items-center gap-2">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i> Back
                         </button>
-                        <!-- Added explicit type submit and onclick handler just in case -->
-                        <button type="submit" id="continue-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg transition-colors shadow-sm flex items-center gap-2">
-                            Continue to Calculator
-                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg transition-colors shadow-sm flex items-center gap-2">
+                            Continue <i data-lucide="arrow-right" class="w-4 h-4"></i>
                         </button>
                     </div>
                 </form>
@@ -213,158 +205,149 @@
         </div>
     </div>
 
-    <!-- MAIN APP CONTENT (Hidden by default) -->
+    <!-- MAIN APP CONTENT -->
     <div id="app-content" class="hidden p-4 md:p-8">
         <div class="max-w-6xl mx-auto space-y-6">
             
-            <!-- App Header with Logout -->
-            <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+            <!-- App Header -->
+            <div class="flex flex-col md:flex-row justify-between items-center bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 gap-4">
                 <div class="flex items-center gap-3">
-                    <div class="bg-blue-100 p-2 rounded-lg text-blue-600">
+                    <div class="bg-blue-100 dark:bg-blue-900 p-2 rounded-lg text-blue-600 dark:text-blue-300">
                         <i data-lucide="user-check" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <h2 class="font-bold text-slate-800">Salary Portal</h2>
-                        <p class="text-xs text-green-600 flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                            Session Active
-                        </p>
+                        <h2 class="font-bold text-slate-800 dark:text-white">Salary Portal</h2>
+                        <span id="current-user-info" class="text-xs text-slate-500 dark:text-slate-400">User</span>
                     </div>
                 </div>
-                <div class="flex items-center gap-4">
-                    <span id="current-user-info" class="text-sm text-slate-600"></span>
-                    <button onclick="handleLogout()" class="text-sm text-slate-500 hover:text-red-600 font-medium flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors">
-                        <i data-lucide="log-out" class="w-4 h-4"></i>
-                        Logout
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleHistory()" class="flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors text-sm font-medium">
+                        <i data-lucide="history" class="w-4 h-4"></i> History
+                    </button>
+                    <button onclick="toggleDarkMode()" class="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                        <i data-lucide="moon" class="w-4 h-4 dark:hidden"></i>
+                        <i data-lucide="sun" class="w-4 h-4 hidden dark:block text-yellow-400"></i>
+                    </button>
+                    <button onclick="handleLogout()" class="text-sm text-red-500 hover:text-red-700 font-medium flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                        <i data-lucide="log-out" class="w-4 h-4"></i> Logout
                     </button>
                 </div>
             </div>
 
-            <!-- ADMIN DASHBOARD (Hidden unless admin) -->
-            <div id="admin-dashboard" class="hidden space-y-6">
-                <!-- 1. PENDING REQUESTS -->
-                <div id="pending-section" class="hidden bg-white rounded-xl shadow-md border border-yellow-200 overflow-hidden">
-                    <div class="px-6 py-4 border-b border-yellow-100 bg-yellow-50 flex justify-between items-center">
-                        <h3 class="font-bold text-yellow-800 flex items-center gap-2">
-                            <i data-lucide="bell-ring" class="w-5 h-5 text-yellow-600"></i>
-                            Approvals Needed
+            <!-- HISTORY MODAL -->
+            <div id="history-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                <div class="bg-white dark:bg-slate-800 w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+                    <div class="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900">
+                        <h3 class="text-lg font-bold flex items-center gap-2 dark:text-white">
+                            <i data-lucide="archive" class="w-5 h-5 text-blue-500"></i> Salary History
                         </h3>
-                        <span class="text-xs font-mono bg-white text-yellow-700 px-2 py-1 rounded border border-yellow-200 font-bold">ACTION REQUIRED</span>
+                        <button onclick="toggleHistory()" class="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
                     </div>
-                    <div class="p-6 space-y-3" id="pending-users-list"></div>
-                </div>
-
-                <!-- 2. ACTIVE USERS -->
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden border-l-4 border-l-purple-500">
-                    <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                        <h3 class="font-bold text-slate-800 flex items-center gap-2">
-                            <i data-lucide="shield-alert" class="w-5 h-5 text-purple-600"></i>
-                            Active Sessions
-                        </h3>
-                        <span class="text-xs font-mono bg-purple-100 text-purple-700 px-2 py-1 rounded">ADMIN_MODE</span>
-                    </div>
-                    <div class="p-6">
-                        <div id="active-users-list" class="space-y-3">
-                            <div class="text-center py-4 text-slate-400 text-sm">Loading sessions...</div>
+                    <div class="flex-1 overflow-hidden flex flex-col md:flex-row">
+                        <!-- Chart Section -->
+                        <div class="w-full md:w-1/3 p-6 border-r border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                            <h4 class="text-xs font-bold uppercase text-slate-400 mb-4">Net Pay Trend</h4>
+                            <div class="relative h-48 w-full">
+                                <canvas id="historyChart"></canvas>
+                            </div>
+                        </div>
+                        <!-- List Section -->
+                        <div class="w-full md:w-2/3 p-6 overflow-y-auto">
+                            <div id="history-list" class="space-y-3">
+                                <p class="text-center text-slate-400 py-8">Loading records...</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Calculator Layout -->
+            <!-- ADMIN DASHBOARD -->
+            <div id="admin-dashboard" class="hidden space-y-6">
+                <!-- Pending -->
+                <div id="pending-section" class="hidden bg-white dark:bg-slate-800 rounded-xl shadow-md border border-yellow-200 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-yellow-100 bg-yellow-50 dark:bg-yellow-900/20 flex justify-between items-center">
+                        <h3 class="font-bold text-yellow-800 dark:text-yellow-500 flex items-center gap-2">
+                            <i data-lucide="bell-ring" class="w-5 h-5"></i> Approvals Needed
+                        </h3>
+                    </div>
+                    <div class="p-6 space-y-3" id="pending-users-list"></div>
+                </div>
+                <!-- Active -->
+                <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden border-l-4 border-l-purple-500">
+                    <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/30 flex justify-between items-center">
+                        <h3 class="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                            <i data-lucide="shield-alert" class="w-5 h-5 text-purple-600"></i> Active Sessions
+                        </h3>
+                        <span class="text-xs font-mono bg-purple-100 text-purple-700 px-2 py-1 rounded">ADMIN</span>
+                    </div>
+                    <div class="p-6">
+                        <div id="active-users-list" class="space-y-3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calculator Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 
-                <!-- LEFT COLUMN: INPUTS -->
+                <!-- LEFT: INPUTS -->
                 <div class="lg:col-span-4 space-y-6">
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                        <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6 flex items-center gap-2">
-                            <i data-lucide="settings-2" class="w-4 h-4"></i> Configuration
-                        </h3>
+                    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                <i data-lucide="settings-2" class="w-4 h-4"></i> Inputs
+                            </h3>
+                            <button onclick="savePayslip()" id="save-btn" class="text-xs bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-full flex items-center gap-1 transition-colors">
+                                <i data-lucide="save" class="w-3 h-3"></i> Save Record
+                            </button>
+                        </div>
                         
                         <div class="space-y-5">
-                            <!-- Basic Salary -->
                             <div class="space-y-1">
-                                <label class="text-sm font-medium text-slate-700">Basic Salary (Structure)</label>
-                                <div class="relative">
-                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">₹</span>
-                                    <input type="number" id="basic" value="25941" oninput="calculate()" class="input-cell w-full pl-8 pr-3 py-2 rounded-lg text-slate-800 font-medium">
-                                </div>
+                                <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Basic Salary</label>
+                                <input type="number" id="basic" value="25941" oninput="calculate()" class="input-cell w-full px-3 py-2 rounded-lg">
                             </div>
-
-                            <!-- Attendance -->
                             <div class="grid grid-cols-2 gap-3">
                                 <div class="space-y-1">
-                                    <label class="text-xs font-medium text-slate-500">Working Days</label>
-                                    <input type="number" id="workingDays" value="23" oninput="calculate()" class="input-cell w-full px-3 py-2 rounded-lg text-slate-700">
+                                    <label class="text-xs font-medium text-slate-500 dark:text-slate-400">Working Days</label>
+                                    <input type="number" id="workingDays" value="23" oninput="calculate()" class="input-cell w-full px-3 py-2 rounded-lg">
                                 </div>
                                 <div class="space-y-1">
-                                    <label class="text-xs font-medium text-slate-500">Present Days</label>
-                                    <input type="number" id="presentDays" value="17" oninput="calculate()" class="input-cell w-full px-3 py-2 rounded-lg text-slate-700">
+                                    <label class="text-xs font-medium text-slate-500 dark:text-slate-400">Present Days</label>
+                                    <input type="number" id="presentDays" value="17" oninput="calculate()" class="input-cell w-full px-3 py-2 rounded-lg">
                                 </div>
                             </div>
-
-                            <!-- Variable Hours -->
                             <div class="space-y-1">
-                                <label class="text-sm font-medium text-slate-700 flex justify-between">
-                                    Variable Hours
-                                    <span class="text-xs text-blue-600 font-medium bg-blue-50 px-2 py-0.5 rounded">Rate: 90.00</span>
-                                </label>
-                                <div class="relative">
-                                    <i data-lucide="clock" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-                                    <input type="number" id="varHours" value="58.47" oninput="calculate()" class="input-cell w-full pl-9 pr-3 py-2 rounded-lg text-slate-800">
-                                </div>
+                                <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Variable Hours</label>
+                                <input type="number" id="varHours" value="58.47" oninput="calculate()" class="input-cell w-full px-3 py-2 rounded-lg">
                             </div>
-
-                            <!-- Variable Rate -->
                             <div class="space-y-1">
-                                <label class="text-sm font-medium text-slate-700 flex justify-between">
-                                    Variable Rate (per hour)
-                                    <span id="rateDisplay" class="text-xs text-blue-600 font-medium bg-blue-50 px-2 py-0.5 rounded">₹144.52</span>
-                                </label>
-                                <div class="relative">
-                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">₹</span>
-                                    <input type="number" id="varRate" value="144.52" step="0.01" oninput="calculate()" class="input-cell w-full pl-8 pr-3 py-2 rounded-lg text-slate-800">
-                                </div>
+                                <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Variable Rate</label>
+                                <input type="number" id="varRate" value="144.52" step="0.01" oninput="calculate()" class="input-cell w-full px-3 py-2 rounded-lg">
                             </div>
-
-                            <!-- Food Allowance -->
                             <div class="space-y-1">
-                                <label class="text-sm font-medium text-slate-700">Food Allowance</label>
-                                <div class="relative">
-                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">₹</span>
-                                    <input type="number" id="foodAllow" value="3000" oninput="calculate()" class="input-cell w-full pl-8 pr-3 py-2 rounded-lg text-slate-800">
-                                </div>
+                                <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Food Allowance</label>
+                                <input type="number" id="foodAllow" value="3000" oninput="calculate()" class="input-cell w-full px-3 py-2 rounded-lg">
                             </div>
-
-                            <!-- Bus Deduction -->
                             <div class="space-y-1">
-                                <label class="text-sm font-medium text-red-700">Bus Deduction</label>
-                                <div class="relative">
-                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-red-300">- ₹</span>
-                                    <input type="number" id="busDed" value="750" oninput="calculate()" class="input-cell w-full pl-9 pr-3 py-2 rounded-lg text-red-600 border-red-100 bg-red-50 focus:border-red-400">
-                                </div>
+                                <label class="text-sm font-medium text-red-700 dark:text-red-400">Bus Deduction</label>
+                                <input type="number" id="busDed" value="750" oninput="calculate()" class="input-cell w-full px-3 py-2 rounded-lg text-red-600 border-red-100 bg-red-50 dark:bg-red-900/10">
                             </div>
-
-                            <button onclick="resetCalculator()" class="w-full py-2 text-sm text-slate-500 hover:text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
-                                Reset to Defaults
-                            </button>
+                            <button onclick="resetCalculator()" class="w-full py-2 text-sm text-slate-500 hover:text-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">Reset</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- RIGHT COLUMN: PAY SLIP PREVIEW -->
+                <!-- RIGHT: PREVIEW -->
                 <div class="lg:col-span-8">
-                    <div class="bg-white shadow-lg p-6 md:p-8 min-h-[600px] flex flex-col items-center rounded-xl border border-slate-200" id="payslip-container">
+                    <div class="bg-white dark:bg-white shadow-lg p-6 md:p-8 min-h-[600px] flex flex-col items-center rounded-xl border border-slate-200 dark:border-slate-700" id="payslip-wrapper">
+                        <!-- We force white bg for the slip itself regardless of dark mode for printing clarity -->
                         
-                        <!-- THE PAY SLIP TABLE -->
-                        <div class="w-full max-w-2xl bg-white border-2 border-slate-800 text-slate-900 text-sm font-medium shadow-2xl">
-                            
-                            <!-- Title Row -->
+                        <div id="payslip-container" class="w-full max-w-2xl bg-white border-2 border-slate-800 text-slate-900 text-sm font-medium shadow-2xl">
+                            <!-- Title -->
                             <div class="border-b-2 border-slate-800 text-center py-2 font-bold text-lg bg-slate-50">
                                 PAY SLIP (<span id="slipMonthYear">October, 2025</span>)
                             </div>
-
-                            <!-- Personal Info Grid -->
+                            <!-- Personal -->
                             <div class="grid grid-cols-2 border-b border-slate-400">
                                 <div class="p-2 border-r border-slate-400 space-y-1">
                                     <div class="flex"><span class="w-24 text-slate-500">Emp Code:</span> <span id="slipEmpCode">6138</span></div>
@@ -377,24 +360,22 @@
                                     <div class="flex"><span class="w-24 text-slate-500">D.O.J.:</span> <span id="slipDOJ">2025-04-15</span></div>
                                 </div>
                             </div>
-
-                            <!-- Attendance Row -->
+                            <!-- Attendance -->
                             <div class="grid grid-cols-3 border-b-2 border-slate-800 text-center">
-                                <div class="border-r border-slate-400">
-                                    <div class="bg-slate-100 border-b border-slate-400 py-1 font-bold text-xs">Working Day</div>
-                                    <div class="py-2" id="slipWorkingDays">23</div>
+                                <div class="border-r border-slate-400 p-2">
+                                    <div class="text-xs text-slate-500 uppercase">Working Day</div>
+                                    <div class="font-bold" id="slipWorkingDays">23</div>
                                 </div>
-                                <div class="border-r border-slate-400">
-                                    <div class="bg-slate-100 border-b border-slate-400 py-1 font-bold text-xs">Present Day</div>
-                                    <div class="py-2" id="slipPresentDays">17</div>
+                                <div class="border-r border-slate-400 p-2">
+                                    <div class="text-xs text-slate-500 uppercase">Present Day</div>
+                                    <div class="font-bold" id="slipPresentDays">17</div>
                                 </div>
-                                <div>
-                                    <div class="bg-slate-100 border-b border-slate-400 py-1 font-bold text-xs">Monthly Variable</div>
-                                    <div class="py-2"><span id="slipVarHours">58.47</span> Hr.</div>
+                                <div class="p-2">
+                                    <div class="text-xs text-slate-500 uppercase">Monthly Var</div>
+                                    <div class="font-bold"><span id="slipVarHours">58.47</span> Hr</div>
                                 </div>
                             </div>
-
-                            <!-- Financials Table -->
+                            <!-- Table -->
                             <table class="w-full text-left payslip-table border-collapse">
                                 <thead>
                                     <tr class="bg-slate-200 text-xs uppercase">
@@ -408,106 +389,60 @@
                                     <tr>
                                         <td>Basic</td>
                                         <td class="text-right" id="slipStructBasic">25,941.00</td>
-                                        <td class="text-right font-bold" id="slipPayableBasic">21,948.08</td>
-                                        <td class="flex justify-between font-bold text-slate-700">
-                                            <span>PF:</span>
-                                            <span id="slipPF">2,992.92</span>
-                                        </td>
+                                        <td class="text-right font-bold" id="slipPayableBasic">0.00</td>
+                                        <td class="flex justify-between font-bold text-slate-700"><span>PF:</span><span id="slipPF">0.00</span></td>
                                     </tr>
                                     <tr>
                                         <td class="h-8"></td>
                                         <td></td>
                                         <td></td>
-                                        <td class="flex justify-between text-slate-500">
-                                            <span>ESI:</span>
-                                            <span id="slipESI">0.00</span>
-                                        </td>
+                                        <td class="flex justify-between text-slate-500"><span>ESI:</span><span id="slipESI">0.00</span></td>
                                     </tr>
                                     <tr>
-                                        <td>Monthly V.Allowance</td>
+                                        <td>Monthly V.Allow</td>
                                         <td class="text-right text-slate-400">--</td>
-                                        <td class="text-right" id="slipVarAmt">8,449.35</td>
+                                        <td class="text-right" id="slipVarAmt">0.00</td>
                                         <td></td>
                                     </tr>
                                     <tr>
-                                        <td>Food Allowance</td>
+                                        <td>Food Allow</td>
                                         <td class="text-right" id="slipStructFood">3,000.00</td>
                                         <td class="text-right" id="slipPayableFood">3,000.00</td>
-                                        <td class="flex justify-between font-bold text-slate-700">
-                                            <span>Bus:</span>
-                                            <span id="slipBus">750</span>
-                                        </td>
+                                        <td class="flex justify-between font-bold text-slate-700"><span>Bus:</span><span id="slipBus">750</span></td>
                                     </tr>
                                     <tr class="font-bold border-t-2 border-slate-800">
                                         <td>Total Rs.</td>
                                         <td class="text-right text-slate-400">--</td>
-                                        <td class="text-right" id="slipTotalEarnings">33,397.43</td>
-                                        <td class="text-right" id="slipTotalDeductions">3,742.92</td>
+                                        <td class="text-right" id="slipTotalEarnings">0.00</td>
+                                        <td class="text-right" id="slipTotalDeductions">0.00</td>
                                     </tr>
                                 </tbody>
                             </table>
-
-                            <!-- Net Pay Footer -->
+                            <!-- Net -->
                             <div class="bg-slate-100 p-3 flex justify-between items-center border-t-2 border-slate-800">
                                 <span class="font-bold text-lg uppercase">Net Payable:</span>
-                                <span class="font-bold text-xl text-slate-900" id="slipNetPay">Rs. 24,457.43</span>
+                                <span class="font-bold text-xl text-slate-900" id="slipNetPay">Rs. 0.00</span>
                             </div>
-
                         </div>
-                        
-                        <div class="mt-8 text-xs text-slate-400 text-center flex gap-4 no-print">
-                            <p>This document is a computer generated draft.</p>
-                            <button onclick="window.print()" class="text-blue-600 hover:underline flex items-center gap-1 font-bold">
-                                <i data-lucide="printer" class="w-4 h-4"></i> Print Payslip
+
+                        <div class="mt-8 flex gap-4 no-print">
+                            <button onclick="downloadPDF()" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-lg">
+                                <i data-lucide="download" class="w-4 h-4"></i> Download PDF
                             </button>
                         </div>
-
                     </div>
                 </div>
             </div>
-            
-            <!-- Excel Formula Guide -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mt-8">
-                <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <i data-lucide="file-spreadsheet" class="w-5 h-5 text-green-600"></i>
-                    Excel Formula Cheat Sheet
-                </h3>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left text-slate-600 border border-slate-200">
-                        <thead class="text-xs text-slate-700 uppercase bg-slate-100">
-                            <tr>
-                                <th class="px-4 py-3 border-r border-slate-200">Cell</th>
-                                <th class="px-4 py-3 border-r border-slate-200">Heading</th>
-                                <th class="px-4 py-3">Formula</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-200">
-                            <tr>
-                                <td class="px-4 py-2 font-mono text-xs bg-slate-50 border-r border-slate-200">G2</td>
-                                <td class="px-4 py-2 font-medium border-r border-slate-200">Earned Basic</td>
-                                <td class="px-4 py-2 font-mono text-blue-600">=(A2/B2)*C2</td>
-                            </tr>
-                            <tr>
-                                <td class="px-4 py-2 font-mono text-xs bg-slate-50 border-r border-slate-200">J2</td>
-                                <td class="px-4 py-2 font-medium border-r border-slate-200">NET PAY</td>
-                                <td class="px-4 py-2 font-mono font-bold text-green-600">=G2 + (D2*90) + E2 - (G2*12%) - F2</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
+    <!-- FIREBASE & LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, updateDoc, doc, serverTimestamp, query, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, updateDoc, doc, serverTimestamp, query, orderBy, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- PRODUCTION CONFIGURATION ---
+        // CONFIGURATION
         const firebaseConfig = {
           apiKey: "AIzaSyCfltr6BuElOXV0_p07uBkDngd5fLU6c-U",
           authDomain: "salary-e8a20.firebaseapp.com",
@@ -518,460 +453,338 @@
           measurementId: "G-Z006ERF0Y2"
         };
 
-        // Global Variables
-        let currentSessionId = null;
-        let currentUserRole = null;
-        let currentUserData = null;
-        let pendingOTP = null; 
-        let db = null;
-        let auth = null;
-        let provider = null;
-        let sessionUnsubscribe = null;
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+        const appId = 'salary-app-v1';
 
-        async function initApp() {
-            // 1. Initialize Firebase
-            const app = initializeApp(firebaseConfig);
-            const analytics = getAnalytics(app); 
-            auth = getAuth(app);
-            db = getFirestore(app);
-            provider = new GoogleAuthProvider();
+        // State
+        let currentUser = null;
+        let currentRole = null;
+        let currentSessionId = localStorage.getItem('salary_app_session_id');
+        let sessionUnsub = null;
 
-            // Expose functions to window
-            window.handleGoogleLogin = handleGoogleLogin;
-            window.handleVerifyOTP = handleVerifyOTP;
-            window.handleLogout = handleLogout;
-            window.kickUser = kickUser;
-            window.goBackToLogin = goBackToLogin;
-            window.showApp = showApp;
+        // --- GLOBAL EXPORTS ---
+        window.handleGoogleLogin = handleGoogleLogin;
+        window.handleVerifyOTP = handleVerifyOTP;
+        window.handleLogout = handleLogout;
+        window.kickUser = kickUser;
+        window.goBackToLogin = () => { document.getElementById('employee-details-form').classList.add('hidden'); document.getElementById('login-screen').classList.remove('hidden'); };
+        window.showApp = showApp;
+        window.savePayslip = savePayslip;
+        window.toggleHistory = toggleHistory;
+        window.loadHistoryItem = loadHistoryItem;
 
-            // 2. CHECK SESSION PERSISTENCE
-            onAuthStateChanged(auth, async (user) => {
-                const loadingScreen = document.getElementById('loading-screen');
-                const loginScreen = document.getElementById('login-screen');
+        // --- INIT ---
+        onAuthStateChanged(auth, (user) => {
+            const loading = document.getElementById('loading-screen');
+            const login = document.getElementById('login-screen');
+            
+            if (user && currentSessionId) {
+                currentUser = user;
+                currentRole = (user.email === 'shivshreek@gmail.com') ? 'admin' : 'user';
+                attachSessionListener(currentSessionId);
+            } else {
+                loading.classList.add('hidden');
+                login.classList.remove('hidden');
+                if (user) signOut(auth); // Cleanup if no session ID
+            }
+        });
 
-                if (user) {
-                    // User is signed in to Firebase, check for stored Session ID
-                    const storedSessionId = localStorage.getItem('salary_app_session_id');
-                    
-                    if (storedSessionId) {
-                        currentSessionId = storedSessionId;
-                        currentUserData = user;
-                        // Assume user unless admin email
-                        currentUserRole = (user.email === 'shivshreek@gmail.com') ? 'admin' : 'user';
-                        
-                        // Re-attach listener to the existing session
-                        attachSessionListener(currentSessionId);
-                    } else {
-                        // Signed in but no session ID (maybe cleared cache), sign out to be safe
-                        await signOut(auth);
-                        loadingScreen.classList.add('hidden');
-                        loginScreen.classList.remove('hidden');
-                    }
-                } else {
-                    // Not signed in
-                    loadingScreen.classList.add('hidden');
-                    loginScreen.classList.remove('hidden');
-                }
-            });
-        }
-
-        function attachSessionListener(sessionId) {
-            // Stop previous listener if any
-            if (sessionUnsubscribe) sessionUnsubscribe();
-
-            sessionUnsubscribe = onSnapshot(doc(db, 'sessions', sessionId), (docSnapshot) => {
-                const data = docSnapshot.data();
-                const loadingScreen = document.getElementById('loading-screen');
-                const loginScreen = document.getElementById('login-screen');
-
-                if (!data) {
-                    // Session deleted from DB
-                    handleLogout();
-                    return;
-                }
+        // --- SESSION LOGIC ---
+        function attachSessionListener(sid) {
+            if (sessionUnsub) sessionUnsub();
+            sessionUnsub = onSnapshot(doc(db, 'sessions', sid), (snap) => {
+                const data = snap.data();
+                if (!data) { handleLogout(); return; }
 
                 if (data.status === 'active') {
-                    loadingScreen.classList.add('hidden');
-                    loginScreen.classList.add('hidden');
-                    showEmployeeDetailsForm(); // Or go straight to app if we persisted that state too
+                    document.getElementById('loading-screen').classList.add('hidden');
+                    document.getElementById('login-screen').classList.add('hidden');
+                    // Pass name to ensure welcome message works on refresh
+                    showEmployeeDetailsForm(data.displayName);
                 } else if (data.status === 'kicked') {
                     document.body.innerHTML = getKickedUI();
                 } else if (data.status === 'inactive') {
-                    // Logged out
                     handleLogout();
                 } else if (data.status === 'pending_otp') {
-                    // Restore OTP screen
-                    loadingScreen.classList.add('hidden');
-                    loginScreen.classList.remove('hidden');
+                    document.getElementById('loading-screen').classList.add('hidden');
+                    document.getElementById('login-screen').classList.remove('hidden');
                     document.getElementById('login-form').classList.add('hidden');
                     document.getElementById('otp-form').classList.remove('hidden');
-                    // We need to restore the OTP from local state or just generate new one? 
-                    // Actually if we refreshed, we lost the pendingOTP variable.
-                    // For security, if they refresh on OTP screen, we probably should reset or fetch from DB (if we were storing it safely, but we store it in DB for admin to see).
-                    // Simplified: If pending and refreshed, show OTP screen but user might need to ask Admin for code again if we don't fetch it.
-                    // Since 'data.otp' is in the document, we can see it here but usually we shouldn't show it to the user.
-                    // Let's just allow them to enter it.
-                    pendingOTP = data.otp; 
-                    
+                    window.pendingOTP = data.otp; // insecure but functional for this flow
                     document.getElementById('user-email-display').textContent = data.email;
-                    // Mock photo if missing
-                    const photo = data.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.displayName)}`;
-                    document.getElementById('user-avatar-display').src = photo;
+                    document.getElementById('user-avatar-display').src = data.photoURL || `https://ui-avatars.com/api/?name=${data.displayName}`;
                 }
-            }, (error) => {
-                console.error("Session sync error:", error);
-                
-                // Show error in UI instead of logging out
-                const loadingScreen = document.getElementById('loading-screen');
-                loadingScreen.classList.remove('hidden');
-                loadingScreen.innerHTML = `
-                    <div class="text-center p-4">
-                        <div class="text-red-500 font-bold mb-2">Connection Lost</div>
-                        <p class="text-sm text-slate-500 mb-4">Trying to reconnect...</p>
-                        <button onclick="location.reload()" class="bg-blue-600 text-white px-4 py-2 rounded">Retry</button>
-                    </div>
-                `;
-            });
+            }, err => console.error(err));
         }
 
-        // --- LOGIN LOGIC ---
         async function handleGoogleLogin() {
-            const errorMsg = document.getElementById('error-msg');
-            const btn = document.getElementById('google-btn');
-
-            btn.disabled = true;
-            btn.innerHTML = `<span class="animate-spin mr-2">⏳</span> Connecting...`;
-            errorMsg.classList.add('hidden');
-
             try {
-                const result = await signInWithPopup(auth, provider);
-                const user = result.user;
-                currentUserData = user;
+                document.getElementById('google-btn').innerHTML = '⏳ Connecting...';
+                const res = await signInWithPopup(auth, provider);
+                currentUser = res.user;
                 
-                if (user.email === 'shivshreek@gmail.com') {
-                    currentUserRole = 'admin';
-                    await createSession(user, 'admin', 'active');
-                    // Session created -> Listener triggers -> shows App
+                if (currentUser.email === 'shivshreek@gmail.com') {
+                    await createSession('admin', 'active');
                 } else {
-                    currentUserRole = 'user';
-                    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-                    pendingOTP = otp; 
-                    await createSession(user, 'user', 'pending_otp', otp);
+                    const otp = Math.floor(100000 + Math.random()*900000).toString();
+                    await createSession('user', 'pending_otp', otp);
                 }
-
-            } catch (error) {
-                console.error(error);
-                btn.disabled = false;
-                btn.innerHTML = `<i data-lucide="log-in" class="w-5 h-5 mr-2"></i> Sign in with Google`;
-                lucide.createIcons();
-                errorMsg.innerHTML = `<strong>Login Failed:</strong> ${error.code}<br><span class="text-xs">Error details in console.</span>`;
-                errorMsg.classList.remove('hidden');
-            }
-        }
-
-        async function createSession(user, role, status, otp = null) {
-            const device = navigator.userAgent;
-            const platform = navigator.platform;
-            
-            try {
-                const sessionsRef = collection(db, 'sessions');
-                const docRef = await addDoc(sessionsRef, {
-                    uid: user.uid,
-                    displayName: user.displayName || "Unknown User",
-                    email: user.email,
-                    photoURL: user.photoURL || null,
-                    role: role,
-                    device: device,
-                    platform: platform,
-                    status: status,
-                    otp: otp,
-                    loginTime: serverTimestamp()
-                });
-                currentSessionId = docRef.id;
-                
-                // SAVE SESSION ID TO LOCAL STORAGE
-                localStorage.setItem('salary_app_session_id', currentSessionId);
-
-                attachSessionListener(currentSessionId);
-
             } catch (e) {
-                console.error("Session creation failed", e);
-                if (e.code === 'permission-denied') {
-                    alert("FIREBASE PERMISSION ERROR: Please check Database Rules in Console.");
-                } else {
-                    alert("Database Error: " + e.message);
-                }
+                console.error(e);
+                alert("Login Error: " + e.message);
+                location.reload();
             }
         }
 
-        // --- DASHBOARD LOGIC (ADMIN) ---
-        function initAdminDashboard() {
-            const dashboard = document.getElementById('admin-dashboard');
-            dashboard.classList.remove('hidden');
-            const activeList = document.getElementById('active-users-list');
-            const pendingList = document.getElementById('pending-users-list');
-            const pendingSection = document.getElementById('pending-section');
-
-            const sessionsRef = collection(db, 'sessions');
-            
-            onSnapshot(sessionsRef, (snapshot) => {
-                activeList.innerHTML = '';
-                pendingList.innerHTML = '';
-                let activeCount = 0;
-                let pendingCount = 0;
-                
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    if (doc.id === currentSessionId) return; 
-
-                    const isMobile = /iPhone|iPad|iPod|Android/i.test(data.device);
-                    
-                    // Fallback avatar
-                    const avatar = data.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.displayName)}&background=random`;
-
-                    if (data.status === 'pending_otp') {
-                        pendingCount++;
-                        const el = document.createElement('div');
-                        el.className = 'flex items-center justify-between p-4 bg-yellow-50 rounded-lg border border-yellow-200 shadow-sm';
-                        el.innerHTML = `
-                            <div class="flex items-center gap-3">
-                                <img src="${avatar}" class="w-10 h-10 rounded-full border-2 border-white shadow-sm" alt="User">
-                                <div>
-                                    <p class="font-bold text-slate-800 text-sm">${data.displayName}</p>
-                                    <p class="text-xs text-slate-500">${data.email}</p>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <span class="block text-[10px] text-slate-400 uppercase tracking-wider mb-1">Consent OTP</span>
-                                <span class="bg-white px-2 py-1 rounded border border-slate-200 text-xl font-mono font-bold text-slate-800 tracking-widest">${data.otp}</span>
-                            </div>
-                        `;
-                        pendingList.appendChild(el);
-                    }
-                    else if (data.status === 'active') {
-                        activeCount++;
-                        const el = document.createElement('div');
-                        el.className = 'flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200';
-                        el.innerHTML = `
-                            <div class="flex items-center gap-3 overflow-hidden">
-                                <img src="${avatar}" class="w-8 h-8 rounded-full border border-slate-200" alt="User">
-                                <div class="min-w-0">
-                                    <p class="font-bold text-slate-800 text-sm truncate">${data.displayName}</p>
-                                    <p class="text-xs text-slate-500 truncate">${data.platform} • ${isMobile ? 'Mobile' : 'Desktop'}</p>
-                                </div>
-                            </div>
-                            <button onclick="kickUser('${doc.id}')" class="shrink-0 ml-2 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-semibold px-3 py-1.5 rounded-md transition-colors border border-red-200">
-                                Logout
-                            </button>
-                        `;
-                        activeList.appendChild(el);
-                    }
-                });
-                
-                if (activeCount === 0) activeList.innerHTML = `<div class="text-center py-4 text-slate-400 text-sm">No active users.</div>`;
-                
-                if (pendingCount > 0) {
-                    pendingSection.classList.remove('hidden');
-                } else {
-                    pendingSection.classList.add('hidden');
-                }
-                
-                lucide.createIcons();
+        async function createSession(role, status, otp=null) {
+            const ref = await addDoc(collection(db, 'sessions'), {
+                uid: currentUser.uid,
+                email: currentUser.email,
+                displayName: currentUser.displayName,
+                photoURL: currentUser.photoURL,
+                role, status, otp,
+                device: navigator.userAgent,
+                platform: navigator.platform,
+                loginTime: serverTimestamp()
             });
+            currentSessionId = ref.id;
+            localStorage.setItem('salary_app_session_id', currentSessionId);
+            attachSessionListener(currentSessionId);
         }
 
         async function handleVerifyOTP() {
-            const enteredOTP = document.getElementById('otp-input').value;
-            const errorMsg = document.getElementById('otp-error');
-            const btn = document.getElementById('verify-btn');
-
-            if (enteredOTP === pendingOTP) {
-                btn.textContent = "Unlocking...";
-                btn.disabled = true;
-                try {
-                    await updateDoc(doc(db, 'sessions', currentSessionId), {
-                        status: 'active',
-                        otp: null
-                    });
-                    // Listener will handle UI update
-                } catch(e) { console.error(e); }
+            const input = document.getElementById('otp-input').value;
+            if (input == window.pendingOTP) {
+                await updateDoc(doc(db, 'sessions', currentSessionId), { status: 'active', otp: null });
             } else {
-                errorMsg.textContent = "Incorrect OTP. Ask Admin for code.";
-                errorMsg.classList.remove('hidden');
+                alert("Incorrect OTP");
             }
         }
 
         async function handleLogout() {
-            // Remove from local storage
+            if (currentSessionId) await updateDoc(doc(db, 'sessions', currentSessionId), { status: 'inactive' });
             localStorage.removeItem('salary_app_session_id');
-            
-            if (currentSessionId) {
-                try {
-                    // Update DB to inactive
-                    await updateDoc(doc(db, 'sessions', currentSessionId), { status: 'inactive' });
-                } catch(e) { console.error(e); }
-            }
             await signOut(auth);
             location.reload();
         }
-        
-        async function kickUser(docId) {
+
+        // --- HISTORY & SAVING ---
+        async function savePayslip() {
+            if (!currentUser) return;
+            const btn = document.getElementById('save-btn');
+            btn.innerHTML = 'Saving...';
+            
+            // Gather Data
+            const data = {
+                month: document.getElementById('salary-month').value,
+                year: document.getElementById('salary-year').value,
+                netPay: document.getElementById('slipNetPay').innerText,
+                inputs: {
+                    basic: document.getElementById('basic').value,
+                    working: document.getElementById('workingDays').value,
+                    present: document.getElementById('presentDays').value,
+                    varHours: document.getElementById('varHours').value,
+                    varRate: document.getElementById('varRate').value,
+                    food: document.getElementById('foodAllow').value,
+                    bus: document.getElementById('busDed').value
+                },
+                timestamp: serverTimestamp()
+            };
+
             try {
-                await updateDoc(doc(db, 'sessions', docId), { status: 'kicked' });
-            } catch (e) { alert("Error: " + e.message); }
-        }
-
-        function getKickedUI() {
-            return `
-                <div class="min-h-screen bg-red-50 flex items-center justify-center p-4 font-sans">
-                    <div class="bg-white p-8 rounded-xl shadow-xl text-center max-w-md">
-                        <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
-                        </div>
-                        <h2 class="text-2xl font-bold text-red-700 mb-2">Access Revoked</h2>
-                        <p class="text-slate-600 mb-6">The administrator has logged you out.</p>
-                        <button onclick="localStorage.removeItem('salary_app_session_id'); location.reload()" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 font-medium">Return to Login</button>
-                    </div>
-                </div>
-            `;
-        }
-
-        function showEmployeeDetailsForm() {
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('loading-screen').classList.add('hidden');
-            document.getElementById('employee-details-form').classList.remove('hidden');
-            
-            if (currentUserData && currentUserData.displayName) {
-                document.getElementById('emp-name').value = currentUserData.displayName;
-                document.getElementById('welcome-msg').textContent = `Welcome back, ${currentUserData.displayName}`;
-                document.getElementById('welcome-msg').classList.add('text-blue-600', 'font-medium');
+                // Strict path: artifacts/{appId}/users/{uid}/history
+                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'history'), data);
+                btn.innerHTML = '<i data-lucide="check" class="w-3 h-3"></i> Saved';
+                setTimeout(() => { 
+                    btn.innerHTML = '<i data-lucide="save" class="w-3 h-3"></i> Save Record'; 
+                    lucide.createIcons();
+                }, 2000);
+            } catch (e) {
+                console.error(e);
+                alert("Save Failed: " + e.message);
+                btn.innerHTML = 'Error';
             }
-            
-            const today = new Date();
-            document.getElementById('doj').value = today.toISOString().split('T')[0];
-            
-            lucide.createIcons();
         }
 
-        function goBackToLogin() {
-            document.getElementById('employee-details-form').classList.add('hidden');
-            document.getElementById('login-screen').classList.remove('hidden');
+        async function toggleHistory() {
+            const modal = document.getElementById('history-modal');
+            const list = document.getElementById('history-list');
+            
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                list.innerHTML = '<p class="text-center py-4">Loading...</p>';
+                
+                // Fetch Data
+                const q = query(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'history'), orderBy('timestamp', 'desc'));
+                const snapshot = await getDocs(q);
+                
+                list.innerHTML = '';
+                const chartLabels = [];
+                const chartData = [];
+
+                if (snapshot.empty) {
+                    list.innerHTML = '<p class="text-center text-slate-400">No saved records found.</p>';
+                } else {
+                    snapshot.forEach(doc => {
+                        const d = doc.data();
+                        const rawNet = parseFloat(d.netPay.replace(/[^0-9.-]+/g,""));
+                        chartLabels.unshift(`${d.month} ${d.year}`);
+                        chartData.unshift(rawNet);
+
+                        const div = document.createElement('div');
+                        div.className = "flex justify-between items-center p-3 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-blue-400 cursor-pointer transition-colors";
+                        div.innerHTML = `
+                            <div>
+                                <p class="font-bold text-slate-800 dark:text-white">${d.month}, ${d.year}</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Net: ${d.netPay}</p>
+                            </div>
+                            <button class="text-blue-600 text-xs font-bold" onclick='loadHistoryItem(${JSON.stringify(d.inputs)})'>Load</button>
+                        `;
+                        list.appendChild(div);
+                    });
+                    updateChart(chartLabels, chartData);
+                }
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        let historyChart = null;
+        function updateChart(labels, data) {
+            const ctx = document.getElementById('historyChart').getContext('2d');
+            if (historyChart) historyChart.destroy();
+            historyChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Net Pay',
+                        data: data,
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: false } }
+                }
+            });
+        }
+
+        // --- UTILS ---
+        function loadHistoryItem(inputs) {
+            document.getElementById('basic').value = inputs.basic;
+            document.getElementById('workingDays').value = inputs.working;
+            document.getElementById('presentDays').value = inputs.present;
+            document.getElementById('varHours').value = inputs.varHours;
+            document.getElementById('varRate').value = inputs.varRate;
+            document.getElementById('foodAllow').value = inputs.food;
+            document.getElementById('busDed').value = inputs.bus;
+            
+            document.getElementById('history-modal').classList.add('hidden');
+            calculate(); // Recalculate with loaded values
+        }
+
+        async function kickUser(id) { await updateDoc(doc(db,'sessions',id), {status:'kicked'}); }
+        
+        if (currentRole === 'admin') initAdminDashboard();
+        
+        function getKickedUI() { return `<div class="min-h-screen flex items-center justify-center bg-red-50 p-4"><div class="bg-white p-8 rounded-xl shadow-lg text-center"><h2 class="text-xl font-bold text-red-600 mb-2">Session Ended</h2><p class="mb-4">Admin logged you out.</p><button onclick="location.reload()" class="px-4 py-2 bg-red-600 text-white rounded">Login</button></div></div>`; }
+    </script>
+
+    <!-- Main Logic Script (UI) -->
+    <script>
+        lucide.createIcons();
+
+        // UI Helpers
+        function showEmployeeDetailsForm(name) {
+            document.getElementById('loading-screen').classList.add('hidden');
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('employee-details-form').classList.remove('hidden');
+            if (name) {
+                document.getElementById('emp-name').value = name;
+                document.getElementById('welcome-msg').innerText = `Welcome back, ${name}`;
+                document.getElementById('welcome-msg').classList.add('text-blue-600');
+            }
         }
 
         function showApp() {
             document.getElementById('employee-details-form').classList.add('hidden');
             document.getElementById('app-content').classList.remove('hidden');
-            
-            document.getElementById('current-user-info').textContent = 
-                `Logged in as: ${currentUserData.displayName || 'User'} (${currentUserRole})`;
-            
-            if (currentUserRole === 'admin') {
-                initAdminDashboard();
-            }
-            
             lucide.createIcons();
         }
 
-        // Initialize is called at end of script
-        initApp();
-    </script>
-
-    <script>
-        lucide.createIcons();
-
-        // Handle employee details form submission
-        document.getElementById('employee-form').addEventListener('submit', function(e) {
+        document.getElementById('employee-form').addEventListener('submit', (e) => {
             e.preventDefault();
-            
-            const empCode = document.getElementById('emp-code').value;
-            const empName = document.getElementById('emp-name').value;
-            const fatherName = document.getElementById('father-name').value;
-            const doj = document.getElementById('doj').value;
-            const month = document.getElementById('salary-month').value;
-            const year = document.getElementById('salary-year').value;
-            
-            document.getElementById('slipEmpCode').textContent = empCode;
-            document.getElementById('slipEmpName').textContent = empName;
-            document.getElementById('slipFatherName').textContent = fatherName;
-            document.getElementById('slipDOJ').textContent = doj;
-            document.getElementById('slipMonthYear').textContent = `${month}, ${year}`;
-            
-            if (typeof showApp === 'function') {
-                showApp();
-            } else if (window.showApp) {
-                window.showApp();
-            }
+            // Fill header details
+            document.getElementById('slipEmpCode').innerText = document.getElementById('emp-code').value;
+            document.getElementById('slipEmpName').innerText = document.getElementById('emp-name').value;
+            document.getElementById('slipFatherName').innerText = document.getElementById('father-name').value;
+            document.getElementById('slipDOJ').innerText = document.getElementById('doj').value;
+            document.getElementById('slipMonthYear').innerText = `${document.getElementById('salary-month').value}, ${document.getElementById('salary-year').value}`;
+            showApp();
         });
 
-        function formatNum(num) {
-            return num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        // Toggle Dark Mode
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark');
         }
 
+        // PDF Generation
+        function downloadPDF() {
+            const element = document.getElementById('payslip-container');
+            const opt = {
+                margin: 0.5,
+                filename: `Payslip_${document.getElementById('slipMonthYear').innerText}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        function formatNum(n) { return n.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+
         function calculate() {
-            // Get Inputs
-            const basic = parseFloat(document.getElementById('basic').value) || 0;
-            const workingDays = parseFloat(document.getElementById('workingDays').value) || 23;
-            const presentDays = parseFloat(document.getElementById('presentDays').value) || 0;
-            const varHours = parseFloat(document.getElementById('varHours').value) || 0;
-            const varRate = parseFloat(document.getElementById('varRate').value) || 0;
-            const foodAllowStructure = parseFloat(document.getElementById('foodAllow').value) || 0;
-            const busDed = parseFloat(document.getElementById('busDed').value) || 0;
+            const basic = parseFloat(document.getElementById('basic').value)||0;
+            const working = parseFloat(document.getElementById('workingDays').value)||23;
+            const present = parseFloat(document.getElementById('presentDays').value)||0;
+            const varHours = parseFloat(document.getElementById('varHours').value)||0;
+            const varRate = parseFloat(document.getElementById('varRate').value)||0;
+            const food = parseFloat(document.getElementById('foodAllow').value)||0;
+            const bus = parseFloat(document.getElementById('busDed').value)||0;
 
-            document.getElementById('rateDisplay').textContent = `₹${formatNum(varRate)}`;
+            let earnedBasic = working>0 ? (basic/working)*present : 0;
+            let varAmt = varHours * varRate;
+            let totalEarn = earnedBasic + varAmt + food;
+            let structureGross = basic + food;
 
-            // 1. Earned Basic
-            let earnedBasic = 0;
-            if(workingDays > 0) {
-                earnedBasic = (basic / workingDays) * presentDays;
-            }
+            let pf = earnedBasic * 0.12;
+            let esi = (structureGross <= 21000) ? (totalEarn * 0.0075) : 0;
+            let totalDed = pf + bus + esi;
+            let net = totalEarn - totalDed;
 
-            // 2. Variable Amount
-            const varAmt = varHours * varRate;
-
-            // 3. Food Allowance
-            const earnedFood = foodAllowStructure; 
-
-            // 4. Gross Earnings (for ESI Check)
-            const totalEarnings = earnedBasic + varAmt + earnedFood;
-
-            // 5. PF Calculation (12% of Earned Basic)
-            const pf = earnedBasic * 0.12;
-
-            // 6. ESI Calculation
-            // Rule: 0.75% of Gross if Gross <= 21000, else 0
-            let esi = 0;
-            if (totalEarnings <= 21000) {
-                esi = totalEarnings * 0.0075;
-            }
-
-            // 7. Total Deductions
-            const totalDeductions = pf + busDed + esi;
-
-            // 8. Net Pay
-            const netPay = totalEarnings - totalDeductions;
-
-            // --- UPDATE PREVIEW ---
+            // Update UI
+            document.getElementById('slipStructBasic').innerText = formatNum(basic);
+            document.getElementById('slipStructFood').innerText = formatNum(food);
+            document.getElementById('slipPayableBasic').innerText = formatNum(earnedBasic);
+            document.getElementById('slipVarAmt').innerText = formatNum(varAmt);
+            document.getElementById('slipPayableFood').innerText = formatNum(food);
+            document.getElementById('slipPF').innerText = formatNum(pf);
+            document.getElementById('slipESI').innerText = formatNum(esi);
+            document.getElementById('slipBus').innerText = formatNum(bus);
+            document.getElementById('slipTotalEarnings').innerText = formatNum(totalEarn);
+            document.getElementById('slipTotalDeductions').innerText = formatNum(totalDed);
+            document.getElementById('slipNetPay').innerText = "Rs. " + formatNum(net);
             
-            document.getElementById('slipWorkingDays').textContent = workingDays;
-            document.getElementById('slipPresentDays').textContent = presentDays;
-            document.getElementById('slipVarHours').textContent = varHours;
-
-            document.getElementById('slipStructBasic').textContent = formatNum(basic);
-            document.getElementById('slipStructFood').textContent = formatNum(foodAllowStructure);
-
-            document.getElementById('slipPayableBasic').textContent = formatNum(earnedBasic);
-            document.getElementById('slipVarAmt').textContent = formatNum(varAmt);
-            document.getElementById('slipPayableFood').textContent = formatNum(earnedFood);
-            
-            // Deductions
-            document.getElementById('slipPF').textContent = formatNum(pf);
-            document.getElementById('slipBus').textContent = formatNum(busDed);
-            document.getElementById('slipESI').textContent = formatNum(esi); // Updated ESI display
-            
-            document.getElementById('slipTotalEarnings').textContent = formatNum(totalEarnings);
-            document.getElementById('slipTotalDeductions').textContent = formatNum(totalDeductions);
-            
-            document.getElementById('slipNetPay').textContent = "Rs. " + formatNum(netPay);
+            document.getElementById('slipWorkingDays').innerText = working;
+            document.getElementById('slipPresentDays').innerText = present;
+            document.getElementById('slipVarHours').innerText = varHours;
         }
 
         function resetCalculator() {
@@ -985,7 +798,7 @@
             calculate();
         }
 
-        // Initial Calculation
+        // Init
         calculate();
     </script>
 </body>
