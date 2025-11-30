@@ -483,7 +483,8 @@
             
             if (user && currentSessionId) {
                 currentUser = user;
-                currentRole = (user.email === 'shivshreek@gmail.com') ? 'admin' : 'user';
+                // Robust Check: Normalize email to lowercase
+                currentRole = (user.email.toLowerCase() === 'shivshreek@gmail.com') ? 'admin' : 'user';
                 attachSessionListener(currentSessionId);
             } else {
                 loading.classList.add('hidden');
@@ -526,7 +527,8 @@
                 const res = await signInWithPopup(auth, provider);
                 currentUser = res.user;
                 
-                if (currentUser.email === 'shivshreek@gmail.com') {
+                // Robust Check: Normalize email to lowercase
+                if (currentUser.email.toLowerCase() === 'shivshreek@gmail.com') {
                     currentRole = 'admin'; // Set explicitly immediately
                     await createSession('admin', 'active');
                 } else {
@@ -721,13 +723,16 @@
             
             // Determine display name again for header
             let displayName = 'User';
-            if (currentUser && currentUser.displayName) displayName = currentUser.displayName; // Fixed variable name
+            if (currentUser && currentUser.displayName) displayName = currentUser.displayName; 
             
             document.getElementById('current-user-info').textContent = 
-                `Logged in as: ${displayName} (${currentRole})`; // Fixed variable name
+                `Logged in as: ${displayName}`; 
             
-            if (currentRole === 'admin') { // Fixed variable name
+            // Fail-safe logic: Check email even if currentRole is flaky
+            if (currentRole === 'admin' || (currentUser && currentUser.email.toLowerCase() === 'shivshreek@gmail.com')) {
                 initAdminDashboard();
+                // Add Admin label for confirmation
+                document.getElementById('current-user-info').textContent += " (Admin Verified)";
             }
             
             lucide.createIcons();
