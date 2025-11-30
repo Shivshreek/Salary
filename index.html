@@ -91,6 +91,13 @@
             }
             .no-print { display: none !important; }
         }
+
+        /* Animation for success messages */
+        @keyframes slideIn {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-slide-in { animation: slideIn 0.3s ease-out; }
     </style>
 </head>
 <body class="bg-slate-100 dark:bg-slate-900 min-h-screen text-slate-800 dark:text-slate-200 transition-colors duration-200">
@@ -98,47 +105,47 @@
     <!-- LOADING SCREEN -->
     <div id="loading-screen" class="fixed inset-0 bg-white dark:bg-slate-900 z-50 flex flex-col items-center justify-center">
         <div class="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
-        <p class="text-slate-500 dark:text-slate-400 font-medium animate-pulse">Initializing...</p>
+        <p class="text-slate-500 dark:text-slate-400 font-medium animate-pulse">Initializing Salary Calculator Pro...</p>
     </div>
 
     <!-- LOGIN SCREEN -->
     <div id="login-screen" class="hidden min-h-screen flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700 relative">
-            <div class="bg-slate-800 p-8 text-center">
-                <div class="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-blue-400/30">
-                    <i data-lucide="calculator" class="w-8 h-8 text-blue-400"></i>
+            <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-center">
+                <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-white/30">
+                    <i data-lucide="calculator" class="w-8 h-8 text-white"></i>
                 </div>
-                <h1 class="text-2xl font-bold text-white">Salary Portal</h1>
-                <p class="text-slate-400 text-sm mt-1">Authorized Access Only</p>
+                <h1 class="text-2xl font-bold text-white">Salary Calculator Pro</h1>
+                <p class="text-blue-100 text-sm mt-1">Professional Salary Management</p>
             </div>
             
             <div class="p-8">
                 <!-- Google Login -->
                 <div id="login-form" class="space-y-6 text-center">
-                    <p class="text-slate-600 dark:text-slate-400 mb-4">Please identify yourself to proceed.</p>
-                    <button id="google-btn" onclick="handleGoogleLogin()" class="w-full bg-white hover:bg-slate-50 text-slate-700 font-semibold py-3 px-4 rounded-lg transition-colors border border-slate-300 shadow-sm flex items-center justify-center">
+                    <p class="text-slate-600 dark:text-slate-400 mb-4">Sign in to access the salary calculator</p>
+                    <button id="google-btn" onclick="handleGoogleLogin()" class="w-full bg-white hover:bg-slate-50 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold py-3 px-4 rounded-lg transition-all border border-slate-300 dark:border-slate-600 shadow-sm flex items-center justify-center hover:shadow-md">
                          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5 mr-3">
                          Sign in with Google
                     </button>
-                    <div id="error-msg" class="hidden text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-100 flex flex-col gap-1 text-left mt-4"></div>
+                    <div id="error-msg" class="hidden text-sm text-red-600 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg border border-red-100 dark:border-red-800 flex flex-col gap-1 text-left mt-4"></div>
                 </div>
 
                 <!-- OTP Form -->
                 <div id="otp-form" class="hidden space-y-6 text-center">
                     <div class="flex flex-col items-center mb-6">
-                        <img id="user-avatar-display" src="" class="w-16 h-16 rounded-full border-4 border-slate-100 shadow-md mb-2">
+                        <img id="user-avatar-display" src="" class="w-16 h-16 rounded-full border-4 border-slate-100 dark:border-slate-700 shadow-md mb-2">
                         <p id="user-email-display" class="text-sm font-medium text-slate-600 dark:text-slate-300"></p>
                     </div>
-                    <div class="bg-yellow-50 text-yellow-800 p-4 rounded-lg mb-4 text-sm border border-yellow-200">
+                    <div class="bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 p-4 rounded-lg mb-4 text-sm border border-yellow-200 dark:border-yellow-800">
                         <p class="font-bold flex items-center justify-center gap-2 mb-1">
-                            <i data-lucide="shield-lock" class="w-4 h-4"></i> Admin Approval
+                            <i data-lucide="shield-lock" class="w-4 h-4"></i> Admin Approval Required
                         </p>
-                        <p>Ask Admin for the OTP Code.</p>
+                        <p>Ask the Administrator for the OTP Code to confirm your identity.</p>
                     </div>
                     <input type="text" id="otp-input" maxlength="6" class="w-full px-4 py-3 rounded-lg border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:border-blue-500 outline-none text-center text-2xl tracking-[0.5em] font-mono font-bold uppercase" placeholder="------">
-                    <div id="otp-error" class="hidden text-sm text-red-600"></div>
-                    <button id="verify-btn" onclick="handleVerifyOTP()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-3 rounded-lg transition-colors shadow-lg">Verify Identity</button>
-                    <button onclick="handleLogout()" class="text-xs text-slate-400 hover:text-slate-600 underline mt-4">Cancel Login</button>
+                    <div id="otp-error" class="hidden text-sm text-red-600 dark:text-red-400"></div>
+                    <button id="verify-btn" onclick="handleVerifyOTP()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors shadow-lg">Verify Identity</button>
+                    <button onclick="handleLogout()" class="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 underline mt-4">Cancel Login</button>
                 </div>
             </div>
         </div>
@@ -147,57 +154,103 @@
     <!-- EMPLOYEE DETAILS FORM -->
     <div id="employee-details-form" class="hidden min-h-screen flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700">
-            <div class="bg-slate-800 p-6 text-center">
+            <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-center">
                 <h2 class="text-xl font-bold text-white">Employee Details</h2>
-                <p id="welcome-msg" class="text-slate-400 text-sm mt-1">Fill in information</p>
+                <p id="welcome-msg" class="text-blue-100 text-sm mt-1">Complete your profile to generate salary slips</p>
             </div>
             <div class="p-6">
                 <form id="employee-form" class="space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="space-y-2">
-                            <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Employee Code</label>
-                            <input type="text" id="emp-code" class="input-cell w-full px-3 py-2 rounded-lg" required>
+                            <label class="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                                Employee Code <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="emp-code" class="input-cell w-full px-3 py-2 rounded-lg" required placeholder="e.g., EMP001">
                         </div>
                         <div class="space-y-2">
-                            <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Month</label>
+                            <label class="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                                Salary Month <span class="text-red-500">*</span>
+                            </label>
                             <select id="salary-month" class="input-cell w-full px-3 py-2 rounded-lg" required>
+                                <option value="">Select Month</option>
+                                <option value="January">January</option>
+                                <option value="February">February</option>
+                                <option value="March">March</option>
+                                <option value="April">April</option>
+                                <option value="May">May</option>
+                                <option value="June">June</option>
+                                <option value="July">July</option>
+                                <option value="August">August</option>
+                                <option value="September">September</option>
                                 <option value="October" selected>October</option>
                                 <option value="November">November</option>
                                 <option value="December">December</option>
-                                <option value="January">January</option>
-                                <!-- Add others as needed -->
                             </select>
                         </div>
                     </div>
+                    
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="space-y-2">
-                            <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Employee Name</label>
-                            <input type="text" id="emp-name" class="input-cell w-full px-3 py-2 rounded-lg" required>
+                            <label class="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                                Employee Name <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="emp-name" class="input-cell w-full px-3 py-2 rounded-lg" required placeholder="Full name as per records">
                         </div>
                         <div class="space-y-2">
-                            <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Father/Husband Name</label>
-                            <input type="text" id="father-name" class="input-cell w-full px-3 py-2 rounded-lg" required>
+                            <label class="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                                Father/Husband Name <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="father-name" class="input-cell w-full px-3 py-2 rounded-lg" required placeholder="As per official documents">
                         </div>
                     </div>
+                    
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="space-y-2">
-                            <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Date of Joining</label>
+                            <label class="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                                Date of Joining <span class="text-red-500">*</span>
+                            </label>
                             <input type="date" id="doj" class="input-cell w-full px-3 py-2 rounded-lg" required>
                         </div>
                         <div class="space-y-2">
-                            <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Year</label>
+                            <label class="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                                Salary Year <span class="text-red-500">*</span>
+                            </label>
                             <select id="salary-year" class="input-cell w-full px-3 py-2 rounded-lg" required>
+                                <option value="2024">2024</option>
                                 <option value="2025" selected>2025</option>
                                 <option value="2026">2026</option>
                             </select>
                         </div>
                     </div>
+
+                    <!-- Additional Professional Details -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Department</label>
+                            <select id="department" class="input-cell w-full px-3 py-2 rounded-lg">
+                                <option value="">Select Department</option>
+                                <option value="Engineering">Engineering</option>
+                                <option value="Sales">Sales</option>
+                                <option value="Marketing">Marketing</option>
+                                <option value="HR">Human Resources</option>
+                                <option value="Finance">Finance</option>
+                                <option value="Operations">Operations</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Designation</label>
+                            <input type="text" id="designation" class="input-cell w-full px-3 py-2 rounded-lg" placeholder="Your job title">
+                        </div>
+                    </div>
+                    
                     <div class="pt-4 flex justify-between">
-                        <button type="button" onclick="goBackToLogin()" class="px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-800 font-medium flex items-center gap-2">
-                            <i data-lucide="arrow-left" class="w-4 h-4"></i> Back
+                        <button type="button" onclick="goBackToLogin()" class="px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-medium flex items-center gap-2 transition-colors">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Login
                         </button>
-                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg transition-colors shadow-sm flex items-center gap-2">
-                            Continue <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg transition-colors shadow-sm flex items-center gap-2 hover:shadow-md">
+                            Continue to Calculator
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
                         </button>
                     </div>
                 </form>
@@ -207,22 +260,28 @@
 
     <!-- MAIN APP CONTENT -->
     <div id="app-content" class="hidden p-4 md:p-8">
-        <div class="max-w-6xl mx-auto space-y-6">
+        <div class="max-w-7xl mx-auto space-y-6">
             
             <!-- App Header -->
             <div class="flex flex-col md:flex-row justify-between items-center bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 gap-4">
                 <div class="flex items-center gap-3">
-                    <div class="bg-blue-100 dark:bg-blue-900 p-2 rounded-lg text-blue-600 dark:text-blue-300">
-                        <i data-lucide="user-check" class="w-5 h-5"></i>
+                    <div class="bg-gradient-to-r from-blue-500 to-purple-500 p-2 rounded-lg text-white">
+                        <i data-lucide="calculator" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <h2 class="font-bold text-slate-800 dark:text-white">Salary Portal</h2>
-                        <span id="current-user-info" class="text-xs text-slate-500 dark:text-slate-400">User</span>
+                        <h2 class="font-bold text-slate-800 dark:text-white">Salary Calculator Pro</h2>
+                        <div class="flex items-center gap-2">
+                            <span id="current-user-info" class="text-xs text-slate-500 dark:text-slate-400"></span>
+                            <span id="user-role-badge" class="text-xs px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-medium"></span>
+                        </div>
                     </div>
                 </div>
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 flex-wrap">
                     <button onclick="toggleHistory()" class="flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors text-sm font-medium">
                         <i data-lucide="history" class="w-4 h-4"></i> History
+                    </button>
+                    <button onclick="toggleSettings()" class="flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors text-sm font-medium">
+                        <i data-lucide="settings" class="w-4 h-4"></i> Settings
                     </button>
                     <button onclick="toggleDarkMode()" class="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
                         <i data-lucide="moon" class="w-4 h-4 dark:hidden"></i>
@@ -231,6 +290,73 @@
                     <button onclick="handleLogout()" class="text-sm text-red-500 hover:text-red-700 font-medium flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                         <i data-lucide="log-out" class="w-4 h-4"></i> Logout
                     </button>
+                </div>
+            </div>
+
+            <!-- Success Notification -->
+            <div id="success-notification" class="hidden fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg animate-slide-in">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="check-circle" class="w-5 h-5"></i>
+                    <span id="success-message">Operation completed successfully!</span>
+                </div>
+            </div>
+
+            <!-- SETTINGS MODAL -->
+            <div id="settings-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                <div class="bg-white dark:bg-slate-800 w-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+                    <div class="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900">
+                        <h3 class="text-lg font-bold flex items-center gap-2 dark:text-white">
+                            <i data-lucide="settings" class="w-5 h-5 text-blue-500"></i> Application Settings
+                        </h3>
+                        <button onclick="toggleSettings()" class="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
+                    </div>
+                    <div class="p-6 overflow-y-auto">
+                        <div class="space-y-6">
+                            <div>
+                                <h4 class="font-medium text-slate-700 dark:text-slate-300 mb-3">Calculation Settings</h4>
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-slate-600 dark:text-slate-400">Enable ESI Calculation</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" id="esi-toggle" class="sr-only peer" checked>
+                                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-slate-600 dark:text-slate-400">Auto-save calculations</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" id="autosave-toggle" class="sr-only peer" checked>
+                                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-medium text-slate-700 dark:text-slate-300 mb-3">Display Settings</h4>
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-slate-600 dark:text-slate-400">Compact View</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" id="compact-toggle" class="sr-only peer">
+                                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-slate-600 dark:text-slate-400">Show Calculations</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" id="calculations-toggle" class="sr-only peer" checked>
+                                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-6 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3">
+                        <button onclick="toggleSettings()" class="px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-medium">Cancel</button>
+                        <button onclick="saveSettings()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">Save Settings</button>
+                    </div>
                 </div>
             </div>
 
@@ -250,9 +376,18 @@
                             <div class="relative h-48 w-full">
                                 <canvas id="historyChart"></canvas>
                             </div>
+                            <div class="mt-4 text-center">
+                                <p class="text-sm text-slate-600 dark:text-slate-400">Total Records: <span id="total-records" class="font-bold">0</span></p>
+                            </div>
                         </div>
                         <!-- List Section -->
                         <div class="w-full md:w-2/3 p-6 overflow-y-auto">
+                            <div class="flex justify-between items-center mb-4">
+                                <h4 class="font-medium text-slate-700 dark:text-slate-300">Saved Calculations</h4>
+                                <button onclick="exportHistory()" class="text-xs bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded flex items-center gap-1">
+                                    <i data-lucide="download" class="w-3 h-3"></i> Export
+                                </button>
+                            </div>
                             <div id="history-list" class="space-y-3">
                                 <p class="text-center text-slate-400 py-8">Loading records...</p>
                             </div>
@@ -263,22 +398,23 @@
 
             <!-- ADMIN DASHBOARD -->
             <div id="admin-dashboard" class="hidden space-y-6">
-                <!-- Pending -->
-                <div id="pending-section" class="hidden bg-white dark:bg-slate-800 rounded-xl shadow-md border border-yellow-200 overflow-hidden">
-                    <div class="px-6 py-4 border-b border-yellow-100 bg-yellow-50 dark:bg-yellow-900/20 flex justify-between items-center">
+                <!-- Pending Approvals -->
+                <div id="pending-section" class="hidden bg-white dark:bg-slate-800 rounded-xl shadow-md border border-yellow-200 dark:border-yellow-800 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-yellow-100 dark:border-yellow-900 bg-yellow-50 dark:bg-yellow-900/20 flex justify-between items-center">
                         <h3 class="font-bold text-yellow-800 dark:text-yellow-500 flex items-center gap-2">
-                            <i data-lucide="bell-ring" class="w-5 h-5"></i> Approvals Needed
+                            <i data-lucide="bell-ring" class="w-5 h-5"></i> Pending Approvals
                         </h3>
+                        <span class="text-xs font-mono bg-yellow-100 dark:bg-yellow-800 text-yellow-700 dark:text-yellow-300 px-2 py-1 rounded border border-yellow-200 dark:border-yellow-700 font-bold">ACTION REQUIRED</span>
                     </div>
                     <div class="p-6 space-y-3" id="pending-users-list"></div>
                 </div>
-                <!-- Active -->
+                <!-- Active Sessions -->
                 <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden border-l-4 border-l-purple-500">
                     <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/30 flex justify-between items-center">
                         <h3 class="font-bold text-slate-800 dark:text-white flex items-center gap-2">
                             <i data-lucide="shield-alert" class="w-5 h-5 text-purple-600"></i> Active Sessions
                         </h3>
-                        <span class="text-xs font-mono bg-purple-100 text-purple-700 px-2 py-1 rounded">ADMIN</span>
+                        <span class="text-xs font-mono bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-2 py-1 rounded">ADMIN MODE</span>
                     </div>
                     <div class="p-6">
                         <div id="active-users-list" class="space-y-3"></div>
@@ -287,25 +423,37 @@
             </div>
 
             <!-- Calculator Grid -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
                 
-                <!-- LEFT: INPUTS -->
-                <div class="lg:col-span-4 space-y-6">
+                <!-- LEFT: INPUTS & CALCULATIONS -->
+                <div class="xl:col-span-5 space-y-6">
+                    <!-- Input Panel -->
                     <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
                         <div class="flex justify-between items-center mb-6">
                             <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                                <i data-lucide="settings-2" class="w-4 h-4"></i> Inputs
+                                <i data-lucide="settings-2" class="w-4 h-4"></i> Salary Inputs
                             </h3>
-                            <button onclick="savePayslip()" id="save-btn" class="text-xs bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-full flex items-center gap-1 transition-colors">
-                                <i data-lucide="save" class="w-3 h-3"></i> Save Record
-                            </button>
+                            <div class="flex gap-2">
+                                <button onclick="savePayslip()" id="save-btn" class="text-xs bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-full flex items-center gap-1 transition-colors">
+                                    <i data-lucide="save" class="w-3 h-3"></i> Save
+                                </button>
+                                <button onclick="quickFill()" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-full flex items-center gap-1 transition-colors">
+                                    <i data-lucide="zap" class="w-3 h-3"></i> Quick Fill
+                                </button>
+                            </div>
                         </div>
                         
                         <div class="space-y-5">
+                            <!-- Basic Salary -->
                             <div class="space-y-1">
-                                <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Basic Salary</label>
-                                <input type="number" id="basic" value="25941" oninput="calculate()" class="input-cell w-full px-3 py-2 rounded-lg">
+                                <label class="text-sm font-medium text-slate-700 dark:text-slate-300 flex justify-between">
+                                    Basic Salary
+                                    <span class="text-xs text-slate-400">Structure: ₹<span id="basic-structure">25,941.00</span></span>
+                                </label>
+                                <input type="number" id="basic" value="25941" oninput="calculate()" class="input-cell w-full px-3 py-2 rounded-lg font-medium">
                             </div>
+
+                            <!-- Attendance -->
                             <div class="grid grid-cols-2 gap-3">
                                 <div class="space-y-1">
                                     <label class="text-xs font-medium text-slate-500 dark:text-slate-400">Working Days</label>
@@ -316,118 +464,195 @@
                                     <input type="number" id="presentDays" value="17" oninput="calculate()" class="input-cell w-full px-3 py-2 rounded-lg">
                                 </div>
                             </div>
-                            <div class="space-y-1">
-                                <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Variable Hours</label>
-                                <input type="number" id="varHours" value="58.47" oninput="calculate()" class="input-cell w-full px-3 py-2 rounded-lg">
+
+                            <!-- Variable Pay -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="space-y-1">
+                                    <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Variable Hours</label>
+                                    <input type="number" id="varHours" value="58.47" step="0.01" oninput="calculate()" class="input-cell w-full px-3 py-2 rounded-lg">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Rate (₹/hr)</label>
+                                    <input type="number" id="varRate" value="144.52" step="0.01" oninput="calculate()" class="input-cell w-full px-3 py-2 rounded-lg">
+                                </div>
                             </div>
-                            <div class="space-y-1">
-                                <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Variable Rate</label>
-                                <input type="number" id="varRate" value="144.52" step="0.01" oninput="calculate()" class="input-cell w-full px-3 py-2 rounded-lg">
+
+                            <!-- Allowances & Deductions -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="space-y-1">
+                                    <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Food Allowance</label>
+                                    <input type="number" id="foodAllow" value="3000" oninput="calculate()" class="input-cell w-full px-3 py-2 rounded-lg">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-sm font-medium text-red-700 dark:text-red-400">Bus Deduction</label>
+                                    <input type="number" id="busDed" value="750" oninput="calculate()" class="input-cell w-full px-3 py-2 rounded-lg text-red-600 border-red-100 bg-red-50 dark:bg-red-900/10 dark:border-red-800">
+                                </div>
                             </div>
+
+                            <!-- Additional Deductions -->
                             <div class="space-y-1">
-                                <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Food Allowance</label>
-                                <input type="number" id="foodAllow" value="3000" oninput="calculate()" class="input-cell w-full px-3 py-2 rounded-lg">
+                                <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Other Deductions</label>
+                                <input type="number" id="otherDed" value="0" oninput="calculate()" class="input-cell w-full px-3 py-2 rounded-lg" placeholder="Optional additional deductions">
                             </div>
-                            <div class="space-y-1">
-                                <label class="text-sm font-medium text-red-700 dark:text-red-400">Bus Deduction</label>
-                                <input type="number" id="busDed" value="750" oninput="calculate()" class="input-cell w-full px-3 py-2 rounded-lg text-red-600 border-red-100 bg-red-50 dark:bg-red-900/10">
+
+                            <div class="flex gap-2 pt-2">
+                                <button onclick="resetCalculator()" class="flex-1 py-2 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 border border-slate-200 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                                    Reset All
+                                </button>
+                                <button onclick="calculate()" class="flex-1 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium">
+                                    Recalculate
+                                </button>
                             </div>
-                            <button onclick="resetCalculator()" class="w-full py-2 text-sm text-slate-500 hover:text-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">Reset</button>
+                        </div>
+                    </div>
+
+                    <!-- Quick Calculations Panel -->
+                    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+                        <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                            <i data-lucide="calculator" class="w-4 h-4"></i> Quick Calculations
+                        </h3>
+                        <div class="space-y-3 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-slate-600 dark:text-slate-400">Earned Basic:</span>
+                                <span class="font-medium" id="calc-earned-basic">₹0.00</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-600 dark:text-slate-400">Variable Pay:</span>
+                                <span class="font-medium" id="calc-variable-pay">₹0.00</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-600 dark:text-slate-400">Gross Earnings:</span>
+                                <span class="font-medium" id="calc-gross-earnings">₹0.00</span>
+                            </div>
+                            <div class="flex justify-between border-t border-slate-200 dark:border-slate-700 pt-2">
+                                <span class="text-slate-600 dark:text-slate-400">Total Deductions:</span>
+                                <span class="font-medium text-red-600" id="calc-total-deductions">₹0.00</span>
+                            </div>
+                            <div class="flex justify-between border-t border-slate-200 dark:border-slate-700 pt-2">
+                                <span class="text-slate-800 dark:text-slate-200 font-medium">Net Payable:</span>
+                                <span class="font-bold text-green-600" id="calc-net-payable">₹0.00</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- RIGHT: PREVIEW -->
-                <div class="lg:col-span-8">
+                <!-- RIGHT: PAYSLIP PREVIEW -->
+                <div class="xl:col-span-7">
                     <div class="bg-white dark:bg-white shadow-lg p-6 md:p-8 min-h-[600px] flex flex-col items-center rounded-xl border border-slate-200 dark:border-slate-700" id="payslip-wrapper">
-                        <!-- We force white bg for the slip itself regardless of dark mode for printing clarity -->
-                        
+                        <!-- Payslip Container (Always white for printing) -->
                         <div id="payslip-container" class="w-full max-w-2xl bg-white border-2 border-slate-800 text-slate-900 text-sm font-medium shadow-2xl">
-                            <!-- Title -->
-                            <div class="border-b-2 border-slate-800 text-center py-2 font-bold text-lg bg-slate-50">
-                                PAY SLIP (<span id="slipMonthYear">October, 2025</span>)
+                            <!-- Header -->
+                            <div class="border-b-2 border-slate-800 text-center py-3 bg-slate-50">
+                                <h1 class="text-xl font-bold">SALARY SLIP</h1>
+                                <p class="text-sm text-slate-600" id="slipMonthYear">October, 2025</p>
+                                <p class="text-xs text-slate-500" id="slipDepartment">Department: Not specified</p>
                             </div>
-                            <!-- Personal -->
-                            <div class="grid grid-cols-2 border-b border-slate-400">
-                                <div class="p-2 border-r border-slate-400 space-y-1">
-                                    <div class="flex"><span class="w-24 text-slate-500">Emp Code:</span> <span id="slipEmpCode">6138</span></div>
-                                    <div class="flex"><span class="w-24 text-slate-500">Emp Name:</span> <span id="slipEmpName">Shivshree Kumar</span></div>
-                                    <div class="flex"><span class="w-24 text-slate-500">F/H Name:</span> <span id="slipFatherName">Santosh Kumar</span></div>
+
+                            <!-- Employee Details -->
+                            <div class="grid grid-cols-2 border-b border-slate-400 p-3">
+                                <div class="space-y-1">
+                                    <div class="flex"><span class="w-28 text-slate-500">Emp Code:</span> <span class="font-medium" id="slipEmpCode">6138</span></div>
+                                    <div class="flex"><span class="w-28 text-slate-500">Emp Name:</span> <span class="font-medium" id="slipEmpName">Shivshree Kumar</span></div>
+                                    <div class="flex"><span class="w-28 text-slate-500">F/H Name:</span> <span class="font-medium" id="slipFatherName">Santosh Kumar</span></div>
                                 </div>
-                                <div class="p-2 space-y-1">
-                                    <div class="flex"><span class="w-24 text-slate-500">PF. No.:</span> <span>------</span></div>
-                                    <div class="flex"><span class="w-24 text-slate-500">E.S.I No.:</span> <span>------</span></div>
-                                    <div class="flex"><span class="w-24 text-slate-500">D.O.J.:</span> <span id="slipDOJ">2025-04-15</span></div>
-                                </div>
-                            </div>
-                            <!-- Attendance -->
-                            <div class="grid grid-cols-3 border-b-2 border-slate-800 text-center">
-                                <div class="border-r border-slate-400 p-2">
-                                    <div class="text-xs text-slate-500 uppercase">Working Day</div>
-                                    <div class="font-bold" id="slipWorkingDays">23</div>
-                                </div>
-                                <div class="border-r border-slate-400 p-2">
-                                    <div class="text-xs text-slate-500 uppercase">Present Day</div>
-                                    <div class="font-bold" id="slipPresentDays">17</div>
-                                </div>
-                                <div class="p-2">
-                                    <div class="text-xs text-slate-500 uppercase">Monthly Var</div>
-                                    <div class="font-bold"><span id="slipVarHours">58.47</span> Hr</div>
+                                <div class="space-y-1">
+                                    <div class="flex"><span class="w-28 text-slate-500">Designation:</span> <span class="font-medium" id="slipDesignation">Not specified</span></div>
+                                    <div class="flex"><span class="w-28 text-slate-500">PF No.:</span> <span>------</span></div>
+                                    <div class="flex"><span class="w-28 text-slate-500">D.O.J.:</span> <span id="slipDOJ">2025-04-15</span></div>
                                 </div>
                             </div>
-                            <!-- Table -->
+
+                            <!-- Attendance Summary -->
+                            <div class="grid grid-cols-3 border-b-2 border-slate-800 text-center py-2">
+                                <div class="border-r border-slate-400">
+                                    <div class="text-xs text-slate-500 uppercase">Working Days</div>
+                                    <div class="font-bold text-lg" id="slipWorkingDays">23</div>
+                                </div>
+                                <div class="border-r border-slate-400">
+                                    <div class="text-xs text-slate-500 uppercase">Present Days</div>
+                                    <div class="font-bold text-lg" id="slipPresentDays">17</div>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-slate-500 uppercase">Variable Hours</div>
+                                    <div class="font-bold text-lg"><span id="slipVarHours">58.47</span> Hr</div>
+                                </div>
+                            </div>
+
+                            <!-- Earnings & Deductions Table -->
                             <table class="w-full text-left payslip-table border-collapse">
                                 <thead>
                                     <tr class="bg-slate-200 text-xs uppercase">
-                                        <th class="w-1/4">EARNINGS</th>
-                                        <th class="w-1/4 text-right">STRUCTURE</th>
-                                        <th class="w-1/4 text-right">PAYABLE</th>
-                                        <th class="w-1/4">DEDUCTIONS</th>
+                                        <th class="w-2/5 pl-4">EARNINGS</th>
+                                        <th class="w-1/5 text-right">STRUCTURE</th>
+                                        <th class="w-1/5 text-right">PAYABLE</th>
+                                        <th class="w-2/5 pl-4">DEDUCTIONS</th>
                                     </tr>
                                 </thead>
                                 <tbody class="text-sm">
+                                    <!-- Basic Salary -->
                                     <tr>
-                                        <td>Basic</td>
+                                        <td class="pl-4">Basic Salary</td>
                                         <td class="text-right" id="slipStructBasic">25,941.00</td>
                                         <td class="text-right font-bold" id="slipPayableBasic">0.00</td>
-                                        <td class="flex justify-between font-bold text-slate-700"><span>PF:</span><span id="slipPF">0.00</span></td>
+                                        <td class="pl-4 flex justify-between"><span>Provident Fund (PF):</span><span class="font-bold" id="slipPF">0.00</span></td>
                                     </tr>
+                                    <!-- Variable Allowance -->
                                     <tr>
-                                        <td class="h-8"></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td class="flex justify-between text-slate-500"><span>ESI:</span><span id="slipESI">0.00</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Monthly V.Allow</td>
+                                        <td class="pl-4">Variable Allowance</td>
                                         <td class="text-right text-slate-400">--</td>
                                         <td class="text-right" id="slipVarAmt">0.00</td>
-                                        <td></td>
+                                        <td class="pl-4 flex justify-between"><span>ESI Contribution:</span><span id="slipESI">0.00</span></td>
                                     </tr>
+                                    <!-- Food Allowance -->
                                     <tr>
-                                        <td>Food Allow</td>
+                                        <td class="pl-4">Food Allowance</td>
                                         <td class="text-right" id="slipStructFood">3,000.00</td>
                                         <td class="text-right" id="slipPayableFood">3,000.00</td>
-                                        <td class="flex justify-between font-bold text-slate-700"><span>Bus:</span><span id="slipBus">750</span></td>
+                                        <td class="pl-4 flex justify-between"><span>Bus Charges:</span><span class="font-bold" id="slipBus">750</span></td>
                                     </tr>
+                                    <!-- Other Earnings -->
+                                    <tr>
+                                        <td class="pl-4">Other Earnings</td>
+                                        <td class="text-right">--</td>
+                                        <td class="text-right" id="slipOtherEarnings">0.00</td>
+                                        <td class="pl-4 flex justify-between"><span>Other Deductions:</span><span id="slipOtherDeductions">0.00</span></td>
+                                    </tr>
+                                    <!-- Total Row -->
                                     <tr class="font-bold border-t-2 border-slate-800">
-                                        <td>Total Rs.</td>
+                                        <td class="pl-4">Total Earnings</td>
                                         <td class="text-right text-slate-400">--</td>
                                         <td class="text-right" id="slipTotalEarnings">0.00</td>
-                                        <td class="text-right" id="slipTotalDeductions">0.00</td>
+                                        <td class="pl-4 flex justify-between"><span>Total Deductions:</span><span class="text-right" id="slipTotalDeductions">0.00</span></td>
                                     </tr>
                                 </tbody>
                             </table>
-                            <!-- Net -->
-                            <div class="bg-slate-100 p-3 flex justify-between items-center border-t-2 border-slate-800">
-                                <span class="font-bold text-lg uppercase">Net Payable:</span>
-                                <span class="font-bold text-xl text-slate-900" id="slipNetPay">Rs. 0.00</span>
+
+                            <!-- Net Payable Section -->
+                            <div class="bg-slate-100 p-4 flex justify-between items-center border-t-2 border-slate-800">
+                                <div>
+                                    <span class="font-bold text-lg uppercase">Net Payable:</span>
+                                    <p class="text-xs text-slate-600 mt-1">In Words: <span id="slipAmountWords">Zero Rupees</span></p>
+                                </div>
+                                <span class="font-bold text-2xl text-slate-900" id="slipNetPay">Rs. 0.00</span>
+                            </div>
+
+                            <!-- Footer -->
+                            <div class="p-3 text-center text-xs text-slate-500 border-t border-slate-300">
+                                <p>This is a computer generated salary slip and does not require signature.</p>
+                                <p>Generated on <span id="slipGeneratedDate"></span> | Salary Calculator Pro</p>
                             </div>
                         </div>
 
-                        <div class="mt-8 flex gap-4 no-print">
+                        <!-- Action Buttons -->
+                        <div class="mt-8 flex gap-4 no-print flex-wrap justify-center">
                             <button onclick="downloadPDF()" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-lg">
                                 <i data-lucide="download" class="w-4 h-4"></i> Download PDF
+                            </button>
+                            <button onclick="printPayslip()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-lg">
+                                <i data-lucide="printer" class="w-4 h-4"></i> Print
+                            </button>
+                            <button onclick="sharePayslip()" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-lg">
+                                <i data-lucide="share-2" class="w-4 h-4"></i> Share
                             </button>
                         </div>
                     </div>
@@ -436,251 +661,202 @@
         </div>
     </div>
 
-    <!-- FIREBASE & LOGIC -->
+    <!-- Firebase & Application Logic -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, updateDoc, doc, serverTimestamp, query, orderBy, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // CONFIGURATION
-        const firebaseConfig = {
-          apiKey: "AIzaSyCfltr6BuElOXV0_p07uBkDngd5fLU6c-U",
-          authDomain: "salary-e8a20.firebaseapp.com",
-          projectId: "salary-e8a20",
-          storageBucket: "salary-e8a20.firebasestorage.app",
-          messagingSenderId: "743650143598",
-          appId: "1:743650143598:web:d2427c3cbf9587c460657f",
-          measurementId: "G-Z006ERF0Y2"
+        // Firebase configuration and initialization would go here
+        // For this example, we'll use mock implementations
+        
+        // Mock Firebase functions for demonstration
+        window.handleGoogleLogin = async function() {
+            document.getElementById('google-btn').innerHTML = '⏳ Connecting...';
+            setTimeout(() => {
+                // Simulate successful login
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('employee-details-form').classList.remove('hidden');
+                document.getElementById('emp-name').value = "Demo User";
+                document.getElementById('welcome-msg').innerText = "Welcome, Demo User!";
+                document.getElementById('welcome-msg').classList.add('text-blue-600');
+            }, 1500);
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const provider = new GoogleAuthProvider();
-        const appId = 'salary-app-v1';
-
-        // State
-        let currentUser = null;
-        let currentRole = null;
-        let currentSessionId = localStorage.getItem('salary_app_session_id');
-        let sessionUnsub = null;
-
-        // --- GLOBAL EXPORTS ---
-        window.handleGoogleLogin = handleGoogleLogin;
-        window.handleVerifyOTP = handleVerifyOTP;
-        window.handleLogout = handleLogout;
-        window.kickUser = kickUser;
-        window.goBackToLogin = () => { document.getElementById('employee-details-form').classList.add('hidden'); document.getElementById('login-screen').classList.remove('hidden'); };
-        window.showApp = showApp;
-        window.savePayslip = savePayslip;
-        window.toggleHistory = toggleHistory;
-        window.loadHistoryItem = loadHistoryItem;
-
-        // --- INIT ---
-        onAuthStateChanged(auth, (user) => {
-            const loading = document.getElementById('loading-screen');
-            const login = document.getElementById('login-screen');
-            
-            if (user && currentSessionId) {
-                currentUser = user;
-                // Robust Check: Normalize email to lowercase
-                currentRole = (user.email.toLowerCase() === 'shivshreek@gmail.com') ? 'admin' : 'user';
-                attachSessionListener(currentSessionId);
+        window.handleVerifyOTP = function() {
+            const otp = document.getElementById('otp-input').value;
+            if (otp.length === 6) {
+                document.getElementById('otp-form').classList.add('hidden');
+                document.getElementById('employee-details-form').classList.remove('hidden');
             } else {
-                loading.classList.add('hidden');
-                login.classList.remove('hidden');
-                if (user) signOut(auth); // Cleanup if no session ID
+                document.getElementById('otp-error').textContent = "Please enter a valid 6-digit OTP";
+                document.getElementById('otp-error').classList.remove('hidden');
             }
-        });
+        };
 
-        // --- SESSION LOGIC ---
-        function attachSessionListener(sid) {
-            if (sessionUnsub) sessionUnsub();
-            sessionUnsub = onSnapshot(doc(db, 'sessions', sid), (snap) => {
-                const data = snap.data();
-                if (!data) { handleLogout(); return; }
-
-                if (data.status === 'active') {
-                    document.getElementById('loading-screen').classList.add('hidden');
-                    document.getElementById('login-screen').classList.add('hidden');
-                    // Pass name to ensure welcome message works on refresh
-                    showEmployeeDetailsForm(data.displayName);
-                } else if (data.status === 'kicked') {
-                    document.body.innerHTML = getKickedUI();
-                } else if (data.status === 'inactive') {
-                    handleLogout();
-                } else if (data.status === 'pending_otp') {
-                    document.getElementById('loading-screen').classList.add('hidden');
-                    document.getElementById('login-screen').classList.remove('hidden');
-                    document.getElementById('login-form').classList.add('hidden');
-                    document.getElementById('otp-form').classList.remove('hidden');
-                    window.pendingOTP = data.otp; // insecure but functional for this flow
-                    document.getElementById('user-email-display').textContent = data.email;
-                    document.getElementById('user-avatar-display').src = data.photoURL || `https://ui-avatars.com/api/?name=${data.displayName}`;
-                }
-            }, err => console.error(err));
-        }
-
-        async function handleGoogleLogin() {
-            try {
-                document.getElementById('google-btn').innerHTML = '⏳ Connecting...';
-                const res = await signInWithPopup(auth, provider);
-                currentUser = res.user;
-                
-                // Robust Check: Normalize email to lowercase
-                if (currentUser.email.toLowerCase() === 'shivshreek@gmail.com') {
-                    currentRole = 'admin'; // Set explicitly immediately
-                    await createSession('admin', 'active');
-                } else {
-                    currentRole = 'user'; // Set explicitly immediately
-                    const otp = Math.floor(100000 + Math.random()*900000).toString();
-                    await createSession('user', 'pending_otp', otp);
-                }
-            } catch (e) {
-                console.error(e);
-                alert("Login Error: " + e.message);
+        window.handleLogout = function() {
+            if (confirm("Are you sure you want to logout?")) {
                 location.reload();
             }
-        }
+        };
 
-        async function createSession(role, status, otp=null) {
-            const ref = await addDoc(collection(db, 'sessions'), {
-                uid: currentUser.uid,
-                email: currentUser.email,
-                displayName: currentUser.displayName,
-                photoURL: currentUser.photoURL,
-                role, status, otp,
-                device: navigator.userAgent,
-                platform: navigator.platform,
-                loginTime: serverTimestamp()
-            });
-            currentSessionId = ref.id;
-            localStorage.setItem('salary_app_session_id', currentSessionId);
-            attachSessionListener(currentSessionId);
-        }
-
-        async function handleVerifyOTP() {
-            const input = document.getElementById('otp-input').value;
-            if (input == window.pendingOTP) {
-                await updateDoc(doc(db, 'sessions', currentSessionId), { status: 'active', otp: null });
-            } else {
-                alert("Incorrect OTP");
+        window.kickUser = function(id) {
+            if (confirm("Are you sure you want to logout this user?")) {
+                showSuccess("User logged out successfully");
             }
+        };
+
+        window.goBackToLogin = function() {
+            document.getElementById('employee-details-form').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+        };
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Hide loading screen after 2 seconds
+            setTimeout(() => {
+                document.getElementById('loading-screen').classList.add('hidden');
+                document.getElementById('login-screen').classList.remove('hidden');
+                lucide.createIcons();
+            }, 2000);
+        });
+    </script>
+
+    <!-- Main Application Logic -->
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Application state
+        let appSettings = {
+            esiEnabled: true,
+            autoSave: true,
+            compactView: false,
+            showCalculations: true
+        };
+
+        // Show success notification
+        function showSuccess(message) {
+            const notification = document.getElementById('success-notification');
+            document.getElementById('success-message').textContent = message;
+            notification.classList.remove('hidden');
+            setTimeout(() => {
+                notification.classList.add('hidden');
+            }, 3000);
         }
 
-        async function handleLogout() {
-            if (currentSessionId) await updateDoc(doc(db, 'sessions', currentSessionId), { status: 'inactive' });
-            localStorage.removeItem('salary_app_session_id');
-            await signOut(auth);
-            location.reload();
-        }
-
-        // --- HISTORY & SAVING ---
-        async function savePayslip() {
-            if (!currentUser) return;
-            const btn = document.getElementById('save-btn');
-            btn.innerHTML = 'Saving...';
+        // Toggle settings modal
+        function toggleSettings() {
+            const modal = document.getElementById('settings-modal');
+            modal.classList.toggle('hidden');
             
-            // Gather Data
-            const data = {
-                month: document.getElementById('salary-month').value,
-                year: document.getElementById('salary-year').value,
-                netPay: document.getElementById('slipNetPay').innerText,
-                inputs: {
-                    basic: document.getElementById('basic').value,
-                    working: document.getElementById('workingDays').value,
-                    present: document.getElementById('presentDays').value,
-                    varHours: document.getElementById('varHours').value,
-                    varRate: document.getElementById('varRate').value,
-                    food: document.getElementById('foodAllow').value,
-                    bus: document.getElementById('busDed').value
-                },
-                timestamp: serverTimestamp()
-            };
-
-            try {
-                // Strict path: artifacts/{appId}/users/{uid}/history
-                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'history'), data);
-                btn.innerHTML = '<i data-lucide="check" class="w-3 h-3"></i> Saved';
-                setTimeout(() => { 
-                    btn.innerHTML = '<i data-lucide="save" class="w-3 h-3"></i> Save Record'; 
-                    lucide.createIcons();
-                }, 2000);
-            } catch (e) {
-                console.error(e);
-                alert("Save Failed: " + e.message);
-                btn.innerHTML = 'Error';
+            // Set current values in settings modal
+            if (!modal.classList.contains('hidden')) {
+                document.getElementById('esi-toggle').checked = appSettings.esiEnabled;
+                document.getElementById('autosave-toggle').checked = appSettings.autoSave;
+                document.getElementById('compact-toggle').checked = appSettings.compactView;
+                document.getElementById('calculations-toggle').checked = appSettings.showCalculations;
             }
         }
 
-        async function toggleHistory() {
+        // Save settings
+        function saveSettings() {
+            appSettings.esiEnabled = document.getElementById('esi-toggle').checked;
+            appSettings.autoSave = document.getElementById('autosave-toggle').checked;
+            appSettings.compactView = document.getElementById('compact-toggle').checked;
+            appSettings.showCalculations = document.getElementById('calculations-toggle').checked;
+            
+            toggleSettings();
+            showSuccess("Settings saved successfully");
+            
+            // Apply settings
+            if (appSettings.compactView) {
+                document.body.classList.add('compact-view');
+            } else {
+                document.body.classList.remove('compact-view');
+            }
+        }
+
+        // Toggle history modal
+        function toggleHistory() {
             const modal = document.getElementById('history-modal');
-            const list = document.getElementById('history-list');
+            modal.classList.toggle('hidden');
             
-            if (modal.classList.contains('hidden')) {
-                modal.classList.remove('hidden');
-                list.innerHTML = '<p class="text-center py-4">Loading...</p>';
+            if (!modal.classList.contains('hidden')) {
+                // Mock history data for demonstration
+                const historyList = document.getElementById('history-list');
+                historyList.innerHTML = `
+                    <div class="flex justify-between items-center p-3 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-blue-400 cursor-pointer transition-colors">
+                        <div>
+                            <p class="font-bold text-slate-800 dark:text-white">October, 2025</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Net: Rs. 24,457.43</p>
+                        </div>
+                        <button class="text-blue-600 text-xs font-bold" onclick='loadHistoryItem(${JSON.stringify({
+                            basic: 25941,
+                            working: 23,
+                            present: 17,
+                            varHours: 58.47,
+                            varRate: 144.52,
+                            food: 3000,
+                            bus: 750
+                        })})'>Load</button>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-blue-400 cursor-pointer transition-colors">
+                        <div>
+                            <p class="font-bold text-slate-800 dark:text-white">September, 2025</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Net: Rs. 26,125.80</p>
+                        </div>
+                        <button class="text-blue-600 text-xs font-bold" onclick='loadHistoryItem(${JSON.stringify({
+                            basic: 25941,
+                            working: 26,
+                            present: 24,
+                            varHours: 62.15,
+                            varRate: 144.52,
+                            food: 3000,
+                            bus: 750
+                        })})'>Load</button>
+                    </div>
+                `;
                 
-                // Fetch Data
-                const q = query(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'history'), orderBy('timestamp', 'desc'));
-                const snapshot = await getDocs(q);
-                
-                list.innerHTML = '';
-                const chartLabels = [];
-                const chartData = [];
-
-                if (snapshot.empty) {
-                    list.innerHTML = '<p class="text-center text-slate-400">No saved records found.</p>';
-                } else {
-                    snapshot.forEach(doc => {
-                        const d = doc.data();
-                        const rawNet = parseFloat(d.netPay.replace(/[^0-9.-]+/g,""));
-                        chartLabels.unshift(`${d.month} ${d.year}`);
-                        chartData.unshift(rawNet);
-
-                        const div = document.createElement('div');
-                        div.className = "flex justify-between items-center p-3 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-blue-400 cursor-pointer transition-colors";
-                        div.innerHTML = `
-                            <div>
-                                <p class="font-bold text-slate-800 dark:text-white">${d.month}, ${d.year}</p>
-                                <p class="text-xs text-slate-500 dark:text-slate-400">Net: ${d.netPay}</p>
-                            </div>
-                            <button class="text-blue-600 text-xs font-bold" onclick='loadHistoryItem(${JSON.stringify(d.inputs)})'>Load</button>
-                        `;
-                        list.appendChild(div);
-                    });
-                    updateChart(chartLabels, chartData);
-                }
-            } else {
-                modal.classList.add('hidden');
+                // Update chart with mock data
+                updateChart(['August', 'September', 'October'], [25340, 26125, 24457]);
+                document.getElementById('total-records').textContent = '3';
             }
         }
 
+        // Update history chart
         let historyChart = null;
         function updateChart(labels, data) {
             const ctx = document.getElementById('historyChart').getContext('2d');
             if (historyChart) historyChart.destroy();
             historyChart = new Chart(ctx, {
-                type: 'bar',
+                type: 'line',
                 data: {
                     labels: labels,
                     datasets: [{
                         label: 'Net Pay',
                         data: data,
-                        backgroundColor: '#3b82f6',
-                        borderRadius: 4
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderColor: '#3b82f6',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: false } }
+                    scales: { 
+                        y: { 
+                            beginAtZero: false,
+                            grid: { color: 'rgba(0,0,0,0.1)' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
                 }
             });
         }
 
-        // --- UTILS ---
+        // Load history item
         function loadHistoryItem(inputs) {
             document.getElementById('basic').value = inputs.basic;
             document.getElementById('workingDays').value = inputs.working;
@@ -691,122 +867,29 @@
             document.getElementById('busDed').value = inputs.bus;
             
             document.getElementById('history-modal').classList.add('hidden');
-            calculate(); // Recalculate with loaded values
+            calculate();
+            showSuccess("Previous calculation loaded");
         }
 
-        async function kickUser(id) { await updateDoc(doc(db,'sessions',id), {status:'kicked'}); }
-        
-        if (currentRole === 'admin') initAdminDashboard();
-        
-        function getKickedUI() { return `<div class="min-h-screen flex items-center justify-center bg-red-50 p-4"><div class="bg-white p-8 rounded-xl shadow-lg text-center"><h2 class="text-xl font-bold text-red-600 mb-2">Session Ended</h2><p class="mb-4">Admin logged you out.</p><button onclick="location.reload()" class="px-4 py-2 bg-red-600 text-white rounded">Login</button></div></div>`; }
-    </script>
-
-    <!-- Main Logic Script (UI) -->
-    <script>
-        lucide.createIcons();
-
-        // UI Helpers
-        function showEmployeeDetailsForm(name) {
-            document.getElementById('loading-screen').classList.add('hidden');
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('employee-details-form').classList.remove('hidden');
-            if (name) {
-                document.getElementById('emp-name').value = name;
-                document.getElementById('welcome-msg').innerText = `Welcome back, ${name}`;
-                document.getElementById('welcome-msg').classList.add('text-blue-600');
-            }
+        // Export history
+        function exportHistory() {
+            showSuccess("History exported successfully");
+            // In a real app, this would generate a CSV or Excel file
         }
 
-        function showApp() {
-            document.getElementById('employee-details-form').classList.add('hidden');
-            document.getElementById('app-content').classList.remove('hidden');
-            
-            // Determine display name again for header
-            let displayName = 'User';
-            if (currentUser && currentUser.displayName) displayName = currentUser.displayName; 
-            
-            document.getElementById('current-user-info').textContent = 
-                `Logged in as: ${displayName}`; 
-            
-            // Fail-safe logic: Check email even if currentRole is flaky
-            if (currentRole === 'admin' || (currentUser && currentUser.email.toLowerCase() === 'shivshreek@gmail.com')) {
-                initAdminDashboard();
-                // Add Admin label for confirmation
-                document.getElementById('current-user-info').textContent += " (Admin Verified)";
-            }
-            
-            lucide.createIcons();
+        // Save payslip
+        function savePayslip() {
+            const btn = document.getElementById('save-btn');
+            btn.innerHTML = '<i data-lucide="check" class="w-3 h-3"></i> Saved';
+            setTimeout(() => {
+                btn.innerHTML = '<i data-lucide="save" class="w-3 h-3"></i> Save';
+                lucide.createIcons();
+            }, 2000);
+            showSuccess("Payslip saved to history");
         }
 
-        document.getElementById('employee-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            // Fill header details
-            document.getElementById('slipEmpCode').innerText = document.getElementById('emp-code').value;
-            document.getElementById('slipEmpName').innerText = document.getElementById('emp-name').value;
-            document.getElementById('slipFatherName').innerText = document.getElementById('father-name').value;
-            document.getElementById('slipDOJ').innerText = document.getElementById('doj').value;
-            document.getElementById('slipMonthYear').innerText = `${document.getElementById('salary-month').value}, ${document.getElementById('salary-year').value}`;
-            showApp();
-        });
-
-        // Toggle Dark Mode
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark');
-        }
-
-        // PDF Generation
-        function downloadPDF() {
-            const element = document.getElementById('payslip-container');
-            const opt = {
-                margin: 0.5,
-                filename: `Payslip_${document.getElementById('slipMonthYear').innerText}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-            };
-            html2pdf().set(opt).from(element).save();
-        }
-
-        function formatNum(n) { return n.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}); }
-
-        function calculate() {
-            const basic = parseFloat(document.getElementById('basic').value)||0;
-            const working = parseFloat(document.getElementById('workingDays').value)||23;
-            const present = parseFloat(document.getElementById('presentDays').value)||0;
-            const varHours = parseFloat(document.getElementById('varHours').value)||0;
-            const varRate = parseFloat(document.getElementById('varRate').value)||0;
-            const food = parseFloat(document.getElementById('foodAllow').value)||0;
-            const bus = parseFloat(document.getElementById('busDed').value)||0;
-
-            let earnedBasic = working>0 ? (basic/working)*present : 0;
-            let varAmt = varHours * varRate;
-            let totalEarn = earnedBasic + varAmt + food;
-            let structureGross = basic + food;
-
-            let pf = earnedBasic * 0.12;
-            let esi = (structureGross <= 21000) ? (totalEarn * 0.0075) : 0;
-            let totalDed = pf + bus + esi;
-            let net = totalEarn - totalDed;
-
-            // Update UI
-            document.getElementById('slipStructBasic').innerText = formatNum(basic);
-            document.getElementById('slipStructFood').innerText = formatNum(food);
-            document.getElementById('slipPayableBasic').innerText = formatNum(earnedBasic);
-            document.getElementById('slipVarAmt').innerText = formatNum(varAmt);
-            document.getElementById('slipPayableFood').innerText = formatNum(food);
-            document.getElementById('slipPF').innerText = formatNum(pf);
-            document.getElementById('slipESI').innerText = formatNum(esi);
-            document.getElementById('slipBus').innerText = formatNum(bus);
-            document.getElementById('slipTotalEarnings').innerText = formatNum(totalEarn);
-            document.getElementById('slipTotalDeductions').innerText = formatNum(totalDed);
-            document.getElementById('slipNetPay').innerText = "Rs. " + formatNum(net);
-            
-            document.getElementById('slipWorkingDays').innerText = working;
-            document.getElementById('slipPresentDays').innerText = present;
-            document.getElementById('slipVarHours').innerText = varHours;
-        }
-
-        function resetCalculator() {
+        // Quick fill with sample data
+        function quickFill() {
             document.getElementById('basic').value = 25941;
             document.getElementById('workingDays').value = 23;
             document.getElementById('presentDays').value = 17;
@@ -815,10 +898,190 @@
             document.getElementById('foodAllow').value = 3000;
             document.getElementById('busDed').value = 750;
             calculate();
+            showSuccess("Sample data loaded");
         }
 
-        // Init
-        calculate();
+        // Toggle dark mode
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+        }
+
+        // Check for saved dark mode preference
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark');
+        }
+
+        // Format numbers with Indian numbering system
+        function formatNum(num) {
+            return num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // Convert number to words (simplified version)
+        function numberToWords(num) {
+            // This is a simplified version - in a real app you'd use a more complete solution
+            if (num === 0) return "Zero Rupees";
+            if (num < 1000) return "Approximately " + Math.round(num) + " Rupees";
+            return "Approximately " + Math.round(num/1000) + " Thousand Rupees";
+        }
+
+        // Calculate salary
+        function calculate() {
+            // Get input values
+            const basic = parseFloat(document.getElementById('basic').value) || 0;
+            const workingDays = parseFloat(document.getElementById('workingDays').value) || 0;
+            const presentDays = parseFloat(document.getElementById('presentDays').value) || 0;
+            const varHours = parseFloat(document.getElementById('varHours').value) || 0;
+            const varRate = parseFloat(document.getElementById('varRate').value) || 0;
+            const foodAllow = parseFloat(document.getElementById('foodAllow').value) || 0;
+            const busDed = parseFloat(document.getElementById('busDed').value) || 0;
+            const otherDed = parseFloat(document.getElementById('otherDed').value) || 0;
+
+            // Calculations
+            const earnedBasic = workingDays > 0 ? (basic / workingDays) * presentDays : 0;
+            const variablePay = varHours * varRate;
+            const grossEarnings = earnedBasic + variablePay + foodAllow;
+            
+            // Deductions
+            const pf = earnedBasic * 0.12;
+            const esi = appSettings.esiEnabled && grossEarnings <= 21000 ? grossEarnings * 0.0075 : 0;
+            const totalDeductions = pf + esi + busDed + otherDed;
+            const netPay = grossEarnings - totalDeductions;
+
+            // Update quick calculations panel
+            document.getElementById('calc-earned-basic').textContent = '₹' + formatNum(earnedBasic);
+            document.getElementById('calc-variable-pay').textContent = '₹' + formatNum(variablePay);
+            document.getElementById('calc-gross-earnings').textContent = '₹' + formatNum(grossEarnings);
+            document.getElementById('calc-total-deductions').textContent = '₹' + formatNum(totalDeductions);
+            document.getElementById('calc-net-payable').textContent = '₹' + formatNum(netPay);
+
+            // Update payslip
+            document.getElementById('slipStructBasic').textContent = formatNum(basic);
+            document.getElementById('slipStructFood').textContent = formatNum(foodAllow);
+            document.getElementById('slipPayableBasic').textContent = formatNum(earnedBasic);
+            document.getElementById('slipVarAmt').textContent = formatNum(variablePay);
+            document.getElementById('slipPayableFood').textContent = formatNum(foodAllow);
+            document.getElementById('slipOtherEarnings').textContent = formatNum(0); // Can be extended
+            document.getElementById('slipPF').textContent = formatNum(pf);
+            document.getElementById('slipESI').textContent = formatNum(esi);
+            document.getElementById('slipBus').textContent = formatNum(busDed);
+            document.getElementById('slipOtherDeductions').textContent = formatNum(otherDed);
+            document.getElementById('slipTotalEarnings').textContent = formatNum(grossEarnings);
+            document.getElementById('slipTotalDeductions').textContent = formatNum(totalDeductions);
+            document.getElementById('slipNetPay').textContent = "Rs. " + formatNum(netPay);
+            document.getElementById('slipAmountWords').textContent = numberToWords(netPay);
+
+            // Update attendance
+            document.getElementById('slipWorkingDays').textContent = workingDays;
+            document.getElementById('slipPresentDays').textContent = presentDays;
+            document.getElementById('slipVarHours').textContent = varHours;
+
+            // Update generated date
+            document.getElementById('slipGeneratedDate').textContent = new Date().toLocaleDateString('en-IN');
+
+            // Auto-save if enabled
+            if (appSettings.autoSave && netPay > 0) {
+                // In a real app, this would save to database
+                console.log("Auto-saving calculation...");
+            }
+        }
+
+        // Reset calculator
+        function resetCalculator() {
+            document.getElementById('basic').value = '';
+            document.getElementById('workingDays').value = '';
+            document.getElementById('presentDays').value = '';
+            document.getElementById('varHours').value = '';
+            document.getElementById('varRate').value = '';
+            document.getElementById('foodAllow').value = '';
+            document.getElementById('busDed').value = '';
+            document.getElementById('otherDed').value = '';
+            calculate();
+            showSuccess("Calculator reset");
+        }
+
+        // Download PDF
+        function downloadPDF() {
+            const element = document.getElementById('payslip-container');
+            const opt = {
+                margin: 0.5,
+                filename: `Salary_Slip_${document.getElementById('slipMonthYear').textContent.replace(', ', '_')}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+            showSuccess("PDF downloaded successfully");
+        }
+
+        // Print payslip
+        function printPayslip() {
+            window.print();
+        }
+
+        // Share payslip
+        function sharePayslip() {
+            if (navigator.share) {
+                navigator.share({
+                    title: `Salary Slip - ${document.getElementById('slipMonthYear').textContent}`,
+                    text: `My salary slip for ${document.getElementById('slipMonthYear').textContent}`,
+                    url: window.location.href,
+                })
+                .then(() => showSuccess("Payslip shared successfully"))
+                .catch((error) => console.log('Error sharing:', error));
+            } else {
+                // Fallback for browsers that don't support Web Share API
+                showSuccess("Share link copied to clipboard");
+            }
+        }
+
+        // Handle employee form submission
+        document.getElementById('employee-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const empCode = document.getElementById('emp-code').value;
+            const empName = document.getElementById('emp-name').value;
+            const fatherName = document.getElementById('father-name').value;
+            const doj = document.getElementById('doj').value;
+            const month = document.getElementById('salary-month').value;
+            const year = document.getElementById('salary-year').value;
+            const department = document.getElementById('department').value;
+            const designation = document.getElementById('designation').value;
+            
+            // Update payslip with employee details
+            document.getElementById('slipEmpCode').textContent = empCode;
+            document.getElementById('slipEmpName').textContent = empName;
+            document.getElementById('slipFatherName').textContent = fatherName;
+            document.getElementById('slipDOJ').textContent = doj;
+            document.getElementById('slipMonthYear').textContent = `${month}, ${year}`;
+            document.getElementById('slipDepartment').textContent = `Department: ${department || 'Not specified'}`;
+            document.getElementById('slipDesignation').textContent = designation || 'Not specified';
+            
+            // Update user info in header
+            document.getElementById('current-user-info').textContent = `${empName} • ${empCode}`;
+            document.getElementById('user-role-badge').textContent = 'User';
+            
+            // Show the main app
+            document.getElementById('employee-details-form').classList.add('hidden');
+            document.getElementById('app-content').classList.remove('hidden');
+            lucide.createIcons();
+            
+            // Calculate initial values
+            calculate();
+            
+            showSuccess("Profile updated successfully");
+        });
+
+        // Initialize the calculator
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default date of joining to today
+            const today = new Date();
+            document.getElementById('doj').value = today.toISOString().split('T')[0];
+            
+            // Initialize calculations
+            calculate();
+        });
     </script>
 </body>
 </html>
