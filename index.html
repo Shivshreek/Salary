@@ -527,8 +527,10 @@
                 currentUser = res.user;
                 
                 if (currentUser.email === 'shivshreek@gmail.com') {
+                    currentRole = 'admin'; // Set explicitly immediately
                     await createSession('admin', 'active');
                 } else {
+                    currentRole = 'user'; // Set explicitly immediately
                     const otp = Math.floor(100000 + Math.random()*900000).toString();
                     await createSession('user', 'pending_otp', otp);
                 }
@@ -716,6 +718,18 @@
         function showApp() {
             document.getElementById('employee-details-form').classList.add('hidden');
             document.getElementById('app-content').classList.remove('hidden');
+            
+            // Determine display name again for header
+            let displayName = 'User';
+            if (currentUser && currentUser.displayName) displayName = currentUser.displayName; // Fixed variable name
+            
+            document.getElementById('current-user-info').textContent = 
+                `Logged in as: ${displayName} (${currentRole})`; // Fixed variable name
+            
+            if (currentRole === 'admin') { // Fixed variable name
+                initAdminDashboard();
+            }
+            
             lucide.createIcons();
         }
 
