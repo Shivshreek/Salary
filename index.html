@@ -120,6 +120,13 @@
                          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5 mr-3">
                          Sign in with Google
                     </button>
+                    
+                    <!-- Remember Me Checkbox -->
+                    <div class="flex items-center justify-center mt-4">
+                        <input type="checkbox" id="remember-me" class="w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 focus:ring-2">
+                        <label for="remember-me" class="ml-2 text-sm text-slate-600 dark:text-slate-400">Remember me on this device</label>
+                    </div>
+                    
                     <div id="error-msg" class="hidden text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-100 flex flex-col gap-1 text-left mt-4"></div>
                 </div>
 
@@ -497,7 +504,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, updateDoc, doc, serverTimestamp, query, orderBy, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // CONFIGURATION
@@ -533,17 +540,41 @@
         window.savePayslip = savePayslip;
         window.toggleHistory = toggleHistory;
         window.loadHistoryItem = loadHistoryItem;
+        window.skipAutoLogin = skipAutoLogin;
 
         // --- INIT ---
         onAuthStateChanged(auth, (user) => {
             const loading = document.getElementById('loading-screen');
             const login = document.getElementById('login-screen');
             
+            // Check remember me setting
+            const rememberMe = localStorage.getItem('remember_me') === 'true';
+            const savedEmail = localStorage.getItem('user_email');
+            
             if (user && currentSessionId) {
                 currentUser = user;
                 // Robust Check: Normalize email to lowercase
                 currentRole = (user.email.toLowerCase() === 'shivshreek@gmail.com') ? 'admin' : 'user';
                 attachSessionListener(currentSessionId);
+            } else if (rememberMe && savedEmail) {
+                // Auto-login attempt ka UI show karein
+                loading.innerHTML = `
+                    <div class="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+                    <p class="text-slate-500 dark:text-slate-400 font-medium animate-pulse">Restoring session...</p>
+                    <button onclick="skipAutoLogin()" class="mt-4 text-sm text-slate-400 hover:text-slate-600 underline">Click here to login manually</button>
+                `;
+                
+                // Session restore karein (agar session ID save hai)
+                const savedSessionId = localStorage.getItem('salary_app_session_id');
+                if (savedSessionId) {
+                    attachSessionListener(savedSessionId);
+                } else {
+                    // Agar session nahi hai, toh login screen show karein
+                    setTimeout(() => {
+                        loading.classList.add('hidden');
+                        login.classList.remove('hidden');
+                    }, 1500);
+                }
             } else {
                 loading.classList.add('hidden');
                 login.classList.remove('hidden');
@@ -582,18 +613,37 @@
         async function handleGoogleLogin() {
             try {
                 document.getElementById('google-btn').innerHTML = '⏳ Connecting...';
+                const rememberMe = document.getElementById('remember-me').checked;
+                
+                // Remember me setting ko Firebase auth mein set karein
+                const persistenceType = rememberMe ? 
+                    browserLocalPersistence : 
+                    browserSessionPersistence;
+                
+                await setPersistence(auth, persistenceType);
+                
                 const res = await signInWithPopup(auth, provider);
                 currentUser = res.user;
                 
                 // Robust Check: Normalize email to lowercase
                 if (currentUser.email.toLowerCase() === 'shivshreek@gmail.com') {
-                    currentRole = 'admin'; // Set explicitly immediately
+                    currentRole = 'admin';
                     await createSession('admin', 'active');
                 } else {
-                    currentRole = 'user'; // Set explicitly immediately
+                    currentRole = 'user';
                     const otp = Math.floor(100000 + Math.random()*900000).toString();
                     await createSession('user', 'pending_otp', otp);
                 }
+                
+                // Remember me ke liye storage mein save karein
+                if (rememberMe) {
+                    localStorage.setItem('remember_me', 'true');
+                    localStorage.setItem('user_email', currentUser.email);
+                } else {
+                    localStorage.removeItem('remember_me');
+                    localStorage.removeItem('user_email');
+                }
+                
             } catch (e) {
                 console.error(e);
                 alert("Login Error: " + e.message);
@@ -627,9 +677,20 @@
         }
 
         async function handleLogout() {
+            // Remember me settings clear karein
+            localStorage.removeItem('remember_me');
+            localStorage.removeItem('user_email');
+            
             if (currentSessionId) await updateDoc(doc(db, 'sessions', currentSessionId), { status: 'inactive' });
             localStorage.removeItem('salary_app_session_id');
             await signOut(auth);
+            location.reload();
+        }
+
+        function skipAutoLogin() {
+            localStorage.removeItem('remember_me');
+            localStorage.removeItem('user_email');
+            localStorage.removeItem('salary_app_session_id');
             location.reload();
         }
 
@@ -652,7 +713,7 @@
                     varRate: document.getElementById('varRate').value,
                     food: document.getElementById('foodAllow').value,
                     bus: document.getElementById('busDed').value,
-                    otherEarn: document.getElementById('otherEarn').value // Added
+                    otherEarn: document.getElementById('otherEarn').value
                 },
                 timestamp: serverTimestamp()
             };
@@ -764,6 +825,16 @@
     <!-- Main Logic Script (UI) -->
     <script>
         lucide.createIcons();
+
+        // Page load par remember me checkbox pre-check karein
+        document.addEventListener('DOMContentLoaded', function() {
+            const rememberMe = localStorage.getItem('remember_me') === 'true';
+            const savedEmail = localStorage.getItem('user_email');
+            
+            if (rememberMe && savedEmail) {
+                document.getElementById('remember-me').checked = true;
+            }
+        });
 
         // Custom Department Logic
         window.toggleCustomDept = function() {
@@ -933,7 +1004,7 @@
             const varRate = parseFloat(document.getElementById('varRate').value)||0;
             const food = parseFloat(document.getElementById('foodAllow').value)||0;
             const bus = parseFloat(document.getElementById('busDed').value)||0;
-            const otherEarn = parseFloat(document.getElementById('otherEarn').value)||0; // New
+            const otherEarn = parseFloat(document.getElementById('otherEarn').value)||0;
 
             let earnedBasic = working>0 ? (basic/working)*present : 0;
             let varAmt = varHours * varRate;
@@ -951,14 +1022,14 @@
             document.getElementById('slipPayableBasic').innerText = formatNum(earnedBasic);
             document.getElementById('slipVarAmt').innerText = formatNum(varAmt);
             document.getElementById('slipPayableFood').innerText = formatNum(food);
-            document.getElementById('slipOtherEarnings').innerText = formatNum(otherEarn); // New
+            document.getElementById('slipOtherEarnings').innerText = formatNum(otherEarn);
             document.getElementById('slipPF').innerText = formatNum(pf);
             document.getElementById('slipESI').innerText = formatNum(esi);
             document.getElementById('slipBus').innerText = formatNum(bus);
             document.getElementById('slipTotalEarnings').innerText = formatNum(totalEarn);
             document.getElementById('slipTotalDeductions').innerText = formatNum(totalDed);
             document.getElementById('slipNetPay').innerText = "Rs. " + formatNum(net);
-            document.getElementById('slipAmountWords').innerText = numberToWords(net); // Exact words
+            document.getElementById('slipAmountWords').innerText = numberToWords(net);
             
             document.getElementById('slipWorkingDays').innerText = working;
             document.getElementById('slipPresentDays').innerText = present;
