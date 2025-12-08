@@ -3,19 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Salary Portal Pro | Shivshree Kumar - September 2025</title>
+    <title>Salary Portal Pro | Admin Dashboard</title>
     
-    <!-- Firebase SDKs (Fixed Versions) -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics-compat.js"></script>
     
-    <!-- Other dependencies -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -34,8 +31,49 @@
     </script>
     
     <style>
-        /* Keep all your existing CSS styles */
-        /* ... existing CSS ... */
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .dark .glass {
+            background: rgba(30, 41, 59, 0.7);
+        }
+        .input-focus {
+            transition: all 0.3s ease;
+            border: 2px solid #e2e8f0;
+        }
+        .input-focus:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .btn-pop {
+            transition: all 0.2s ease;
+        }
+        .btn-pop:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 min-h-screen text-slate-800 dark:text-slate-200">
@@ -45,26 +83,21 @@
         <div class="relative">
             <div class="w-20 h-20 border-4 border-primary-100 dark:border-slate-700 border-t-primary-600 rounded-full animate-spin"></div>
             <div class="absolute inset-0 flex items-center justify-center">
-                <i data-lucide="calculator" class="w-8 h-8 text-primary-600 dark:text-primary-400"></i>
+                <i data-lucide="shield" class="w-8 h-8 text-primary-600 dark:text-primary-400"></i>
             </div>
         </div>
-        <p class="mt-6 text-lg font-medium text-slate-600 dark:text-slate-400 animate-pulse">Initializing Salary Portal...</p>
+        <p class="mt-6 text-lg font-medium text-slate-600 dark:text-slate-400 animate-pulse" id="loading-text">Initializing Admin Dashboard...</p>
     </div>
 
     <!-- Notification Toast -->
     <div id="notification-toast" class="fixed top-4 right-4 z-50 max-w-sm transition-all duration-300 transform translate-x-full"></div>
 
-    <!-- Login Screen -->
-    <div id="login-screen" class="hidden min-h-screen items-center justify-center p-4">
-        <!-- Login content will be loaded here -->
-    </div>
-
     <!-- Main App -->
     <div id="app-content" class="hidden">
-        <!-- App content will be loaded here -->
+        <!-- Content will be loaded here -->
     </div>
 
-    <!-- Core Application Script -->
+    <!-- Application Script -->
     <script>
         // ============================
         // FIREBASE CONFIGURATION
@@ -80,36 +113,33 @@
         };
 
         // ============================
-        // FIREBASE SERVICE
+        // ADMIN DASHBOARD APP
         // ============================
-        class FirebaseService {
+        class AdminDashboard {
             constructor() {
                 this.app = null;
                 this.auth = null;
                 this.db = null;
-                this.analytics = null;
                 this.currentUser = null;
-                this.isInitialized = false;
+                this.pendingUsers = [];
+                this.activeSessions = [];
             }
 
             async initialize() {
                 try {
+                    this.updateLoadingText('Initializing Firebase...');
+                    
                     // Initialize Firebase
                     this.app = firebase.initializeApp(FIREBASE_CONFIG);
                     this.auth = firebase.auth();
                     this.db = firebase.firestore();
-                    this.analytics = firebase.analytics();
-                    
-                    // Enable offline persistence
-                    await this.db.enablePersistence({ synchronizeTabs: true });
                     
                     // Set up auth state listener
-                    this.auth.onAuthStateChanged(async (user) => {
+                    this.auth.onAuthStateChanged((user) => {
                         this.currentUser = user;
-                        await this.handleAuthStateChange(user);
+                        this.handleAuthStateChange(user);
                     });
                     
-                    this.isInitialized = true;
                     console.log('Firebase initialized successfully');
                     return true;
                 } catch (error) {
@@ -120,284 +150,26 @@
             }
 
             async handleAuthStateChange(user) {
-                const ui = new UIManager();
-                
                 if (user) {
                     console.log('User signed in:', user.email);
                     
                     // Check if user is admin
-                    const isAdmin = user.email === 'shivshreek@gmail.com';
-                    
-                    if (isAdmin) {
-                        // Show admin dashboard directly
-                        ui.showNotification('Welcome Admin', 'Loading dashboard...', 'success');
-                        await new SalaryApp().showAdminDashboard();
+                    if (user.email === 'shivshreek@gmail.com') {
+                        this.updateLoadingText('Loading admin dashboard...');
+                        await this.loadAdminDashboard();
                     } else {
-                        // Check if user has an active session
-                        const hasActiveSession = await this.checkActiveSession(user.uid);
-                        
-                        if (hasActiveSession) {
-                            // User has active session, show calculator
-                            ui.showNotification('Welcome Back', 'Loading your data...', 'success');
-                            await new SalaryApp().showCalculator();
-                        } else {
-                            // New user or session expired, show OTP screen
-                            await this.generateOTP(user);
-                            ui.showNotification('OTP Required', 'Please enter OTP from admin', 'info');
-                            await new SalaryApp().showOTPScreen(user);
-                        }
+                        this.showError('Access denied. Admin only.');
+                        await this.signOut();
                     }
                 } else {
-                    // No user, show login screen
-                    ui.showLoginScreen();
+                    this.showLoginScreen();
                 }
             }
 
-            async checkActiveSession(uid) {
-                try {
-                    const sessionDoc = await this.db.collection('sessions').doc(uid).get();
-                    if (!sessionDoc.exists) return false;
-                    
-                    const sessionData = sessionDoc.data();
-                    const isActive = sessionData.status === 'active';
-                    const isNotExpired = new Date(sessionData.expiresAt?.toDate()) > new Date();
-                    
-                    return isActive && isNotExpired;
-                } catch (error) {
-                    console.error('Session check error:', error);
-                    return false;
-                }
-            }
-
-            async generateOTP(user) {
-                try {
-                    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-                    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-                    
-                    await this.db.collection('sessions').doc(user.uid).set({
-                        uid: user.uid,
-                        email: user.email,
-                        displayName: user.displayName,
-                        photoURL: user.photoURL,
-                        otp: otp,
-                        status: 'pending',
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        expiresAt: firebase.firestore.Timestamp.fromDate(expiresAt)
-                    });
-                    
-                    console.log('OTP generated:', otp, 'for user:', user.email);
-                    return otp;
-                } catch (error) {
-                    console.error('OTP generation error:', error);
-                    throw error;
-                }
-            }
-
-            async verifyOTP(uid, enteredOTP) {
-                try {
-                    const sessionDoc = await this.db.collection('sessions').doc(uid).get();
-                    
-                    if (!sessionDoc.exists) {
-                        throw new Error('No OTP session found');
-                    }
-                    
-                    const sessionData = sessionDoc.data();
-                    
-                    // Check if OTP is expired
-                    if (new Date(sessionData.expiresAt?.toDate()) < new Date()) {
-                        throw new Error('OTP has expired');
-                    }
-                    
-                    // Verify OTP
-                    if (sessionData.otp !== enteredOTP) {
-                        throw new Error('Invalid OTP');
-                    }
-                    
-                    // Update session to active
-                    await this.db.collection('sessions').doc(uid).update({
-                        status: 'active',
-                        otpVerifiedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        expiresAt: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 24 * 60 * 60 * 1000)) // 24 hours
-                    });
-                    
-                    return true;
-                } catch (error) {
-                    console.error('OTP verification error:', error);
-                    throw error;
-                }
-            }
-
-            async signInWithGoogle() {
-                try {
-                    const provider = new firebase.auth.GoogleAuthProvider();
-                    provider.addScope('profile');
-                    provider.addScope('email');
-                    
-                    const result = await this.auth.signInWithPopup(provider);
-                    return {
-                        success: true,
-                        user: result.user
-                    };
-                } catch (error) {
-                    console.error('Google sign in error:', error);
-                    return {
-                        success: false,
-                        error: error.message
-                    };
-                }
-            }
-
-            async signOut() {
-                try {
-                    if (this.currentUser) {
-                        // Update session status
-                        await this.db.collection('sessions').doc(this.currentUser.uid).update({
-                            status: 'signed_out',
-                            signedOutAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    }
-                    
-                    await this.auth.signOut();
-                    return { success: true };
-                } catch (error) {
-                    console.error('Sign out error:', error);
-                    return { success: false, error: error.message };
-                }
-            }
-
-            async savePayslip(data) {
-                try {
-                    if (!this.currentUser) {
-                        throw new Error('User not authenticated');
-                    }
-                    
-                    const payslipData = {
-                        ...data,
-                        userId: this.currentUser.uid,
-                        userEmail: this.currentUser.email,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    };
-                    
-                    const docRef = await this.db.collection('payslips').add(payslipData);
-                    return {
-                        success: true,
-                        id: docRef.id
-                    };
-                } catch (error) {
-                    console.error('Save payslip error:', error);
-                    return {
-                        success: false,
-                        error: error.message
-                    };
-                }
-            }
-
-            async getPayslipHistory(limit = 50) {
-                try {
-                    if (!this.currentUser) {
-                        return [];
-                    }
-                    
-                    const querySnapshot = await this.db.collection('payslips')
-                        .where('userId', '==', this.currentUser.uid)
-                        .orderBy('createdAt', 'desc')
-                        .limit(limit)
-                        .get();
-                    
-                    return querySnapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    }));
-                } catch (error) {
-                    console.error('Get payslip history error:', error);
-                    return [];
-                }
-            }
-
-            async getPendingApprovals() {
-                try {
-                    const querySnapshot = await this.db.collection('sessions')
-                        .where('status', '==', 'pending')
-                        .orderBy('createdAt', 'desc')
-                        .get();
-                    
-                    return querySnapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    }));
-                } catch (error) {
-                    console.error('Get pending approvals error:', error);
-                    return [];
-                }
-            }
-
-            async getActiveSessions() {
-                try {
-                    const querySnapshot = await this.db.collection('sessions')
-                        .where('status', '==', 'active')
-                        .orderBy('otpVerifiedAt', 'desc')
-                        .get();
-                    
-                    return querySnapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    }));
-                } catch (error) {
-                    console.error('Get active sessions error:', error);
-                    return [];
-                }
-            }
-
-            async approveUser(sessionId) {
-                try {
-                    await this.db.collection('sessions').doc(sessionId).update({
-                        status: 'active',
-                        approvedBy: this.currentUser.email,
-                        approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        expiresAt: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 24 * 60 * 60 * 1000))
-                    });
-                    
-                    return { success: true };
-                } catch (error) {
-                    console.error('Approve user error:', error);
-                    return { success: false, error: error.message };
-                }
-            }
-
-            async revokeAccess(sessionId) {
-                try {
-                    await this.db.collection('sessions').doc(sessionId).update({
-                        status: 'revoked',
-                        revokedBy: this.currentUser.email,
-                        revokedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    
-                    return { success: true };
-                } catch (error) {
-                    console.error('Revoke access error:', error);
-                    return { success: false, error: error.message };
-                }
-            }
-
-            showError(message) {
-                const ui = new UIManager();
-                ui.showNotification('Firebase Error', message, 'danger');
-            }
-        }
-
-        // ============================
-        // UI MANAGER
-        // ============================
-        class UIManager {
-            constructor() {
-                this.firebase = new FirebaseService();
-            }
-
-            showLoading(show = true) {
-                const loadingScreen = document.getElementById('loading-screen');
-                if (loadingScreen) {
-                    loadingScreen.style.display = show ? 'flex' : 'none';
+            updateLoadingText(text) {
+                const loadingText = document.getElementById('loading-text');
+                if (loadingText) {
+                    loadingText.textContent = text;
                 }
             }
 
@@ -436,52 +208,48 @@
                 }, 5000);
             }
 
-            showLoginScreen() {
-                this.showLoading(false);
-                
-                const loginScreen = document.getElementById('login-screen');
-                const appContent = document.getElementById('app-content');
-                
-                if (loginScreen) loginScreen.classList.remove('hidden');
-                if (appContent) appContent.classList.add('hidden');
-                
-                this.renderLoginScreen();
+            showError(message) {
+                this.showNotification('Error', message, 'danger');
             }
 
-            renderLoginScreen() {
-                const loginScreen = document.getElementById('login-screen');
-                if (!loginScreen) return;
-
-                loginScreen.innerHTML = `
-                    <div class="w-full max-w-md">
-                        <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden border border-slate-200/50 dark:border-slate-700/50">
-                            <!-- Header -->
-                            <div class="bg-gradient-to-r from-primary-600 to-primary-700 p-8 text-center">
-                                <div class="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-white/20">
-                                    <i data-lucide="wallet" class="w-10 h-10 text-white"></i>
-                                </div>
-                                <h1 class="text-2xl font-bold text-white">Salary Portal Pro</h1>
-                                <p class="text-primary-200 text-sm mt-1">Secure Access • Professional Tools</p>
-                            </div>
-                            
-                            <!-- Login Form -->
-                            <div class="p-8">
-                                <div class="space-y-6">
-                                    <div class="text-center">
-                                        <h2 class="text-xl font-bold text-slate-800 dark:text-white">Welcome Back</h2>
-                                        <p class="text-slate-600 dark:text-slate-400 mt-1">Sign in to access your salary tools</p>
+            showLoginScreen() {
+                const loadingScreen = document.getElementById('loading-screen');
+                const appContent = document.getElementById('app-content');
+                
+                if (loadingScreen) loadingScreen.style.display = 'none';
+                if (appContent) appContent.classList.add('hidden');
+                
+                // Show login UI
+                document.body.innerHTML = `
+                    <div class="min-h-screen flex items-center justify-center p-4">
+                        <div class="w-full max-w-md">
+                            <div class="glass rounded-3xl shadow-2xl overflow-hidden border border-slate-200/50 dark:border-slate-700/50">
+                                <div class="bg-gradient-to-r from-primary-600 to-primary-700 p-8 text-center">
+                                    <div class="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-white/20">
+                                        <i data-lucide="shield" class="w-10 h-10 text-white"></i>
                                     </div>
-                                    
-                                    <button onclick="window.handleGoogleLogin()" 
-                                            class="w-full bg-white hover:bg-slate-50 text-slate-800 font-semibold py-3 px-4 rounded-xl transition-all duration-300 border border-slate-300 shadow-sm flex items-center justify-center gap-3">
-                                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5">
-                                        <span>Continue with Google</span>
-                                    </button>
-                                    
-                                    <div class="text-center pt-4 border-t border-slate-100 dark:border-slate-800">
-                                        <p class="text-xs text-slate-500 dark:text-slate-500">
-                                            © 2024 Salary Portal Pro • v2.2.0
-                                        </p>
+                                    <h1 class="text-2xl font-bold text-white">Admin Portal</h1>
+                                    <p class="text-primary-200 text-sm mt-1">Admin Access Required</p>
+                                </div>
+                                
+                                <div class="p-8">
+                                    <div class="space-y-6">
+                                        <div class="text-center">
+                                            <h2 class="text-xl font-bold text-slate-800 dark:text-white">Admin Login</h2>
+                                            <p class="text-slate-600 dark:text-slate-400 mt-1">Sign in with admin account</p>
+                                        </div>
+                                        
+                                        <button onclick="adminDashboard.handleGoogleLogin()" 
+                                                class="w-full bg-white hover:bg-slate-50 text-slate-800 font-semibold py-3 px-4 rounded-xl transition-all duration-300 border border-slate-300 shadow-sm flex items-center justify-center gap-3">
+                                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5">
+                                            <span>Sign in with Google</span>
+                                        </button>
+                                        
+                                        <div class="text-center pt-4 border-t border-slate-100 dark:border-slate-800">
+                                            <p class="text-xs text-slate-500 dark:text-slate-500">
+                                                Only admin@company.com can access this portal
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -492,597 +260,688 @@
                 lucide.createIcons();
             }
 
-            showOTPScreen(user) {
-                this.showLoading(false);
-                
-                const loginScreen = document.getElementById('login-screen');
-                const appContent = document.getElementById('app-content');
-                
-                if (loginScreen) {
-                    loginScreen.classList.remove('hidden');
-                    loginScreen.innerHTML = `
-                        <div class="w-full max-w-md">
-                            <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden border border-slate-200/50 dark:border-slate-700/50">
-                                <!-- Header -->
-                                <div class="bg-gradient-to-r from-primary-600 to-primary-700 p-8 text-center">
-                                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900/30 mb-4">
-                                        <i data-lucide="shield-check" class="w-8 h-8 text-primary-600 dark:text-primary-400"></i>
-                                    </div>
-                                    <h2 class="text-xl font-bold text-white">Security Verification</h2>
-                                    <p class="text-primary-200 text-sm mt-1">Enter the OTP provided by admin</p>
-                                </div>
-                                
-                                <!-- OTP Form -->
-                                <div class="p-8">
-                                    <div class="space-y-6">
-                                        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-5 rounded-xl border border-blue-100 dark:border-blue-800">
-                                            <div class="flex items-center gap-3 mb-3">
-                                                <div class="flex-shrink-0">
-                                                    <img src="${user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=3b82f6&color=fff`}" 
-                                                         class="w-12 h-12 rounded-full border-2 border-white shadow">
-                                                </div>
-                                                <div>
-                                                    <p class="font-semibold text-slate-800 dark:text-white">${user.displayName || 'User'}</p>
-                                                    <p class="text-sm text-slate-600 dark:text-slate-400">${user.email}</p>
-                                                </div>
-                                            </div>
-                                            <p class="text-sm text-slate-700 dark:text-slate-300">
-                                                <i data-lucide="info" class="w-4 h-4 inline mr-1"></i>
-                                                Contact <span class="font-semibold text-primary-600">admin@company.com</span> for your OTP code
-                                            </p>
-                                        </div>
-                                        
-                                        <div class="space-y-4">
-                                            <div>
-                                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Enter 6-digit OTP</label>
-                                                <div class="flex justify-center gap-2" id="otp-container">
-                                                    ${Array.from({length: 6}).map((_, i) => `
-                                                        <input type="text" maxlength="1" class="w-12 h-14 text-center text-xl font-semibold border-2 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" 
-                                                               data-index="${i}" oninput="window.handleOTPInput(this, ${i})">
-                                                    `).join('')}
-                                                </div>
-                                            </div>
-                                            
-                                            <div id="otp-error" class="hidden bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 p-3 rounded-lg text-sm"></div>
-                                            
-                                            <div class="space-y-3">
-                                                <button onclick="window.handleVerifyOTP()" 
-                                                        class="w-full bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold py-3 rounded-xl transition-all duration-300 shadow-lg flex items-center justify-center gap-2">
-                                                    <i data-lucide="shield" class="w-5 h-5"></i>
-                                                    Verify & Continue
-                                                </button>
-                                                
-                                                <button onclick="window.handleLogout()" 
-                                                        class="w-full py-2.5 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-300 font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-2">
-                                                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                                                    Use Different Account
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                if (appContent) appContent.classList.add('hidden');
-                lucide.createIcons();
-            }
-        }
-
-        // ============================
-        // SALARY CALCULATOR
-        // ============================
-        class SalaryCalculator {
-            constructor() {
-                this.inputs = {
-                    basic: 23541,
-                    workingDays: 26,
-                    presentDays: 25,
-                    varHours: 131.24,
-                    varRate: 105.00,
-                    foodAllow: 3000,
-                    otherEarn: 0,
-                    busDed: 750
-                };
-            }
-
-            calculate() {
-                const basic = this.inputs.basic;
-                const working = this.inputs.workingDays;
-                const present = this.inputs.presentDays;
-                const varHours = this.inputs.varHours;
-                const varRate = this.inputs.varRate;
-                const food = this.inputs.foodAllow;
-                const bus = this.inputs.busDed;
-                const other = this.inputs.otherEarn;
-
-                // Calculations
-                const earnedBasic = (basic / working) * present;
-                const varAmt = varHours * varRate;
-                const pf = earnedBasic * 0.12;
-                const totalEarn = earnedBasic + varAmt + food + other;
-                
-                // ESI calculation
-                let esi = 0;
-                const structureGross = basic + food;
-                if (structureGross <= 21000) {
-                    esi = totalEarn * 0.0075;
-                }
-                
-                const totalDed = pf + bus + esi;
-                const net = totalEarn - totalDed;
-
-                return {
-                    earnedBasic,
-                    varAmt,
-                    food,
-                    other,
-                    pf,
-                    esi,
-                    bus,
-                    totalEarn,
-                    totalDed,
-                    net,
-                    working,
-                    present,
-                    varHours
-                };
-            }
-
-            updateInput(id, value) {
-                this.inputs[id] = parseFloat(value) || 0;
-            }
-
-            reset() {
-                this.inputs = {
-                    basic: 23541,
-                    workingDays: 26,
-                    presentDays: 25,
-                    varHours: 131.24,
-                    varRate: 105.00,
-                    foodAllow: 3000,
-                    otherEarn: 0,
-                    busDed: 750
-                };
-            }
-        }
-
-        // ============================
-        // MAIN APPLICATION
-        // ============================
-        class SalaryApp {
-            constructor() {
-                this.firebase = new FirebaseService();
-                this.ui = new UIManager();
-                this.calculator = new SalaryCalculator();
-                this.currentOTP = '';
-            }
-
-            async initialize() {
+            async handleGoogleLogin() {
                 try {
-                    // Initialize Firebase
-                    const firebaseReady = await this.firebase.initialize();
-                    if (!firebaseReady) {
-                        throw new Error('Failed to initialize Firebase');
+                    const provider = new firebase.auth.GoogleAuthProvider();
+                    const result = await this.auth.signInWithPopup(provider);
+                    
+                    if (result.user.email === 'shivshreek@gmail.com') {
+                        this.showNotification('Welcome Admin', 'Loading dashboard...', 'success');
+                    } else {
+                        this.showError('Access denied. Admin only.');
+                        await this.signOut();
+                    }
+                } catch (error) {
+                    console.error('Google login error:', error);
+                    this.showError('Login failed: ' + error.message);
+                }
+            }
+
+            async loadAdminDashboard() {
+                try {
+                    // Hide loading screen
+                    const loadingScreen = document.getElementById('loading-screen');
+                    if (loadingScreen) loadingScreen.style.display = 'none';
+                    
+                    // Show app content
+                    const appContent = document.getElementById('app-content');
+                    if (appContent) {
+                        appContent.classList.remove('hidden');
+                        this.renderDashboard();
                     }
                     
-                    // Initialize UI
-                    this.ui.showLoading(false);
+                    // Load initial data
+                    await this.loadPendingUsers();
+                    await this.loadActiveSessions();
+                    
+                    // Set up real-time listeners
+                    this.setupRealtimeListeners();
                     
                 } catch (error) {
-                    console.error('App initialization error:', error);
-                    this.ui.showLoading(false);
-                    this.ui.showNotification('Initialization Error', 'Please refresh the page', 'danger');
+                    console.error('Load dashboard error:', error);
+                    this.showError('Failed to load dashboard');
                 }
             }
 
-            async showCalculator() {
-                this.ui.showLoading(false);
-                
-                const loginScreen = document.getElementById('login-screen');
-                const appContent = document.getElementById('app-content');
-                
-                if (loginScreen) loginScreen.classList.add('hidden');
-                if (appContent) {
-                    appContent.classList.remove('hidden');
-                    await this.renderCalculator();
-                }
-            }
-
-            async showAdminDashboard() {
-                this.ui.showLoading(false);
-                
-                const loginScreen = document.getElementById('login-screen');
-                const appContent = document.getElementById('app-content');
-                
-                if (loginScreen) loginScreen.classList.add('hidden');
-                if (appContent) {
-                    appContent.classList.remove('hidden');
-                    await this.renderAdminDashboard();
-                }
-            }
-
-            async showOTPScreen(user) {
-                this.ui.showOTPScreen(user);
-                // Store the generated OTP for verification
-                this.currentOTP = await this.firebase.generateOTP(user);
-            }
-
-            async renderCalculator() {
+            renderDashboard() {
                 const appContent = document.getElementById('app-content');
                 if (!appContent) return;
 
-                const results = this.calculator.calculate();
-                
                 appContent.innerHTML = `
-                    <div class="max-w-7xl mx-auto p-4 md:p-6">
+                    <div class="min-h-screen p-4 md:p-6">
                         <!-- Navigation -->
-                        <div class="flex justify-between items-center mb-6">
-                            <div class="flex items-center gap-3">
-                                <div class="bg-gradient-to-r from-primary-500 to-primary-600 p-2 rounded-xl">
-                                    <i data-lucide="wallet" class="w-6 h-6 text-white"></i>
-                                </div>
-                                <div>
-                                    <h1 class="font-bold text-slate-800 dark:text-white text-lg">Salary Portal Pro</h1>
-                                    <p class="text-xs text-slate-500 dark:text-slate-400">Calculator</p>
-                                </div>
-                            </div>
-                            <button onclick="window.handleLogout()" 
-                                    class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center gap-2">
-                                <i data-lucide="log-out" class="w-4 h-4"></i>
-                                Sign Out
-                            </button>
-                        </div>
-
-                        <!-- Calculator Interface -->
-                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <!-- Input Panel -->
-                            <div class="lg:col-span-1">
-                                <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6">
-                                    <h2 class="text-xl font-bold mb-6">Salary Calculator</h2>
-                                    <div class="space-y-4" id="calculator-inputs">
-                                        <!-- Inputs will be added here -->
-                                    </div>
-                                    <div class="mt-6 space-y-3">
-                                        <button onclick="window.calculateSalary()" 
-                                                class="w-full py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium">
-                                            Calculate
-                                        </button>
-                                        <button onclick="window.resetCalculator()" 
-                                                class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium">
-                                            Reset
-                                        </button>
-                                        <button onclick="window.savePayslip()" 
-                                                class="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium">
-                                            Save Payslip
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Payslip Preview -->
-                            <div class="lg:col-span-2">
-                                <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6">
-                                    <div class="flex justify-between items-center mb-6">
-                                        <h2 class="text-xl font-bold">Payslip Preview</h2>
-                                        <div class="space-x-2">
-                                            <button onclick="window.downloadPDF()" 
-                                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
-                                                Download PDF
-                                            </button>
-                                            <button onclick="window.printPayslip()" 
-                                                    class="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg">
-                                                Print
-                                            </button>
+                        <div class="max-w-7xl mx-auto mb-8">
+                            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                                <div class="flex items-center gap-4">
+                                    <div class="glass rounded-2xl p-3 border border-slate-200/50 dark:border-slate-700/50">
+                                        <div class="flex items-center gap-3">
+                                            <div class="bg-gradient-to-r from-purple-500 to-purple-600 p-2 rounded-xl">
+                                                <i data-lucide="shield-check" class="w-6 h-6 text-white"></i>
+                                            </div>
+                                            <div>
+                                                <h1 class="font-bold text-slate-800 dark:text-white text-lg">Admin Dashboard</h1>
+                                                <p class="text-xs text-slate-500 dark:text-slate-400">Manage user access and monitor activity</p>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div id="payslip-preview" class="border rounded-lg p-6">
-                                        <!-- Payslip content will be rendered here -->
+                                    
+                                    <div class="glass rounded-full px-3 py-1.5 border border-purple-200 dark:border-purple-800">
+                                        <span class="text-xs font-semibold text-purple-700 dark:text-purple-300 flex items-center gap-1">
+                                            <i data-lucide="shield-check" class="w-3 h-3"></i>
+                                            ADMIN
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center gap-2">
+                                    <button onclick="adminDashboard.refreshDashboard()" 
+                                            class="glass btn-pop p-3 rounded-xl border border-slate-200/50 dark:border-slate-700/50 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all duration-300">
+                                        <i data-lucide="refresh-cw" class="w-5 h-5 text-slate-600 dark:text-slate-400"></i>
+                                    </button>
+                                    
+                                    <button onclick="adminDashboard.toggleDarkMode()" 
+                                            class="glass btn-pop p-3 rounded-xl border border-slate-200/50 dark:border-slate-700/50 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all duration-300 group">
+                                        <i data-lucide="moon" class="w-5 h-5 text-slate-600 dark:hidden group-hover:text-primary-600"></i>
+                                        <i data-lucide="sun" class="w-5 h-5 hidden dark:block text-yellow-400"></i>
+                                    </button>
+                                    
+                                    <div class="relative group">
+                                        <button class="glass btn-pop flex items-center gap-3 p-3 rounded-xl border border-slate-200/50 dark:border-slate-700/50 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all duration-300">
+                                            <img id="user-avatar" src="${this.currentUser?.photoURL || ''}" class="w-8 h-8 rounded-full border-2 border-white shadow">
+                                            <div class="text-left">
+                                                <p class="text-sm font-semibold text-slate-800 dark:text-white">${this.currentUser?.displayName || 'Admin'}</p>
+                                                <p class="text-xs text-slate-500 dark:text-slate-400">Administrator</p>
+                                            </div>
+                                            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400"></i>
+                                        </button>
+                                        
+                                        <div class="absolute right-0 top-full mt-2 w-48 glass rounded-xl shadow-2xl border border-slate-200/50 dark:border-slate-700/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
+                                            <div class="p-2">
+                                                <div class="p-3 border-b border-slate-200/50 dark:border-slate-700/50">
+                                                    <p class="text-sm font-medium text-slate-800 dark:text-white">Signed in as</p>
+                                                    <p class="text-xs text-slate-500 dark:text-slate-400 truncate">${this.currentUser?.email || ''}</p>
+                                                </div>
+                                                <button onclick="adminDashboard.signOut()" 
+                                                        class="w-full text-left px-3 py-2.5 text-sm text-danger-600 hover:bg-danger-50 dark:hover:bg-danger-900/20 rounded-lg flex items-center gap-2">
+                                                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                                                    Sign Out
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Stats -->
+                        <div class="max-w-7xl mx-auto mb-8">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="glass rounded-2xl p-5 border border-slate-200/50 dark:border-slate-700/50">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div class="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
+                                            <i data-lucide="users" class="w-5 h-5 text-primary-600 dark:text-primary-400"></i>
+                                        </div>
+                                        <span id="active-count" class="text-2xl font-bold text-slate-800 dark:text-white">0</span>
+                                    </div>
+                                    <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Active Sessions</h3>
+                                    <p class="text-xs text-slate-500 dark:text-slate-500">Users currently online</p>
+                                </div>
+                                
+                                <div class="glass rounded-2xl p-5 border border-slate-200/50 dark:border-slate-700/50">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div class="p-2 bg-warning-100 dark:bg-warning-900/30 rounded-lg">
+                                            <i data-lucide="clock" class="w-5 h-5 text-warning-600 dark:text-warning-400"></i>
+                                        </div>
+                                        <span id="pending-count" class="text-2xl font-bold text-slate-800 dark:text-white">0</span>
+                                    </div>
+                                    <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Pending Approvals</h3>
+                                    <p class="text-xs text-slate-500 dark:text-slate-500">Waiting for OTP verification</p>
+                                </div>
+                                
+                                <div class="glass rounded-2xl p-5 border border-slate-200/50 dark:border-slate-700/50">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div class="p-2 bg-success-100 dark:bg-success-900/30 rounded-lg">
+                                            <i data-lucide="check-circle" class="w-5 h-5 text-success-600 dark:text-success-400"></i>
+                                        </div>
+                                        <span id="approved-count" class="text-2xl font-bold text-slate-800 dark:text-white">0</span>
+                                    </div>
+                                    <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Approved Today</h3>
+                                    <p class="text-xs text-slate-500 dark:text-slate-500">Users approved in last 24h</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Main Content -->
+                        <div class="max-w-7xl mx-auto">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                                <!-- Quick OTP Generation -->
+                                <div class="glass rounded-3xl p-6 border border-slate-200/50 dark:border-slate-700/50">
+                                    <div class="flex items-center justify-between mb-6">
+                                        <div class="flex items-center gap-3">
+                                            <div class="bg-gradient-to-r from-green-500 to-green-600 p-2 rounded-xl">
+                                                <i data-lucide="key-round" class="w-6 h-6 text-white"></i>
+                                            </div>
+                                            <div>
+                                                <h3 class="text-lg font-bold text-slate-800 dark:text-white">Quick OTP Generator</h3>
+                                                <p class="text-sm text-slate-600 dark:text-slate-400">Generate OTP for users instantly</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="space-y-5">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">User Email</label>
+                                                <input type="email" id="user-email-input" class="input-focus w-full px-4 py-3 rounded-xl" placeholder="employee@company.com">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">User Name</label>
+                                                <input type="text" id="user-name-input" class="input-focus w-full px-4 py-3 rounded-xl" placeholder="John Doe">
+                                            </div>
+                                        </div>
+                                        
+                                        <button onclick="adminDashboard.generateUserOTP()" 
+                                                class="w-full btn-pop bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3.5 rounded-xl transition-all duration-300 shadow-lg flex items-center justify-center gap-3">
+                                            <i data-lucide="key" class="w-5 h-5"></i>
+                                            Generate & Share OTP
+                                        </button>
+                                        
+                                        <!-- Generated OTP Display -->
+                                        <div id="otp-result" class="hidden space-y-4 p-5 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl border border-green-200 dark:border-green-800">
+                                            <!-- Will be populated when OTP is generated -->
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Pending Approvals -->
+                                <div class="glass rounded-3xl p-6 border border-slate-200/50 dark:border-slate-700/50">
+                                    <div class="flex items-center justify-between mb-6">
+                                        <div class="flex items-center gap-3">
+                                            <div class="bg-gradient-to-r from-warning-500 to-warning-600 p-2 rounded-xl">
+                                                <i data-lucide="clock" class="w-6 h-6 text-white"></i>
+                                            </div>
+                                            <div>
+                                                <h3 class="text-lg font-bold text-slate-800 dark:text-white">Pending Approvals</h3>
+                                                <p class="text-sm text-slate-600 dark:text-slate-400">Users waiting for verification</p>
+                                            </div>
+                                        </div>
+                                        <div id="pending-badge" class="notification-badge">0</div>
+                                    </div>
+                                    
+                                    <div id="pending-users-list" class="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+                                        <div class="text-center py-8">
+                                            <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 mb-3">
+                                                <i data-lucide="check-circle" class="w-6 h-6 text-slate-400"></i>
+                                            </div>
+                                            <p class="text-slate-500 dark:text-slate-500">No pending approvals</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Active Sessions -->
+                            <div class="glass rounded-3xl p-6 border border-slate-200/50 dark:border-slate-700/50">
+                                <div class="flex items-center justify-between mb-6">
+                                    <div class="flex items-center gap-3">
+                                        <div class="bg-gradient-to-r from-purple-500 to-purple-600 p-2 rounded-xl">
+                                            <i data-lucide="monitor" class="w-6 h-6 text-white"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-lg font-bold text-slate-800 dark:text-white">Active Sessions</h3>
+                                            <p class="text-sm text-slate-600 dark:text-slate-400">Currently logged in users</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div id="active-users-list" class="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                                    <div class="text-center py-8">
+                                        <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 mb-3">
+                                            <i data-lucide="users" class="w-6 h-6 text-slate-400"></i>
+                                        </div>
+                                        <p class="text-slate-500 dark:text-slate-500">No active sessions</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 `;
-
-                // Render calculator inputs
-                this.renderCalculatorInputs();
-                // Render payslip preview
-                this.renderPayslipPreview(results);
                 
                 lucide.createIcons();
             }
 
-            renderCalculatorInputs() {
-                const container = document.getElementById('calculator-inputs');
-                if (!container) return;
-
-                const inputs = [
-                    { id: 'basic', label: 'Basic Salary', value: this.calculator.inputs.basic, prefix: '₹' },
-                    { id: 'workingDays', label: 'Working Days', value: this.calculator.inputs.workingDays },
-                    { id: 'presentDays', label: 'Present Days', value: this.calculator.inputs.presentDays },
-                    { id: 'varHours', label: 'Variable Hours', value: this.calculator.inputs.varHours, step: '0.01' },
-                    { id: 'varRate', label: 'Variable Rate (₹)', value: this.calculator.inputs.varRate, step: '0.01' },
-                    { id: 'foodAllow', label: 'Food Allowance', value: this.calculator.inputs.foodAllow, prefix: '₹' },
-                    { id: 'otherEarn', label: 'Other Earnings', value: this.calculator.inputs.otherEarn, prefix: '₹' },
-                    { id: 'busDed', label: 'Bus Deduction', value: this.calculator.inputs.busDed, prefix: '₹' }
-                ];
-
-                container.innerHTML = inputs.map(input => `
-                    <div>
-                        <label class="block text-sm font-medium mb-1">${input.label}</label>
-                        <div class="relative">
-                            ${input.prefix ? `<span class="absolute left-3 top-3 text-slate-500">${input.prefix}</span>` : ''}
-                            <input type="number" 
-                                   id="${input.id}" 
-                                   value="${input.value}"
-                                   ${input.step ? `step="${input.step}"` : ''}
-                                   class="w-full ${input.prefix ? 'pl-8' : ''} px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                                   oninput="window.updateCalculatorInput('${input.id}', this.value)">
-                        </div>
-                    </div>
-                `).join('');
+            async loadPendingUsers() {
+                try {
+                    const snapshot = await this.db.collection('sessions')
+                        .where('status', '==', 'pending')
+                        .orderBy('createdAt', 'desc')
+                        .get();
+                    
+                    this.pendingUsers = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    
+                    this.updatePendingUsersList();
+                    this.updateStats();
+                    
+                } catch (error) {
+                    console.error('Load pending users error:', error);
+                    this.showError('Failed to load pending users');
+                }
             }
 
-            renderPayslipPreview(results) {
-                const container = document.getElementById('payslip-preview');
+            async loadActiveSessions() {
+                try {
+                    const snapshot = await this.db.collection('sessions')
+                        .where('status', '==', 'active')
+                        .orderBy('otpVerifiedAt', 'desc')
+                        .get();
+                    
+                    this.activeSessions = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    
+                    this.updateActiveSessionsList();
+                    this.updateStats();
+                    
+                } catch (error) {
+                    console.error('Load active sessions error:', error);
+                    this.showError('Failed to load active sessions');
+                }
+            }
+
+            updatePendingUsersList() {
+                const container = document.getElementById('pending-users-list');
                 if (!container) return;
 
-                const format = (num) => num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                
-                container.innerHTML = `
-                    <div class="space-y-4">
-                        <!-- Header -->
-                        <div class="text-center border-b pb-4">
-                            <h3 class="text-2xl font-bold">TECH SOLUTIONS INC.</h3>
-                            <p class="text-lg">Salary Slip</p>
-                            <p class="text-sm text-slate-600">September, 2025</p>
+                if (this.pendingUsers.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-8">
+                            <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 mb-3">
+                                <i data-lucide="check-circle" class="w-6 h-6 text-slate-400"></i>
+                            </div>
+                            <p class="text-slate-500 dark:text-slate-500">No pending approvals</p>
                         </div>
-                        
-                        <!-- Earnings -->
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <h4 class="font-semibold mb-2">EARNINGS</h4>
-                                <div class="space-y-1">
-                                    <div class="flex justify-between">
-                                        <span>Basic Salary:</span>
-                                        <span>₹${format(results.earnedBasic)}</span>
+                    `;
+                } else {
+                    container.innerHTML = this.pendingUsers.map(user => `
+                        <div class="glass p-4 rounded-xl border border-warning-200 dark:border-warning-800">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center gap-3">
+                                    <img src="${user.photoURL || 'https://ui-avatars.com/api/?name=' + (user.displayName || 'User')}" 
+                                         class="w-10 h-10 rounded-full border-2 border-white shadow">
+                                    <div>
+                                        <p class="font-semibold text-slate-800 dark:text-white">${user.displayName || 'Unknown User'}</p>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400">${user.email || 'No email'}</p>
                                     </div>
-                                    <div class="flex justify-between">
-                                        <span>Variable Allowance:</span>
-                                        <span>₹${format(results.varAmt)}</span>
+                                </div>
+                                <span class="text-xs px-2 py-1 rounded bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400">
+                                    Pending
+                                </span>
+                            </div>
+                            
+                            <div class="space-y-3">
+                                <div class="bg-warning-50 dark:bg-warning-900/20 p-3 rounded-lg">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-sm font-medium text-warning-700 dark:text-warning-300">Generated OTP</span>
+                                        <span class="text-xs text-slate-500">${this.formatTimeAgo(user.createdAt)}</span>
                                     </div>
-                                    <div class="flex justify-between">
-                                        <span>Food Allowance:</span>
-                                        <span>₹${format(results.food)}</span>
+                                    <p class="text-2xl font-mono font-bold text-center text-warning-700 dark:text-warning-300">${user.otp || 'N/A'}</p>
+                                </div>
+                                
+                                <div class="flex gap-2">
+                                    <button onclick="adminDashboard.approveUser('${user.id}')" 
+                                            class="flex-1 btn-pop bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-2 rounded-lg transition-all duration-300 flex items-center justify-center gap-2">
+                                        <i data-lucide="check" class="w-4 h-4"></i>
+                                        Approve
+                                    </button>
+                                    <button onclick="adminDashboard.rejectUser('${user.id}')" 
+                                            class="flex-1 btn-pop bg-gradient-to-r from-danger-600 to-danger-700 hover:from-danger-700 hover:to-danger-800 text-white font-semibold py-2 rounded-lg transition-all duration-300 flex items-center justify-center gap-2">
+                                        <i data-lucide="x" class="w-4 h-4"></i>
+                                        Reject
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            updateActiveSessionsList() {
+                const container = document.getElementById('active-users-list');
+                if (!container) return;
+
+                if (this.activeSessions.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-8">
+                            <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 mb-3">
+                                <i data-lucide="users" class="w-6 h-6 text-slate-400"></i>
+                            </div>
+                            <p class="text-slate-500 dark:text-slate-500">No active sessions</p>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = this.activeSessions.map(session => `
+                        <div class="glass p-4 rounded-xl border border-slate-200/50 dark:border-slate-700/50">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center gap-3">
+                                    <img src="${session.photoURL || 'https://ui-avatars.com/api/?name=' + (session.displayName || 'User')}" 
+                                         class="w-10 h-10 rounded-full border-2 border-white shadow">
+                                    <div>
+                                        <p class="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+                                            ${session.displayName || 'Unknown User'}
+                                            ${session.email === 'shivshreek@gmail.com' ? 
+                                                '<span class="text-xs px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">Admin</span>' : ''}
+                                        </p>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400">${session.email || 'No email'}</p>
                                     </div>
-                                    <div class="flex justify-between">
-                                        <span>Other Earnings:</span>
-                                        <span>₹${format(results.other)}</span>
-                                    </div>
-                                    <div class="flex justify-between font-bold border-t pt-1">
-                                        <span>Total Earnings:</span>
-                                        <span class="text-green-600">₹${format(results.totalEarn)}</span>
-                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">Active for</p>
+                                    <p class="text-sm font-medium text-slate-700 dark:text-slate-300">${this.formatTimeAgo(session.otpVerifiedAt)}</p>
                                 </div>
                             </div>
                             
-                            <!-- Deductions -->
-                            <div>
-                                <h4 class="font-semibold mb-2">DEDUCTIONS</h4>
-                                <div class="space-y-1">
-                                    <div class="flex justify-between">
-                                        <span>Provident Fund (PF):</span>
-                                        <span>₹${format(results.pf)}</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span>ESI Contribution:</span>
-                                        <span>₹${format(results.esi)}</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span>Bus Deduction:</span>
-                                        <span>₹${format(results.bus)}</span>
-                                    </div>
-                                    <div class="flex justify-between font-bold border-t pt-1">
-                                        <span>Total Deductions:</span>
-                                        <span class="text-red-600">₹${format(results.totalDed)}</span>
-                                    </div>
+                            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-500">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="monitor" class="w-3 h-3"></i>
+                                    <span>${session.device?.split(' ')[0] || 'Unknown'} • ${session.platform || 'Unknown'}</span>
                                 </div>
+                                ${session.email !== 'shivshreek@gmail.com' ? `
+                                    <button onclick="adminDashboard.revokeAccess('${session.id}')" 
+                                            class="text-danger-600 hover:text-danger-700 dark:text-danger-400 dark:hover:text-danger-300 flex items-center gap-1">
+                                        <i data-lucide="user-x" class="w-3 h-3"></i>
+                                        Revoke
+                                    </button>
+                                ` : ''}
                             </div>
                         </div>
-                        
-                        <!-- Net Pay -->
-                        <div class="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg text-center">
-                            <p class="text-sm text-slate-600">Net Payable Amount</p>
-                            <p class="text-3xl font-bold text-green-600">₹${format(results.net)}</p>
-                            <p class="text-sm text-slate-500 mt-2">${this.numberToWords(results.net)}</p>
-                        </div>
-                    </div>
-                `;
-            }
-
-            numberToWords(num) {
-                // Simplified number to words function
-                if (num === 0) return "Zero Rupees Only";
-                return "Amount in words";
-            }
-
-            async savePayslip() {
-                try {
-                    const results = this.calculator.calculate();
-                    const payslipData = {
-                        basic: this.calculator.inputs.basic,
-                        workingDays: this.calculator.inputs.workingDays,
-                        presentDays: this.calculator.inputs.presentDays,
-                        varHours: this.calculator.inputs.varHours,
-                        varRate: this.calculator.inputs.varRate,
-                        foodAllow: this.calculator.inputs.foodAllow,
-                        otherEarn: this.calculator.inputs.otherEarn,
-                        busDed: this.calculator.inputs.busDed,
-                        results: results,
-                        month: 'September',
-                        year: '2025',
-                        netPay: `₹${results.net.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                    };
-
-                    const result = await this.firebase.savePayslip(payslipData);
-                    
-                    if (result.success) {
-                        this.ui.showNotification('Success', 'Payslip saved successfully');
-                    } else {
-                        this.ui.showNotification('Error', result.error, 'danger');
-                    }
-                } catch (error) {
-                    this.ui.showNotification('Error', 'Failed to save payslip', 'danger');
+                    `).join('');
                 }
             }
 
-            async verifyOTP(enteredOTP) {
+            updateStats() {
+                // Update counts
+                const activeCount = document.getElementById('active-count');
+                const pendingCount = document.getElementById('pending-count');
+                const approvedCount = document.getElementById('approved-count');
+                const pendingBadge = document.getElementById('pending-badge');
+                
+                if (activeCount) activeCount.textContent = this.activeSessions.length;
+                if (pendingCount) pendingCount.textContent = this.pendingUsers.length;
+                if (approvedCount) approvedCount.textContent = this.activeSessions.length;
+                
+                if (pendingBadge) {
+                    pendingBadge.textContent = this.pendingUsers.length;
+                    pendingBadge.classList.toggle('hidden', this.pendingUsers.length === 0);
+                }
+            }
+
+            formatTimeAgo(timestamp) {
+                if (!timestamp) return 'Unknown';
+                
+                const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+                const seconds = Math.floor((new Date() - date) / 1000);
+                
+                let interval = Math.floor(seconds / 31536000);
+                if (interval >= 1) return interval + 'y ago';
+                
+                interval = Math.floor(seconds / 2592000);
+                if (interval >= 1) return interval + 'mo ago';
+                
+                interval = Math.floor(seconds / 86400);
+                if (interval >= 1) return interval + 'd ago';
+                
+                interval = Math.floor(seconds / 3600);
+                if (interval >= 1) return interval + 'h ago';
+                
+                interval = Math.floor(seconds / 60);
+                if (interval >= 1) return interval + 'm ago';
+                
+                return 'just now';
+            }
+
+            setupRealtimeListeners() {
+                // Listen for new pending users
+                this.db.collection('sessions')
+                    .where('status', '==', 'pending')
+                    .onSnapshot((snapshot) => {
+                        this.pendingUsers = snapshot.docs.map(doc => ({
+                            id: doc.id,
+                            ...doc.data()
+                        }));
+                        this.updatePendingUsersList();
+                        this.updateStats();
+                    });
+                
+                // Listen for active sessions changes
+                this.db.collection('sessions')
+                    .where('status', '==', 'active')
+                    .onSnapshot((snapshot) => {
+                        this.activeSessions = snapshot.docs.map(doc => ({
+                            id: doc.id,
+                            ...doc.data()
+                        }));
+                        this.updateActiveSessionsList();
+                        this.updateStats();
+                    });
+            }
+
+            async generateUserOTP() {
+                const userEmail = document.getElementById('user-email-input')?.value.trim();
+                const userName = document.getElementById('user-name-input')?.value.trim();
+
+                if (!userEmail || !userName) {
+                    this.showNotification('Please enter both email and name', 'Both fields are required', 'warning');
+                    return;
+                }
+
+                const otp = Math.floor(100000 + Math.random() * 900000).toString();
+                const expiryTime = new Date(Date.now() + 10 * 60 * 1000);
+
                 try {
-                    if (!this.firebase.currentUser) {
-                        throw new Error('No user found');
+                    await this.db.collection('sessions').add({
+                        uid: 'admin_gen_' + Date.now(),
+                        email: userEmail,
+                        displayName: userName,
+                        photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=3b82f6&color=fff`,
+                        role: 'user',
+                        status: 'pending',
+                        otp: otp,
+                        device: 'Admin Generated',
+                        platform: 'Admin Panel',
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        generatedBy: this.currentUser.email,
+                        expiresAt: firebase.firestore.Timestamp.fromDate(expiryTime)
+                    });
+                    
+                    // Show OTP result
+                    const otpResult = document.getElementById('otp-result');
+                    if (otpResult) {
+                        otpResult.classList.remove('hidden');
+                        otpResult.innerHTML = `
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="check-circle" class="w-5 h-5 text-green-600 dark:text-green-400"></i>
+                                    <h4 class="font-bold text-green-800 dark:text-green-300">OTP Generated Successfully!</h4>
+                                </div>
+                                <button onclick="adminDashboard.copyOTP('${otp}')" class="text-sm bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-3 py-1.5 rounded-lg flex items-center gap-2">
+                                    <i data-lucide="copy" class="w-4 h-4"></i>
+                                    Copy OTP
+                                </button>
+                            </div>
+                            
+                            <div class="space-y-3">
+                                <p class="text-sm text-green-700 dark:text-green-300">Share this OTP with the user:</p>
+                                <div class="flex items-center justify-between gap-4">
+                                    <div class="flex-1 bg-white dark:bg-slate-800 p-4 rounded-xl border-2 border-green-300 dark:border-green-700">
+                                        <p class="text-3xl font-mono font-bold text-center text-green-700 dark:text-green-300 tracking-widest">${otp}</p>
+                                    </div>
+                                    <button onclick="adminDashboard.shareOTP('${userName}', '${otp}')" class="glass p-3 rounded-xl border border-slate-200/50 dark:border-slate-700/50 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all duration-300">
+                                        <i data-lucide="share-2" class="w-5 h-5 text-slate-600 dark:text-slate-400"></i>
+                                    </button>
+                                </div>
+                                <p class="text-xs text-green-600 dark:text-green-400 text-center">
+                                    <i data-lucide="clock" class="w-3 h-3 inline mr-1"></i>
+                                    Valid for 10 minutes • Expires at ${expiryTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                </p>
+                            </div>
+                        `;
+                        
+                        lucide.createIcons();
                     }
 
-                    const isValid = await this.firebase.verifyOTP(this.firebase.currentUser.uid, enteredOTP);
+                    // Clear inputs
+                    const emailInput = document.getElementById('user-email-input');
+                    const nameInput = document.getElementById('user-name-input');
+                    if (emailInput) emailInput.value = '';
+                    if (nameInput) nameInput.value = '';
                     
-                    if (isValid) {
-                        this.ui.showNotification('Success', 'OTP verified successfully');
-                        await this.showCalculator();
-                    } else {
-                        throw new Error('Invalid OTP');
-                    }
+                    this.showNotification('OTP Generated', `OTP for ${userName} is ready to share`);
+                    
                 } catch (error) {
-                    this.ui.showNotification('Error', error.message, 'danger');
+                    console.error('Generate OTP error:', error);
+                    this.showError('Failed to generate OTP: ' + error.message);
+                }
+            }
+
+            copyOTP(otp) {
+                navigator.clipboard.writeText(otp).then(() => {
+                    this.showNotification('Copied!', 'OTP copied to clipboard');
+                });
+            }
+
+            shareOTP(userName, otp) {
+                const shareText = `OTP for ${userName}: ${otp}\n\nValid for 10 minutes.\n\nSalary Portal Access`;
+                
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'Salary Portal OTP',
+                        text: shareText
+                    });
+                } else {
+                    this.copyOTP(shareText);
+                }
+            }
+
+            async approveUser(sessionId) {
+                if (confirm('Approve this user for access?')) {
+                    try {
+                        await this.db.collection('sessions').doc(sessionId).update({
+                            status: 'active',
+                            otp: null,
+                            approvedBy: this.currentUser.email,
+                            approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            otpVerifiedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            expiresAt: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 24 * 60 * 60 * 1000))
+                        });
+                        
+                        this.showNotification('User Approved', 'User can now access the portal');
+                    } catch (error) {
+                        console.error('Approve user error:', error);
+                        this.showError('Failed to approve user');
+                    }
+                }
+            }
+
+            async rejectUser(sessionId) {
+                if (confirm('Reject this user\'s access request?')) {
+                    try {
+                        await this.db.collection('sessions').doc(sessionId).update({
+                            status: 'rejected',
+                            rejectedBy: this.currentUser.email,
+                            rejectedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        
+                        this.showNotification('User Rejected', 'Access request has been rejected');
+                    } catch (error) {
+                        console.error('Reject user error:', error);
+                        this.showError('Failed to reject user');
+                    }
+                }
+            }
+
+            async revokeAccess(sessionId) {
+                if (confirm('Revoke access for this user?')) {
+                    try {
+                        await this.db.collection('sessions').doc(sessionId).update({
+                            status: 'revoked',
+                            revokedBy: this.currentUser.email,
+                            revokedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        
+                        this.showNotification('Access Revoked', 'User session has been terminated');
+                    } catch (error) {
+                        console.error('Revoke access error:', error);
+                        this.showError('Failed to revoke access');
+                    }
+                }
+            }
+
+            refreshDashboard() {
+                this.showNotification('Refreshing...', 'Updating dashboard data', 'info');
+                this.loadPendingUsers();
+                this.loadActiveSessions();
+            }
+
+            toggleDarkMode() {
+                document.documentElement.classList.toggle('dark');
+                localStorage.setItem('darkMode', document.documentElement.classList.contains('dark') ? 'enabled' : 'disabled');
+            }
+
+            async signOut() {
+                try {
+                    await this.auth.signOut();
+                    this.showNotification('Signed Out', 'You have been signed out');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } catch (error) {
+                    console.error('Sign out error:', error);
+                    this.showError('Failed to sign out');
                 }
             }
         }
-
-        // ============================
-        // GLOBAL FUNCTIONS
-        // ============================
-        let salaryApp;
-
-        window.handleGoogleLogin = async () => {
-            if (!salaryApp) salaryApp = new SalaryApp();
-            
-            const googleBtn = document.querySelector('[onclick*="handleGoogleLogin"]');
-            if (googleBtn) {
-                googleBtn.innerHTML = '<i data-lucide="loader" class="w-5 h-5 animate-spin"></i> Connecting...';
-                googleBtn.disabled = true;
-            }
-
-            const result = await salaryApp.firebase.signInWithGoogle();
-            
-            if (result.success) {
-                // Auth state listener will handle the rest
-            } else {
-                salaryApp.ui.showNotification('Login Failed', result.error, 'danger');
-                if (googleBtn) {
-                    googleBtn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5"> Continue with Google';
-                    googleBtn.disabled = false;
-                }
-            }
-        };
-
-        window.handleVerifyOTP = async () => {
-            if (!salaryApp) return;
-
-            const inputs = document.querySelectorAll('#otp-container input');
-            const otp = Array.from(inputs).map(input => input.value).join('');
-            
-            if (otp.length !== 6) {
-                const errorDiv = document.getElementById('otp-error');
-                if (errorDiv) {
-                    errorDiv.textContent = 'Please enter all 6 digits';
-                    errorDiv.classList.remove('hidden');
-                }
-                return;
-            }
-
-            await salaryApp.verifyOTP(otp);
-        };
-
-        window.handleOTPInput = (input, index) => {
-            const value = input.value;
-            
-            if (value.length === 1 && index < 5) {
-                const nextInput = document.querySelector(`#otp-container input[data-index="${index + 1}"]`);
-                if (nextInput) nextInput.focus();
-            }
-
-            // Auto-verify when all digits entered
-            const inputs = document.querySelectorAll('#otp-container input');
-            const otp = Array.from(inputs).map(input => input.value).join('');
-            
-            if (otp.length === 6) {
-                setTimeout(() => window.handleVerifyOTP(), 300);
-            }
-        };
-
-        window.handleLogout = async () => {
-            if (!salaryApp) return;
-            
-            if (confirm('Are you sure you want to sign out?')) {
-                await salaryApp.firebase.signOut();
-                salaryApp.ui.showLoginScreen();
-            }
-        };
-
-        window.updateCalculatorInput = (id, value) => {
-            if (!salaryApp) return;
-            salaryApp.calculator.updateInput(id, value);
-        };
-
-        window.calculateSalary = () => {
-            if (!salaryApp) return;
-            const results = salaryApp.calculator.calculate();
-            salaryApp.renderPayslipPreview(results);
-        };
-
-        window.resetCalculator = () => {
-            if (!salaryApp) return;
-            salaryApp.calculator.reset();
-            salaryApp.renderCalculatorInputs();
-            const results = salaryApp.calculator.calculate();
-            salaryApp.renderPayslipPreview(results);
-            salaryApp.ui.showNotification('Reset', 'Calculator reset to default values', 'info');
-        };
-
-        window.savePayslip = () => {
-            if (!salaryApp) return;
-            salaryApp.savePayslip();
-        };
-
-        window.downloadPDF = () => {
-            // PDF download implementation
-            salaryApp.ui.showNotification('Info', 'PDF download feature', 'info');
-        };
-
-        window.printPayslip = () => {
-            // Print implementation
-            salaryApp.ui.showNotification('Info', 'Print feature', 'info');
-        };
 
         // ============================
         // INITIALIZATION
         // ============================
+        let adminDashboard;
+
         document.addEventListener('DOMContentLoaded', async () => {
             // Initialize Lucide icons
             lucide.createIcons();
             
-            // Create and initialize the app
-            salaryApp = new SalaryApp();
-            await salaryApp.initialize();
+            // Initialize dark mode
+            if (localStorage.getItem('darkMode') === 'enabled') {
+                document.documentElement.classList.add('dark');
+            }
+            
+            // Create and initialize the dashboard
+            adminDashboard = new AdminDashboard();
+            await adminDashboard.initialize();
+            
+            // Make adminDashboard available globally
+            window.adminDashboard = adminDashboard;
         });
 
-        // Error handling
+        // Global error handling
         window.addEventListener('error', (event) => {
             console.error('Global error:', event.error);
-            const ui = new UIManager();
-            ui.showNotification('Error', 'An unexpected error occurred', 'danger');
+            if (adminDashboard) {
+                adminDashboard.showError('An unexpected error occurred. Please refresh the page.');
+            }
         });
+
+        // Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(error => {
+                    console.log('Service Worker registration failed:', error);
+                });
+            });
+        }
     </script>
 </body>
 </html>
