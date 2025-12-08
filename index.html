@@ -141,6 +141,7 @@
                             <i data-lucide="shield-lock" class="w-4 h-4"></i> Admin Approval
                         </p>
                         <p>Ask Admin for the OTP Code.</p>
+                        <p class="mt-1 text-xs">Tell Admin: "My OTP is: <span id="otp-hint" class="font-bold"></span>"</p>
                     </div>
                     <input type="text" id="otp-input" maxlength="6" class="w-full px-4 py-3 rounded-lg border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:border-blue-500 outline-none text-center text-2xl tracking-[0.5em] font-mono font-bold uppercase" placeholder="------">
                     <div id="otp-error" class="hidden text-sm text-red-600"></div>
@@ -308,8 +309,13 @@
                         <h3 class="font-bold text-yellow-800 dark:text-yellow-500 flex items-center gap-2">
                             <i data-lucide="bell-ring" class="w-5 h-5"></i> Approvals Needed
                         </h3>
+                        <button onclick="refreshPending()" class="text-xs text-yellow-600 hover:text-yellow-800 bg-yellow-100 hover:bg-yellow-200 px-2 py-1 rounded flex items-center gap-1">
+                            <i data-lucide="refresh-cw" class="w-3 h-3"></i> Refresh
+                        </button>
                     </div>
-                    <div class="p-6 space-y-3" id="pending-users-list"></div>
+                    <div class="p-6 space-y-3" id="pending-users-list">
+                        <p class="text-center text-slate-400 py-4">Loading pending approvals...</p>
+                    </div>
                 </div>
                 <!-- Active -->
                 <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden border-l-4 border-l-purple-500">
@@ -320,7 +326,9 @@
                         <span class="text-xs font-mono bg-purple-100 text-purple-700 px-2 py-1 rounded">ADMIN</span>
                     </div>
                     <div class="p-6">
-                        <div id="active-users-list" class="space-y-3"></div>
+                        <div id="active-users-list" class="space-y-3">
+                            <p class="text-center text-slate-400 py-4">Loading active sessions...</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -529,12 +537,14 @@
         let currentRole = null;
         let currentSessionId = localStorage.getItem('salary_app_session_id');
         let sessionUnsub = null;
+        let pendingUnsub = null;
 
         // --- GLOBAL EXPORTS ---
         window.handleGoogleLogin = handleGoogleLogin;
         window.handleVerifyOTP = handleVerifyOTP;
         window.handleLogout = handleLogout;
         window.kickUser = kickUser;
+        window.approveUser = approveUser;
         window.goBackToLogin = () => { document.getElementById('employee-details-form').classList.add('hidden'); document.getElementById('login-screen').classList.remove('hidden'); };
         window.showApp = showApp;
         window.savePayslip = savePayslip;
@@ -542,6 +552,7 @@
         window.loadHistoryItem = loadHistoryItem;
         window.skipAutoLogin = skipAutoLogin;
         window.initAdminDashboard = initAdminDashboard;
+        window.refreshPending = refreshPending;
 
         // --- INIT ---
         onAuthStateChanged(auth, (user) => {
@@ -611,6 +622,8 @@
                     window.pendingOTP = data.otp; // insecure but functional for this flow
                     document.getElementById('user-email-display').textContent = data.email;
                     document.getElementById('user-avatar-display').src = data.photoURL || `https://ui-avatars.com/api/?name=${data.displayName}`;
+                    // OTP hint show karein user ko
+                    document.getElementById('otp-hint').textContent = data.otp;
                 }
             }, err => console.error(err));
         }
@@ -641,6 +654,7 @@
                 } else {
                     currentRole = 'user';
                     const otp = Math.floor(100000 + Math.random()*900000).toString();
+                    console.log('User login - Generated OTP:', otp);
                     await createSession('user', 'pending_otp', otp);
                 }
                 
@@ -713,15 +727,18 @@
             // Active sessions monitor
             const activeSessionsQuery = query(collection(db, 'sessions'), where('status', 'in', ['active', 'pending_otp']));
             
-            onSnapshot(activeSessionsQuery, (snapshot) => {
+            if (pendingUnsub) pendingUnsub();
+            pendingUnsub = onSnapshot(activeSessionsQuery, (snapshot) => {
                 const activeList = document.getElementById('active-users-list');
                 const pendingList = document.getElementById('pending-users-list');
                 let activeHtml = '';
                 let pendingHtml = '';
+                let hasPending = false;
                 
                 if (snapshot.empty) {
                     activeList.innerHTML = '<p class="text-center text-slate-400">No active sessions</p>';
                     pendingList.innerHTML = '<p class="text-center text-slate-400">No pending approvals</p>';
+                    document.getElementById('pending-section').classList.add('hidden');
                     return;
                 }
                 
@@ -729,6 +746,7 @@
                     const data = doc.data();
                     const sessionId = doc.id;
                     const isPending = data.status === 'pending_otp';
+                    const isCurrentSession = sessionId === currentSessionId;
                     
                     const sessionCard = `
                         <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600">
@@ -741,11 +759,18 @@
                                     <div class="flex items-center gap-2 mt-1">
                                         <span class="text-xs px-2 py-0.5 rounded ${data.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">${data.role}</span>
                                         <span class="text-xs px-2 py-0.5 rounded ${isPending ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}">${isPending ? 'Pending OTP' : 'Active'}</span>
+                                        ${isCurrentSession ? '<span class="text-xs px-2 py-0.5 rounded bg-green-100 text-green-700">You</span>' : ''}
                                     </div>
+                                    ${isPending ? `<p class="text-xs font-mono bg-yellow-50 text-yellow-700 p-1 mt-1 rounded">OTP: <span class="font-bold">${data.otp || 'N/A'}</span></p>` : ''}
                                 </div>
                             </div>
                             <div class="flex gap-2">
-                                ${!isPending && sessionId !== currentSessionId ? `
+                                ${isPending ? `
+                                    <button onclick="approveUser('${sessionId}')" class="text-xs text-green-600 hover:text-green-800 bg-green-50 hover:bg-green-100 px-2 py-1 rounded transition-colors">
+                                        <i data-lucide="check" class="w-3 h-3"></i> Approve
+                                    </button>
+                                ` : ''}
+                                ${!isCurrentSession ? `
                                     <button onclick="kickUser('${sessionId}')" class="text-xs text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-2 py-1 rounded transition-colors">
                                         <i data-lucide="user-x" class="w-3 h-3"></i> Kick
                                     </button>
@@ -755,6 +780,7 @@
                     `;
                     
                     if (isPending) {
+                        hasPending = true;
                         pendingHtml += sessionCard;
                     } else {
                         activeHtml += sessionCard;
@@ -762,11 +788,12 @@
                 });
                 
                 // Update pending section visibility
-                if (pendingHtml) {
+                if (hasPending) {
                     document.getElementById('pending-section').classList.remove('hidden');
                     pendingList.innerHTML = pendingHtml;
                 } else {
                     document.getElementById('pending-section').classList.add('hidden');
+                    pendingList.innerHTML = '<p class="text-center text-slate-400">No pending approvals</p>';
                 }
                 
                 activeList.innerHTML = activeHtml || '<p class="text-center text-slate-400">No active sessions</p>';
@@ -774,6 +801,74 @@
             });
             
             console.log('Admin dashboard initialized');
+        }
+
+        async function refreshPending() {
+            const pendingList = document.getElementById('pending-users-list');
+            pendingList.innerHTML = '<p class="text-center text-slate-400">Refreshing...</p>';
+            
+            // Manually fetch pending sessions
+            const pendingQuery = query(collection(db, 'sessions'), where('status', '==', 'pending_otp'));
+            const snapshot = await getDocs(pendingQuery);
+            
+            let pendingHtml = '';
+            if (snapshot.empty) {
+                pendingHtml = '<p class="text-center text-slate-400">No pending approvals</p>';
+                document.getElementById('pending-section').classList.add('hidden');
+            } else {
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const sessionId = doc.id;
+                    
+                    pendingHtml += `
+                        <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600">
+                            <div class="flex items-center gap-3">
+                                <img src="${data.photoURL || 'https://ui-avatars.com/api/?name=' + data.displayName}" 
+                                     class="w-10 h-10 rounded-full border-2 border-slate-300">
+                                <div>
+                                    <p class="font-medium text-slate-800 dark:text-white">${data.displayName || 'Unknown User'}</p>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">${data.email}</p>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <span class="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700">${data.role}</span>
+                                        <span class="text-xs px-2 py-0.5 rounded bg-yellow-100 text-yellow-700">Pending OTP</span>
+                                    </div>
+                                    <p class="text-xs font-mono bg-yellow-50 text-yellow-700 p-1 mt-1 rounded">OTP: <span class="font-bold">${data.otp || 'N/A'}</span></p>
+                                    <p class="text-xs text-slate-400 mt-1">Waiting since: ${new Date().toLocaleTimeString()}</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="approveUser('${sessionId}')" class="text-xs text-green-600 hover:text-green-800 bg-green-50 hover:bg-green-100 px-2 py-1 rounded transition-colors">
+                                    <i data-lucide="check" class="w-3 h-3"></i> Approve
+                                </button>
+                                <button onclick="kickUser('${sessionId}')" class="text-xs text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-2 py-1 rounded transition-colors">
+                                    <i data-lucide="user-x" class="w-3 h-3"></i> Kick
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                document.getElementById('pending-section').classList.remove('hidden');
+            }
+            
+            pendingList.innerHTML = pendingHtml;
+            lucide.createIcons();
+        }
+
+        async function approveUser(sessionId) {
+            if (confirm('Approve this user?')) {
+                await updateDoc(doc(db, 'sessions', sessionId), { 
+                    status: 'active', 
+                    otp: null,
+                    approvedBy: currentUser.email,
+                    approvedAt: serverTimestamp()
+                });
+            }
+        }
+
+        async function kickUser(sessionId) { 
+            if (confirm('Kick this user?')) {
+                await updateDoc(doc(db,'sessions',sessionId), {status:'kicked'}); 
+            }
         }
 
         // --- HISTORY & SAVING ---
@@ -895,10 +990,6 @@
             
             document.getElementById('history-modal').classList.add('hidden');
             calculate(); // Recalculate with loaded values
-        }
-
-        async function kickUser(id) { 
-            await updateDoc(doc(db,'sessions',id), {status:'kicked'}); 
         }
         
         function getKickedUI() { 
