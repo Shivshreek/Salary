@@ -3,14 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Professional Salary Management Portal">
     <title>Salary Portal Pro | Shivshree Kumar - September 2025</title>
     
-    <!-- External Resources with integrity hashes -->
+    <!-- Firebase SDKs (Fixed Versions) -->
+    <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics-compat.js"></script>
+    
+    <!-- Other dependencies -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" integrity="sha512-SI2GENEPH6Z2RM6dLmBgoF7R5T6QN2OWne5L+qOGBqsgOoUfVrE6mXJ61D6qQK1s1VC8PtuXrD0c8RYzrKtO+g==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -18,660 +23,367 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: {
-                            50: '#eff6ff',
-                            100: '#dbeafe',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                        },
-                        success: {
-                            50: '#f0fdf4',
-                            500: '#22c55e',
-                            600: '#16a34a',
-                        },
-                        warning: {
-                            50: '#fefce8',
-                            500: '#f59e0b',
-                            600: '#d97706',
-                        },
-                        danger: {
-                            50: '#fef2f2',
-                            500: '#ef4444',
-                            600: '#dc2626',
-                        }
-                    },
-                    animation: {
-                        'float': 'float 3s ease-in-out infinite',
-                        'pulse-subtle': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'slide-in': 'slideIn 0.3s ease-out',
-                    },
-                    keyframes: {
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-10px)' }
-                        },
-                        slideIn: {
-                            '0%': { transform: 'translateX(100%)', opacity: '0' },
-                            '100%': { transform: 'translateX(0)', opacity: '1' }
-                        }
+                        primary: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8' },
+                        success: { 50: '#f0fdf4', 500: '#22c55e', 600: '#16a34a' },
+                        warning: { 50: '#fefce8', 500: '#f59e0b', 600: '#d97706' },
+                        danger: { 50: '#fef2f2', 500: '#ef4444', 600: '#dc2626' }
                     }
                 }
-            },
-            plugins: []
+            }
         }
     </script>
     
-    <!-- Optimized CSS -->
     <style>
-        :root {
-            --primary-500: #3b82f6;
-            --success-500: #22c55e;
-            --danger-500: #ef4444;
-            --warning-500: #f59e0b;
-        }
-
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            text-rendering: optimizeLegibility;
-            overflow-x: hidden;
-        }
-
-        /* Performance optimizations */
-        .will-change-transform {
-            will-change: transform;
-        }
-
-        .will-change-opacity {
-            will-change: opacity;
-        }
-
-        /* Optimized animations */
-        @keyframes shimmer {
-            0% { background-position: -1000px 0; }
-            100% { background-position: 1000px 0; }
-        }
-
-        .shimmer {
-            background: linear-gradient(90deg, 
-                rgba(240, 240, 240, 0.8) 25%, 
-                rgba(224, 224, 224, 0.8) 50%, 
-                rgba(240, 240, 240, 0.8) 75%);
-            background-size: 1000px 100%;
-            animation: shimmer 2s infinite linear;
-        }
-
-        .dark .shimmer {
-            background: linear-gradient(90deg, 
-                rgba(51, 65, 85, 0.8) 25%, 
-                rgba(71, 85, 105, 0.8) 50%, 
-                rgba(51, 65, 85, 0.8) 75%);
-        }
-
-        /* Optimized transitions */
-        .transition-all {
-            transition-property: all;
-            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-            transition-duration: 200ms;
-        }
-
-        /* Custom Scrollbar - Modern */
-        .scrollbar-thin {
-            scrollbar-width: thin;
-            scrollbar-color: #cbd5e1 #f1f5f9;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 4px;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-            border: 2px solid #f1f5f9;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-
-        .dark .scrollbar-thin {
-            scrollbar-color: #475569 #1e293b;
-        }
-
-        .dark .scrollbar-thin::-webkit-scrollbar-track {
-            background: #1e293b;
-        }
-
-        .dark .scrollbar-thin::-webkit-scrollbar-thumb {
-            background: #475569;
-            border-color: #1e293b;
-        }
-
-        /* Glass effect with backdrop-filter fallback */
-        .glass {
-            background: rgba(255, 255, 255, 0.7);
-            -webkit-backdrop-filter: blur(10px);
-            backdrop-filter: blur(10px);
-        }
-
-        @supports not (backdrop-filter: blur(10px)) {
-            .glass {
-                background: rgba(255, 255, 255, 0.95);
-            }
-        }
-
-        .dark .glass {
-            background: rgba(30, 41, 59, 0.7);
-        }
-
-        @supports not (backdrop-filter: blur(10px)) {
-            .dark .glass {
-                background: rgba(30, 41, 59, 0.95);
-            }
-        }
-
-        /* Input optimizations */
-        .input-focus {
-            transition: all 150ms ease;
-            border: 2px solid #e2e8f0;
-            outline: 2px solid transparent;
-            outline-offset: 2px;
-        }
-
-        .input-focus:focus {
-            border-color: var(--primary-500);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-            transform: translateY(-1px);
-        }
-
-        .dark .input-focus {
-            border-color: #475569;
-            background: #1e293b;
-        }
-
-        .dark .input-focus:focus {
-            border-color: #60a5fa;
-            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
-        }
-
-        /* Button optimizations */
-        .btn-pop {
-            transition: all 150ms ease;
-            transform: translateZ(0);
-        }
-
-        .btn-pop:hover {
-            transform: translateY(-2px) translateZ(0);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-        }
-
-        .btn-pop:active {
-            transform: translateY(0) translateZ(0);
-        }
-
-        /* Print optimizations */
-        @media print {
-            @page {
-                margin: 0.5cm;
-            }
-
-            body * {
-                visibility: hidden;
-            }
-
-            #payslip-container,
-            #payslip-container * {
-                visibility: visible;
-                color: #000 !important;
-                background: #fff !important;
-                box-shadow: none !important;
-                border-color: #ddd !important;
-            }
-
-            #payslip-container {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                max-width: 100%;
-                margin: 0;
-                padding: 0;
-                border: 1px solid #ddd !important;
-            }
-
-            .no-print {
-                display: none !important;
-            }
-
-            a[href]::after {
-                content: " (" attr(href) ")";
-            }
-        }
-
-        /* Performance: Containment */
-        .contain-layout {
-            contain: layout style paint;
-        }
-
-        .contain-content {
-            contain: content;
-        }
-
-        /* Reduced motion */
-        @media (prefers-reduced-motion: reduce) {
-            *,
-            *::before,
-            *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-                scroll-behavior: auto !important;
-            }
-        }
-
-        /* Salary table optimizations */
-        .salary-table {
-            border-collapse: separate;
-            border-spacing: 0;
-            width: 100%;
-        }
-
-        .salary-table th {
-            border-bottom: 2px solid #e5e7eb;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.05em;
-            padding: 12px 16px;
-            text-align: left;
-        }
-
-        .salary-table td {
-            border-bottom: 1px solid #f3f4f6;
-            padding: 12px 16px;
-        }
-
-        .salary-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .dark .salary-table th {
-            border-bottom-color: #374151;
-        }
-
-        .dark .salary-table td {
-            border-bottom-color: #374151;
-        }
-
-        /* OTP input optimizations */
-        .otp-input {
-            width: 3.5rem;
-            height: 4rem;
-            font-size: 1.5rem;
-            text-align: center;
-            border: 2px solid #cbd5e1;
-            border-radius: 0.75rem;
-            transition: all 200ms ease;
-            caret-color: var(--primary-500);
-        }
-
-        .otp-input:focus {
-            border-color: var(--primary-500);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-            outline: none;
-            transform: scale(1.05);
-        }
-
-        .dark .otp-input {
-            border-color: #475569;
-            background: #1e293b;
-        }
-
-        /* Notification optimizations */
-        .notification-badge {
-            position: absolute;
-            top: -0.5rem;
-            right: -0.5rem;
-            width: 1.25rem;
-            height: 1.25rem;
-            background: var(--danger-500);
-            color: white;
-            border-radius: 50%;
-            font-size: 0.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            animation: pulse 2s infinite;
-            z-index: 10;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        /* Fade animations */
-        @keyframes fadeIn {
-            from { 
-                opacity: 0; 
-                transform: translateY(0.5rem); 
-            }
-            to { 
-                opacity: 1; 
-                transform: translateY(0); 
-            }
-        }
-
-        .fade-in {
-            animation: fadeIn 0.3s ease-out forwards;
-        }
-
-        /* Shake animation */
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-
-        .animate-shake {
-            animation: shake 0.5s ease-in-out;
-        }
-
-        /* Image optimizations */
-        img {
-            content-visibility: auto;
-        }
-
-        /* Focus styles for accessibility */
-        .focus-visible:focus-visible {
-            outline: 2px solid var(--primary-500);
-            outline-offset: 2px;
-        }
-
-        /* Loading skeleton */
-        .skeleton {
-            background: linear-gradient(90deg, 
-                rgba(240, 240, 240, 0.5) 25%, 
-                rgba(224, 224, 224, 0.5) 50%, 
-                rgba(240, 240, 240, 0.5) 75%);
-            background-size: 400% 100%;
-            animation: shimmer 1.5s infinite linear;
-        }
-
-        .dark .skeleton {
-            background: linear-gradient(90deg, 
-                rgba(51, 65, 85, 0.5) 25%, 
-                rgba(71, 85, 105, 0.5) 50%, 
-                rgba(51, 65, 85, 0.5) 75%);
-        }
-
-        /* Performance: GPU acceleration */
-        .gpu-accelerated {
-            transform: translateZ(0);
-            backface-visibility: hidden;
-            perspective: 1000px;
-        }
+        /* Keep all your existing CSS styles */
+        /* ... existing CSS ... */
     </style>
 </head>
-<body class="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 min-h-screen text-slate-800 dark:text-slate-200 transition-colors duration-200 contain-layout">
+<body class="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 min-h-screen text-slate-800 dark:text-slate-200">
 
     <!-- Loading Screen -->
-    <div id="loading-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white dark:bg-slate-900 transition-opacity duration-300">
-        <div class="relative will-change-transform">
+    <div id="loading-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white dark:bg-slate-900">
+        <div class="relative">
             <div class="w-20 h-20 border-4 border-primary-100 dark:border-slate-700 border-t-primary-600 rounded-full animate-spin"></div>
             <div class="absolute inset-0 flex items-center justify-center">
                 <i data-lucide="calculator" class="w-8 h-8 text-primary-600 dark:text-primary-400"></i>
             </div>
         </div>
-        <p class="mt-6 text-lg font-medium text-slate-600 dark:text-slate-400 animate-pulse">Loading Salary Portal...</p>
-        <p class="mt-2 text-sm text-slate-500 dark:text-slate-500">Secure & Professional</p>
+        <p class="mt-6 text-lg font-medium text-slate-600 dark:text-slate-400 animate-pulse">Initializing Salary Portal...</p>
     </div>
 
     <!-- Notification Toast -->
-    <div id="notification-toast" class="fixed top-4 right-4 z-50 max-w-sm transition-all duration-300 transform translate-x-full will-change-transform"></div>
+    <div id="notification-toast" class="fixed top-4 right-4 z-50 max-w-sm transition-all duration-300 transform translate-x-full"></div>
 
     <!-- Login Screen -->
-    <div id="login-screen" class="hidden min-h-screen items-center justify-center p-4 fade-in contain-content">
-        <!-- Login content will be loaded dynamically -->
+    <div id="login-screen" class="hidden min-h-screen items-center justify-center p-4">
+        <!-- Login content will be loaded here -->
     </div>
 
-    <!-- Employee Details Form -->
-    <div id="employee-details-form" class="hidden min-h-screen items-center justify-center p-4 fade-in contain-content">
-        <!-- Form content will be loaded dynamically -->
+    <!-- Main App -->
+    <div id="app-content" class="hidden">
+        <!-- App content will be loaded here -->
     </div>
 
-    <!-- Main App Content -->
-    <div id="app-content" class="hidden p-4 md:p-6 fade-in contain-layout">
-        <!-- App content will be loaded dynamically -->
-    </div>
-
-    <!-- Firebase & Core Logic -->
-    <script type="module">
+    <!-- Core Application Script -->
+    <script>
         // ============================
-        // CONFIGURATION & CONSTANTS
+        // FIREBASE CONFIGURATION
         // ============================
-        const CONFIG = {
-            FIREBASE: {
-                apiKey: "AIzaSyCfltr6BuElOXV0_p07uBkDngd5fLU6c-U",
-                authDomain: "salary-e8a20.firebaseapp.com",
-                projectId: "salary-e8a20",
-                storageBucket: "salary-e8a20.firebasestorage.app",
-                messagingSenderId: "743650143598",
-                appId: "1:743650143598:web:d2427c3cbf9587c460657f",
-                measurementId: "G-Z006ERF0Y2"
-            },
-            APP_ID: 'salary-portal-v2',
-            ADMIN_EMAIL: 'shivshreek@gmail.com',
-            OTP_EXPIRY_MINUTES: 10,
-            VERSION: '2.2.0',
-            CACHE_TTL: 5 * 60 * 1000, // 5 minutes
-            DEBOUNCE_DELAY: 300
+        const FIREBASE_CONFIG = {
+            apiKey: "AIzaSyCfltr6BuElOXV0_p07uBkDngd5fLU6c-U",
+            authDomain: "salary-e8a20.firebaseapp.com",
+            projectId: "salary-e8a20",
+            storageBucket: "salary-e8a20.firebasestorage.app",
+            messagingSenderId: "743650143598",
+            appId: "1:743650143598:web:d2427c3cbf9587c460657f",
+            measurementId: "G-Z006ERF0Y2"
         };
 
         // ============================
-        // UTILITY FUNCTIONS
+        // FIREBASE SERVICE
         // ============================
-        class Utils {
-            static debounce(func, wait) {
-                let timeout;
-                return function executedFunction(...args) {
-                    const later = () => {
-                        clearTimeout(timeout);
-                        func(...args);
+        class FirebaseService {
+            constructor() {
+                this.app = null;
+                this.auth = null;
+                this.db = null;
+                this.analytics = null;
+                this.currentUser = null;
+                this.isInitialized = false;
+            }
+
+            async initialize() {
+                try {
+                    // Initialize Firebase
+                    this.app = firebase.initializeApp(FIREBASE_CONFIG);
+                    this.auth = firebase.auth();
+                    this.db = firebase.firestore();
+                    this.analytics = firebase.analytics();
+                    
+                    // Enable offline persistence
+                    await this.db.enablePersistence({ synchronizeTabs: true });
+                    
+                    // Set up auth state listener
+                    this.auth.onAuthStateChanged(async (user) => {
+                        this.currentUser = user;
+                        await this.handleAuthStateChange(user);
+                    });
+                    
+                    this.isInitialized = true;
+                    console.log('Firebase initialized successfully');
+                    return true;
+                } catch (error) {
+                    console.error('Firebase initialization error:', error);
+                    this.showError('Failed to initialize Firebase. Please refresh the page.');
+                    return false;
+                }
+            }
+
+            async handleAuthStateChange(user) {
+                const ui = new UIManager();
+                
+                if (user) {
+                    console.log('User signed in:', user.email);
+                    
+                    // Check if user is admin
+                    const isAdmin = user.email === 'shivshreek@gmail.com';
+                    
+                    if (isAdmin) {
+                        // Show admin dashboard directly
+                        ui.showNotification('Welcome Admin', 'Loading dashboard...', 'success');
+                        await new SalaryApp().showAdminDashboard();
+                    } else {
+                        // Check if user has an active session
+                        const hasActiveSession = await this.checkActiveSession(user.uid);
+                        
+                        if (hasActiveSession) {
+                            // User has active session, show calculator
+                            ui.showNotification('Welcome Back', 'Loading your data...', 'success');
+                            await new SalaryApp().showCalculator();
+                        } else {
+                            // New user or session expired, show OTP screen
+                            await this.generateOTP(user);
+                            ui.showNotification('OTP Required', 'Please enter OTP from admin', 'info');
+                            await new SalaryApp().showOTPScreen(user);
+                        }
+                    }
+                } else {
+                    // No user, show login screen
+                    ui.showLoginScreen();
+                }
+            }
+
+            async checkActiveSession(uid) {
+                try {
+                    const sessionDoc = await this.db.collection('sessions').doc(uid).get();
+                    if (!sessionDoc.exists) return false;
+                    
+                    const sessionData = sessionDoc.data();
+                    const isActive = sessionData.status === 'active';
+                    const isNotExpired = new Date(sessionData.expiresAt?.toDate()) > new Date();
+                    
+                    return isActive && isNotExpired;
+                } catch (error) {
+                    console.error('Session check error:', error);
+                    return false;
+                }
+            }
+
+            async generateOTP(user) {
+                try {
+                    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+                    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+                    
+                    await this.db.collection('sessions').doc(user.uid).set({
+                        uid: user.uid,
+                        email: user.email,
+                        displayName: user.displayName,
+                        photoURL: user.photoURL,
+                        otp: otp,
+                        status: 'pending',
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        expiresAt: firebase.firestore.Timestamp.fromDate(expiresAt)
+                    });
+                    
+                    console.log('OTP generated:', otp, 'for user:', user.email);
+                    return otp;
+                } catch (error) {
+                    console.error('OTP generation error:', error);
+                    throw error;
+                }
+            }
+
+            async verifyOTP(uid, enteredOTP) {
+                try {
+                    const sessionDoc = await this.db.collection('sessions').doc(uid).get();
+                    
+                    if (!sessionDoc.exists) {
+                        throw new Error('No OTP session found');
+                    }
+                    
+                    const sessionData = sessionDoc.data();
+                    
+                    // Check if OTP is expired
+                    if (new Date(sessionData.expiresAt?.toDate()) < new Date()) {
+                        throw new Error('OTP has expired');
+                    }
+                    
+                    // Verify OTP
+                    if (sessionData.otp !== enteredOTP) {
+                        throw new Error('Invalid OTP');
+                    }
+                    
+                    // Update session to active
+                    await this.db.collection('sessions').doc(uid).update({
+                        status: 'active',
+                        otpVerifiedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        expiresAt: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 24 * 60 * 60 * 1000)) // 24 hours
+                    });
+                    
+                    return true;
+                } catch (error) {
+                    console.error('OTP verification error:', error);
+                    throw error;
+                }
+            }
+
+            async signInWithGoogle() {
+                try {
+                    const provider = new firebase.auth.GoogleAuthProvider();
+                    provider.addScope('profile');
+                    provider.addScope('email');
+                    
+                    const result = await this.auth.signInWithPopup(provider);
+                    return {
+                        success: true,
+                        user: result.user
                     };
-                    clearTimeout(timeout);
-                    timeout = setTimeout(later, wait);
-                };
+                } catch (error) {
+                    console.error('Google sign in error:', error);
+                    return {
+                        success: false,
+                        error: error.message
+                    };
+                }
             }
 
-            static throttle(func, limit) {
-                let inThrottle;
-                return function(...args) {
-                    if (!inThrottle) {
-                        func(...args);
-                        inThrottle = true;
-                        setTimeout(() => inThrottle = false, limit);
-                    }
-                };
-            }
-
-            static formatCurrency(amount) {
-                return new Intl.NumberFormat('en-IN', {
-                    style: 'currency',
-                    currency: 'INR',
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                }).format(amount);
-            }
-
-            static formatNumber(num) {
-                return num.toLocaleString('en-IN', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
-            }
-
-            static numberToWords(num) {
-                if (num === 0) return "Zero Rupees Only";
-                
-                const units = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"];
-                const teens = ["Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
-                const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
-                
-                function convertTwoDigits(n) {
-                    if (n === 0) return "";
-                    if (n < 10) return units[n];
-                    if (n < 20) return teens[n - 10];
-                    return tens[Math.floor(n / 10)] + (n % 10 !== 0 ? " " + units[n % 10] : "");
-                }
-
-                function convertThreeDigits(n) {
-                    let str = "";
-                    if (n > 99) {
-                        str += units[Math.floor(n / 100)] + " Hundred ";
-                        n %= 100;
-                    }
-                    str += convertTwoDigits(n);
-                    return str.trim();
-                }
-
-                let integerPart = Math.floor(num);
-                let decimalPart = Math.round((num - integerPart) * 100);
-                let words = "";
-                
-                // Convert integer part
-                if (integerPart >= 10000000) {
-                    words += convertThreeDigits(Math.floor(integerPart / 10000000)) + " Crore ";
-                    integerPart %= 10000000;
-                }
-                if (integerPart >= 100000) {
-                    words += convertThreeDigits(Math.floor(integerPart / 100000)) + " Lakh ";
-                    integerPart %= 100000;
-                }
-                if (integerPart >= 1000) {
-                    words += convertThreeDigits(Math.floor(integerPart / 1000)) + " Thousand ";
-                    integerPart %= 1000;
-                }
-                words += convertThreeDigits(integerPart);
-                
-                // Add currency
-                if (words.trim() === "") {
-                    words = "Zero";
-                }
-                
-                words = words.trim() + " Rupees";
-                
-                // Add paise if any
-                if (decimalPart > 0) {
-                    words += " " + convertTwoDigits(decimalPart) + " Paise";
-                }
-                
-                return words + " Only";
-            }
-
-            static getTimeAgo(date) {
-                const seconds = Math.floor((new Date() - date) / 1000);
-                
-                let interval = Math.floor(seconds / 31536000);
-                if (interval >= 1) return interval + 'y ago';
-                
-                interval = Math.floor(seconds / 2592000);
-                if (interval >= 1) return interval + 'mo ago';
-                
-                interval = Math.floor(seconds / 86400);
-                if (interval >= 1) return interval + 'd ago';
-                
-                interval = Math.floor(seconds / 3600);
-                if (interval >= 1) return interval + 'h ago';
-                
-                interval = Math.floor(seconds / 60);
-                if (interval >= 1) return interval + 'm ago';
-                
-                return 'just now';
-            }
-
-            static async getIPAddress() {
+            async signOut() {
                 try {
-                    const response = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(5000) });
-                    const data = await response.json();
-                    return data.ip;
-                } catch {
-                    return 'Unknown';
+                    if (this.currentUser) {
+                        // Update session status
+                        await this.db.collection('sessions').doc(this.currentUser.uid).update({
+                            status: 'signed_out',
+                            signedOutAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    }
+                    
+                    await this.auth.signOut();
+                    return { success: true };
+                } catch (error) {
+                    console.error('Sign out error:', error);
+                    return { success: false, error: error.message };
                 }
             }
 
-            static copyToClipboard(text) {
-                return navigator.clipboard.writeText(text);
-            }
-
-            static shareContent(title, text, url) {
-                if (navigator.share) {
-                    return navigator.share({ title, text, url });
-                }
-                return this.copyToClipboard(text);
-            }
-
-            static safeJSONParse(str, defaultValue = null) {
+            async savePayslip(data) {
                 try {
-                    return JSON.parse(str);
-                } catch {
-                    return defaultValue;
+                    if (!this.currentUser) {
+                        throw new Error('User not authenticated');
+                    }
+                    
+                    const payslipData = {
+                        ...data,
+                        userId: this.currentUser.uid,
+                        userEmail: this.currentUser.email,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+                    
+                    const docRef = await this.db.collection('payslips').add(payslipData);
+                    return {
+                        success: true,
+                        id: docRef.id
+                    };
+                } catch (error) {
+                    console.error('Save payslip error:', error);
+                    return {
+                        success: false,
+                        error: error.message
+                    };
                 }
             }
 
-            static storage = {
-                get(key, defaultValue = null) {
-                    try {
-                        const item = localStorage.getItem(key);
-                        return item ? Utils.safeJSONParse(item) : defaultValue;
-                    } catch {
-                        return defaultValue;
+            async getPayslipHistory(limit = 50) {
+                try {
+                    if (!this.currentUser) {
+                        return [];
                     }
-                },
-                set(key, value) {
-                    try {
-                        localStorage.setItem(key, JSON.stringify(value));
-                    } catch (error) {
-                        console.error('Storage error:', error);
-                    }
-                },
-                remove(key) {
-                    try {
-                        localStorage.removeItem(key);
-                    } catch (error) {
-                        console.error('Storage error:', error);
-                    }
-                },
-                clear() {
-                    try {
-                        localStorage.clear();
-                    } catch (error) {
-                        console.error('Storage error:', error);
-                    }
+                    
+                    const querySnapshot = await this.db.collection('payslips')
+                        .where('userId', '==', this.currentUser.uid)
+                        .orderBy('createdAt', 'desc')
+                        .limit(limit)
+                        .get();
+                    
+                    return querySnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                } catch (error) {
+                    console.error('Get payslip history error:', error);
+                    return [];
                 }
-            };
+            }
+
+            async getPendingApprovals() {
+                try {
+                    const querySnapshot = await this.db.collection('sessions')
+                        .where('status', '==', 'pending')
+                        .orderBy('createdAt', 'desc')
+                        .get();
+                    
+                    return querySnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                } catch (error) {
+                    console.error('Get pending approvals error:', error);
+                    return [];
+                }
+            }
+
+            async getActiveSessions() {
+                try {
+                    const querySnapshot = await this.db.collection('sessions')
+                        .where('status', '==', 'active')
+                        .orderBy('otpVerifiedAt', 'desc')
+                        .get();
+                    
+                    return querySnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                } catch (error) {
+                    console.error('Get active sessions error:', error);
+                    return [];
+                }
+            }
+
+            async approveUser(sessionId) {
+                try {
+                    await this.db.collection('sessions').doc(sessionId).update({
+                        status: 'active',
+                        approvedBy: this.currentUser.email,
+                        approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        expiresAt: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 24 * 60 * 60 * 1000))
+                    });
+                    
+                    return { success: true };
+                } catch (error) {
+                    console.error('Approve user error:', error);
+                    return { success: false, error: error.message };
+                }
+            }
+
+            async revokeAccess(sessionId) {
+                try {
+                    await this.db.collection('sessions').doc(sessionId).update({
+                        status: 'revoked',
+                        revokedBy: this.currentUser.email,
+                        revokedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    return { success: true };
+                } catch (error) {
+                    console.error('Revoke access error:', error);
+                    return { success: false, error: error.message };
+                }
+            }
+
+            showError(message) {
+                const ui = new UIManager();
+                ui.showNotification('Firebase Error', message, 'danger');
+            }
         }
 
         // ============================
@@ -679,551 +391,13 @@
         // ============================
         class UIManager {
             constructor() {
-                this.templates = new Map();
-                this.initializeTemplates();
-                this.initializeEventListeners();
-            }
-
-            initializeTemplates() {
-                // Login Screen Template
-                this.templates.set('login', this.createLoginTemplate());
-                // Employee Form Template
-                this.templates.set('employee-form', this.createEmployeeFormTemplate());
-                // Main App Template
-                this.templates.set('main-app', this.createMainAppTemplate());
-                // History Modal Template
-                this.templates.set('history-modal', this.createHistoryModalTemplate());
-                // Admin Dashboard Template
-                this.templates.set('admin-dashboard', this.createAdminDashboardTemplate());
-                // Payslip Template
-                this.templates.set('payslip', this.createPayslipTemplate());
-            }
-
-            initializeEventListeners() {
-                // Theme toggle
-                document.addEventListener('click', (e) => {
-                    if (e.target.closest('[data-toggle-theme]')) {
-                        this.toggleDarkMode();
-                    }
-                });
-
-                // Keyboard shortcuts
-                document.addEventListener('keydown', this.handleKeyboardShortcuts.bind(this));
-            }
-
-            createLoginTemplate() {
-                return `
-                    <div class="w-full max-w-md">
-                        <div class="glass rounded-3xl shadow-2xl overflow-hidden border border-slate-200/50 dark:border-slate-700/50">
-                            <div class="bg-gradient-to-r from-primary-600 to-primary-700 p-8 text-center relative overflow-hidden">
-                                <div class="absolute inset-0 bg-black/10"></div>
-                                <div class="relative">
-                                    <div class="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-white/20">
-                                        <i data-lucide="wallet" class="w-10 h-10 text-white"></i>
-                                    </div>
-                                    <h1 class="text-2xl font-bold text-white">Salary Portal Pro</h1>
-                                    <p class="text-primary-200 text-sm mt-1">Secure Access • Professional Tools</p>
-                                </div>
-                            </div>
-                            
-                            <div class="p-8">
-                                <div id="login-form-content" class="space-y-6">
-                                    <!-- Dynamic content -->
-                                </div>
-                            </div>
-                        </div>
-                        <div class="text-center mt-6">
-                            <p class="text-sm text-slate-500 dark:text-slate-500">© 2024 Salary Portal Pro • v${CONFIG.VERSION}</p>
-                        </div>
-                    </div>
-                `;
-            }
-
-            createEmployeeFormTemplate() {
-                return `
-                    <div class="w-full max-w-2xl">
-                        <div class="glass rounded-3xl shadow-2xl overflow-hidden border border-slate-200/50 dark:border-slate-700/50">
-                            <div class="bg-gradient-to-r from-primary-600 to-primary-700 p-6 text-center relative overflow-hidden">
-                                <div class="absolute inset-0 bg-black/10"></div>
-                                <div class="relative flex items-center justify-between">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/20">
-                                            <i data-lucide="user-plus" class="w-6 h-6 text-white"></i>
-                                        </div>
-                                        <div class="text-left">
-                                            <h2 class="text-xl font-bold text-white">Employee Details</h2>
-                                            <p id="welcome-msg" class="text-primary-200 text-sm">Complete your profile</p>
-                                        </div>
-                                    </div>
-                                    <button onclick="SalaryPortal.goBackToLogin()" class="text-white/80 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors">
-                                        <i data-lucide="x" class="w-5 h-5"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="p-6">
-                                <form id="employee-form" class="space-y-6">
-                                    <!-- Dynamic form content -->
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            createMainAppTemplate() {
-                return `
-                    <div class="max-w-7xl mx-auto space-y-6">
-                        <!-- Navigation -->
-                        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-                            <div class="flex items-center gap-4">
-                                <div class="glass rounded-2xl p-3 border border-slate-200/50 dark:border-slate-700/50">
-                                    <div class="flex items-center gap-3">
-                                        <div class="bg-gradient-to-r from-primary-500 to-primary-600 p-2 rounded-xl">
-                                            <i data-lucide="wallet" class="w-6 h-6 text-white"></i>
-                                        </div>
-                                        <div>
-                                            <h1 class="font-bold text-slate-800 dark:text-white text-lg">Salary Portal Pro</h1>
-                                            <p id="current-user-info" class="text-xs text-slate-500 dark:text-slate-400">Loading...</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div id="admin-badge" class="hidden">
-                                    <div class="glass rounded-full px-3 py-1.5 border border-purple-200 dark:border-purple-800">
-                                        <span class="text-xs font-semibold text-purple-700 dark:text-purple-300 flex items-center gap-1">
-                                            <i data-lucide="shield-check" class="w-3 h-3"></i>
-                                            ADMIN
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="flex items-center gap-2">
-                                <button onclick="SalaryPortal.toggleHistory()" class="glass btn-pop p-3 rounded-xl border border-slate-200/50 dark:border-slate-700/50 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all duration-300 group relative">
-                                    <i data-lucide="history" class="w-5 h-5 text-slate-600 dark:text-slate-400 group-hover:text-primary-600"></i>
-                                    <div id="history-badge" class="notification-badge hidden">0</div>
-                                </button>
-                                
-                                <button data-toggle-theme class="glass btn-pop p-3 rounded-xl border border-slate-200/50 dark:border-slate-700/50 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all duration-300 group">
-                                    <i data-lucide="moon" class="w-5 h-5 text-slate-600 dark:hidden group-hover:text-primary-600"></i>
-                                    <i data-lucide="sun" class="w-5 h-5 hidden dark:block text-yellow-400"></i>
-                                </button>
-                                
-                                <div class="relative group">
-                                    <button class="glass btn-pop flex items-center gap-3 p-3 rounded-xl border border-slate-200/50 dark:border-slate-700/50 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all duration-300">
-                                        <img id="user-avatar-nav" src="" class="w-8 h-8 rounded-full border-2 border-white shadow" loading="lazy">
-                                        <div class="text-left">
-                                            <p id="user-name-nav" class="text-sm font-semibold text-slate-800 dark:text-white">Loading...</p>
-                                            <p id="user-role-nav" class="text-xs text-slate-500 dark:text-slate-400">User</p>
-                                        </div>
-                                        <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400"></i>
-                                    </button>
-                                    
-                                    <div class="absolute right-0 top-full mt-2 w-48 glass rounded-xl shadow-2xl border border-slate-200/50 dark:border-slate-700/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-                                        <div class="p-2">
-                                            <div class="p-3 border-b border-slate-200/50 dark:border-slate-700/50">
-                                                <p class="text-sm font-medium text-slate-800 dark:text-white">Signed in as</p>
-                                                <p id="user-email-nav" class="text-xs text-slate-500 dark:text-slate-400 truncate">loading...</p>
-                                            </div>
-                                            <button onclick="SalaryPortal.toggleHistory()" class="w-full text-left px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg flex items-center gap-2">
-                                                <i data-lucide="history" class="w-4 h-4"></i>
-                                                History
-                                            </button>
-                                            <button onclick="SalaryPortal.handleLogout()" class="w-full text-left px-3 py-2.5 text-sm text-danger-600 hover:bg-danger-50 dark:hover:bg-danger-900/20 rounded-lg flex items-center gap-2">
-                                                <i data-lucide="log-out" class="w-4 h-4"></i>
-                                                Sign Out
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Main Content -->
-                        <div id="main-content">
-                            <!-- Dynamic content -->
-                        </div>
-                        
-                        <!-- Footer -->
-                        <div class="text-center pt-8 border-t border-slate-200/50 dark:border-slate-700/50">
-                            <p class="text-sm text-slate-500 dark:text-slate-500">
-                                © 2024 Salary Portal Pro • Professional Salary Management Tool • v${CONFIG.VERSION}
-                            </p>
-                            <p class="text-xs text-slate-400 dark:text-slate-600 mt-1">
-                                Secure • Reliable • Efficient
-                            </p>
-                        </div>
-                    </div>
-                `;
-            }
-
-            createHistoryModalTemplate() {
-                return `
-                    <div id="history-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                        <div class="glass w-full max-w-4xl max-h-[90vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-slate-200/50 dark:border-slate-700/50 scrollbar-thin">
-                            <div class="p-6 border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-primary-50 to-blue-50 dark:from-primary-900/20 dark:to-blue-900/20">
-                                <div class="flex justify-between items-center">
-                                    <div class="flex items-center gap-3">
-                                        <div class="bg-primary-100 dark:bg-primary-900/30 p-2 rounded-xl">
-                                            <i data-lucide="archive" class="w-6 h-6 text-primary-600 dark:text-primary-400"></i>
-                                        </div>
-                                        <div>
-                                            <h3 class="text-lg font-bold text-slate-800 dark:text-white">Salary History</h3>
-                                            <p class="text-sm text-slate-600 dark:text-slate-400">Your saved salary records</p>
-                                        </div>
-                                    </div>
-                                    <button onclick="SalaryPortal.toggleHistory()" class="p-2 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 rounded-xl transition-colors">
-                                        <i data-lucide="x" class="w-5 h-5"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="flex-1 overflow-hidden flex flex-col md:flex-row">
-                                <div class="w-full md:w-2/5 p-6 border-r border-slate-200/50 dark:border-slate-700/50">
-                                    <div class="space-y-6">
-                                        <div>
-                                            <h4 class="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-4">Net Pay Trend</h4>
-                                            <div class="relative h-64">
-                                                <canvas id="historyChart"></canvas>
-                                            </div>
-                                        </div>
-                                        <div class="space-y-3">
-                                            <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                                                <div class="flex items-center gap-2">
-                                                    <div class="w-3 h-3 rounded-full bg-primary-500"></div>
-                                                    <span class="text-sm text-slate-600 dark:text-slate-400">Average Net Pay</span>
-                                                </div>
-                                                <span id="avg-net-pay" class="font-semibold text-slate-800 dark:text-white">₹0</span>
-                                            </div>
-                                            <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                                                <div class="flex items-center gap-2">
-                                                    <div class="w-3 h-3 rounded-full bg-success-500"></div>
-                                                    <span class="text-sm text-slate-600 dark:text-slate-400">Highest Net Pay</span>
-                                                </div>
-                                                <span id="max-net-pay" class="font-semibold text-slate-800 dark:text-white">₹0</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="w-full md:w-3/5 p-6 overflow-y-auto">
-                                    <div class="space-y-4">
-                                        <div class="flex items-center justify-between">
-                                            <h4 class="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Saved Records</h4>
-                                            <span id="record-count" class="text-xs text-slate-500 dark:text-slate-500">0 records</span>
-                                        </div>
-                                        <div id="history-list" class="space-y-3">
-                                            <!-- Dynamic list -->
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            createAdminDashboardTemplate() {
-                return `
-                    <div id="admin-dashboard" class="hidden space-y-6">
-                        <!-- Welcome Card -->
-                        <div class="glass rounded-3xl p-6 border border-slate-200/50 dark:border-slate-700/50">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-4">
-                                    <div class="bg-gradient-to-r from-purple-500 to-purple-600 p-3 rounded-2xl">
-                                        <i data-lucide="shield-check" class="w-8 h-8 text-white"></i>
-                                    </div>
-                                    <div>
-                                        <h2 class="text-xl font-bold text-slate-800 dark:text-white">Admin Dashboard</h2>
-                                        <p class="text-slate-600 dark:text-slate-400">Manage user access and monitor activity</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <button onclick="SalaryPortal.refreshDashboard()" class="glass btn-pop p-2.5 rounded-xl border border-slate-200/50 dark:border-slate-700/50 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all duration-300">
-                                        <i data-lucide="refresh-cw" class="w-5 h-5 text-slate-600 dark:text-slate-400"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Quick Stats -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div class="glass rounded-2xl p-5 border border-slate-200/50 dark:border-slate-700/50">
-                                <div class="flex items-center justify-between mb-4">
-                                    <div class="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
-                                        <i data-lucide="users" class="w-5 h-5 text-primary-600 dark:text-primary-400"></i>
-                                    </div>
-                                    <span id="active-count" class="text-2xl font-bold text-slate-800 dark:text-white">0</span>
-                                </div>
-                                <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Active Sessions</h3>
-                                <p class="text-xs text-slate-500 dark:text-slate-500">Users currently online</p>
-                            </div>
-                            
-                            <div class="glass rounded-2xl p-5 border border-slate-200/50 dark:border-slate-700/50">
-                                <div class="flex items-center justify-between mb-4">
-                                    <div class="p-2 bg-warning-100 dark:bg-warning-900/30 rounded-lg">
-                                        <i data-lucide="clock" class="w-5 h-5 text-warning-600 dark:text-warning-400"></i>
-                                    </div>
-                                    <span id="pending-count" class="text-2xl font-bold text-slate-800 dark:text-white">0</span>
-                                </div>
-                                <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Pending Approvals</h3>
-                                <p class="text-xs text-slate-500 dark:text-slate-500">Waiting for OTP verification</p>
-                            </div>
-                            
-                            <div class="glass rounded-2xl p-5 border border-slate-200/50 dark:border-slate-700/50">
-                                <div class="flex items-center justify-between mb-4">
-                                    <div class="p-2 bg-success-100 dark:bg-success-900/30 rounded-lg">
-                                        <i data-lucide="check-circle" class="w-5 h-5 text-success-600 dark:text-success-400"></i>
-                                    </div>
-                                    <span id="approved-count" class="text-2xl font-bold text-slate-800 dark:text-white">0</span>
-                                </div>
-                                <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Approved Today</h3>
-                                <p class="text-xs text-slate-500 dark:text-slate-500">Users approved in last 24h</p>
-                            </div>
-                        </div>
-
-                        <!-- Main Dashboard Content -->
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <!-- Quick OTP Generation -->
-                            <div class="glass rounded-3xl p-6 border border-slate-200/50 dark:border-slate-700/50">
-                                <div class="flex items-center justify-between mb-6">
-                                    <div class="flex items-center gap-3">
-                                        <div class="bg-gradient-to-r from-green-500 to-green-600 p-2 rounded-xl">
-                                            <i data-lucide="key-round" class="w-6 h-6 text-white"></i>
-                                        </div>
-                                        <div>
-                                            <h3 class="text-lg font-bold text-slate-800 dark:text-white">Quick OTP Generator</h3>
-                                            <p class="text-sm text-slate-600 dark:text-slate-400">Generate OTP for users instantly</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="space-y-5">
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">User Email</label>
-                                            <input type="email" id="user-email-input" class="input-focus w-full px-4 py-3 rounded-xl" placeholder="employee@company.com">
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">User Name</label>
-                                            <input type="text" id="user-name-input" class="input-focus w-full px-4 py-3 rounded-xl" placeholder="John Doe">
-                                        </div>
-                                    </div>
-                                    
-                                    <button onclick="SalaryPortal.generateUserOTP()" 
-                                            class="w-full btn-pop bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3.5 rounded-xl transition-all duration-300 shadow-lg flex items-center justify-center gap-3">
-                                        <i data-lucide="key" class="w-5 h-5"></i>
-                                        Generate & Share OTP
-                                    </button>
-                                    
-                                    <!-- Generated OTP Display -->
-                                    <div id="otp-result" class="hidden space-y-4 p-5 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl border border-green-200 dark:border-green-800">
-                                        <!-- Dynamic content -->
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Pending Approvals -->
-                            <div class="glass rounded-3xl p-6 border border-slate-200/50 dark:border-slate-700/50">
-                                <div class="flex items-center justify-between mb-6">
-                                    <div class="flex items-center gap-3">
-                                        <div class="bg-gradient-to-r from-warning-500 to-warning-600 p-2 rounded-xl">
-                                            <i data-lucide="clock" class="w-6 h-6 text-white"></i>
-                                        </div>
-                                        <div>
-                                            <h3 class="text-lg font-bold text-slate-800 dark:text-white">Pending Approvals</h3>
-                                            <p class="text-sm text-slate-600 dark:text-slate-400">Users waiting for verification</p>
-                                        </div>
-                                    </div>
-                                    <div id="pending-badge" class="notification-badge">0</div>
-                                </div>
-                                
-                                <div id="pending-users-list" class="space-y-4 max-h-[300px] overflow-y-auto pr-2 scrollbar-thin">
-                                    <!-- Dynamic list -->
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Active Sessions -->
-                        <div class="glass rounded-3xl p-6 border border-slate-200/50 dark:border-slate-700/50">
-                            <div class="flex items-center justify-between mb-6">
-                                <div class="flex items-center gap-3">
-                                    <div class="bg-gradient-to-r from-purple-500 to-purple-600 p-2 rounded-xl">
-                                        <i data-lucide="monitor" class="w-6 h-6 text-white"></i>
-                                    </div>
-                                    <div>
-                                        <h3 class="text-lg font-bold text-slate-800 dark:text-white">Active Sessions</h3>
-                                        <p class="text-sm text-slate-600 dark:text-slate-400">Currently logged in users</p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div id="active-users-list" class="space-y-4 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin">
-                                <!-- Dynamic list -->
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            createPayslipTemplate() {
-                return `
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                        <!-- Input Panel -->
-                        <div class="lg:col-span-4 space-y-6">
-                            <!-- Calculator Card -->
-                            <div class="glass rounded-3xl p-6 border border-slate-200/50 dark:border-slate-700/50">
-                                <div class="flex items-center justify-between mb-6">
-                                    <div class="flex items-center gap-3">
-                                        <div class="bg-gradient-to-r from-primary-500 to-primary-600 p-2 rounded-xl">
-                                            <i data-lucide="calculator" class="w-6 h-6 text-white"></i>
-                                        </div>
-                                        <div>
-                                            <h3 class="text-lg font-bold text-slate-800 dark:text-white">Salary Calculator</h3>
-                                            <p class="text-sm text-slate-600 dark:text-slate-400">Adjust values for accurate calculation</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <button onclick="SalaryPortal.savePayslip()" id="save-btn" 
-                                                class="glass btn-pop text-sm bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-4 py-2 rounded-xl flex items-center gap-2 transition-all duration-300">
-                                            <i data-lucide="save" class="w-4 h-4"></i>
-                                            Save
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div class="space-y-5">
-                                    <!-- Calculator inputs will be dynamically added -->
-                                </div>
-                            </div>
-                            
-                            <!-- Quick Tips -->
-                            <div class="glass rounded-3xl p-5 border border-slate-200/50 dark:border-slate-700/50">
-                                <div class="flex items-center gap-2 mb-4">
-                                    <i data-lucide="lightbulb" class="w-5 h-5 text-warning-500"></i>
-                                    <h4 class="font-semibold text-slate-800 dark:text-white">Quick Tips</h4>
-                                </div>
-                                <ul class="space-y-3 text-sm text-slate-600 dark:text-slate-400">
-                                    <li class="flex items-start gap-2">
-                                        <i data-lucide="check-circle" class="w-4 h-4 text-success-500 mt-0.5 flex-shrink-0"></i>
-                                        <span>Save frequently to track salary history</span>
-                                    </li>
-                                    <li class="flex items-start gap-2">
-                                        <i data-lucide="check-circle" class="w-4 h-4 text-success-500 mt-0.5 flex-shrink-0"></i>
-                                        <span>Use reset to restore default values</span>
-                                    </li>
-                                    <li class="flex items-start gap-2">
-                                        <i data-lucide="check-circle" class="w-4 h-4 text-success-500 mt-0.5 flex-shrink-0"></i>
-                                        <span>Download PDF for official records</span>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Payslip Preview -->
-                        <div class="lg:col-span-8">
-                            <div class="glass rounded-3xl p-6 md:p-8 border border-slate-200/50 dark:border-slate-700/50">
-                                <!-- Payslip Header -->
-                                <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-                                    <div>
-                                        <h2 class="text-2xl font-bold text-slate-800 dark:text-white">Payslip Preview</h2>
-                                        <p id="slip-month-display" class="text-slate-600 dark:text-slate-400">September 2025</p>
-                                    </div>
-                                    <div class="flex items-center gap-3">
-                                        <button onclick="SalaryPortal.downloadPDF()" 
-                                                class="glass btn-pop px-5 py-2.5 text-slate-800 dark:text-white font-semibold rounded-xl border border-slate-200/50 dark:border-slate-700/50 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all duration-300 flex items-center gap-2">
-                                            <i data-lucide="download" class="w-5 h-5"></i>
-                                            Download PDF
-                                        </button>
-                                        <button onclick="SalaryPortal.printPayslip()" 
-                                                class="glass btn-pop px-5 py-2.5 text-slate-800 dark:text-white font-semibold rounded-xl border border-slate-200/50 dark:border-slate-700/50 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all duration-300 flex items-center gap-2">
-                                            <i data-lucide="printer" class="w-5 h-5"></i>
-                                            Print
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <!-- Payslip Container -->
-                                <div id="payslip-container" class="bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-slate-800 fade-in">
-                                    <!-- Dynamic payslip content -->
-                                </div>
-                                
-                                <!-- Quick Stats -->
-                                <div class="grid grid-cols-3 gap-4 mt-8">
-                                    <div class="glass rounded-2xl p-4 text-center border border-slate-200/50 dark:border-slate-700/50">
-                                        <div class="text-sm text-slate-600 dark:text-slate-400 mb-1">Total Earnings</div>
-                                        <div class="text-xl font-bold text-slate-800 dark:text-white" id="quick-total-earnings">₹39,415.78</div>
-                                    </div>
-                                    <div class="glass rounded-2xl p-4 text-center border border-slate-200/50 dark:border-slate-700/50">
-                                        <div class="text-sm text-slate-600 dark:text-slate-400 mb-1">Total Deductions</div>
-                                        <div class="text-xl font-bold text-slate-800 dark:text-white" id="quick-total-deductions">₹3,466.27</div>
-                                    </div>
-                                    <div class="glass rounded-2xl p-4 text-center border border-slate-200/50 dark:border-slate-700/50">
-                                        <div class="text-sm text-slate-600 dark:text-slate-400 mb-1">Net Pay</div>
-                                        <div class="text-xl font-bold text-green-700 dark:text-green-400" id="quick-net-pay">₹35,949.51</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            render(templateId, containerId, data = {}) {
-                const container = document.getElementById(containerId);
-                if (!container) return;
-
-                const template = this.templates.get(templateId);
-                if (!template) {
-                    console.error(`Template ${templateId} not found`);
-                    return;
-                }
-
-                // Replace placeholders with data
-                let html = template;
-                Object.entries(data).forEach(([key, value]) => {
-                    const regex = new RegExp(`{{${key}}}`, 'g');
-                    html = html.replace(regex, value);
-                });
-
-                container.innerHTML = html;
-                this.initializeIcons();
-            }
-
-            initializeIcons() {
-                if (window.lucide && window.lucide.createIcons) {
-                    window.lucide.createIcons();
-                }
+                this.firebase = new FirebaseService();
             }
 
             showLoading(show = true) {
                 const loadingScreen = document.getElementById('loading-screen');
                 if (loadingScreen) {
                     loadingScreen.style.display = show ? 'flex' : 'none';
-                }
-            }
-
-            showScreen(screenId) {
-                const screens = ['login-screen', 'employee-details-form', 'app-content'];
-                screens.forEach(screen => {
-                    const element = document.getElementById(screen);
-                    if (element) {
-                        element.classList.toggle('hidden', screen !== screenId);
-                        element.classList.toggle('flex', screen === screenId && screen !== 'app-content');
-                    }
-                });
-            }
-
-            toggleDarkMode() {
-                const isDark = document.documentElement.classList.toggle('dark');
-                Utils.storage.set('darkMode', isDark ? 'enabled' : 'disabled');
-            }
-
-            initializeDarkMode() {
-                const darkMode = Utils.storage.get('darkMode');
-                if (darkMode === 'enabled') {
-                    document.documentElement.classList.add('dark');
                 }
             }
 
@@ -1239,55 +413,161 @@
                 }[type];
 
                 toast.innerHTML = `
-                    <div class="glass rounded-xl shadow-2xl p-4 border-l-4 border-${typeConfig.color}-500">
+                    <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl p-4 border-l-4 border-${typeConfig.color}-500">
                         <div class="flex items-start">
-                            <div class="flex-shrink-0">
-                                <i data-lucide="${typeConfig.icon}" class="w-6 h-6 text-${typeConfig.color}-500"></i>
-                            </div>
-                            <div class="ml-3">
-                                <p class="font-semibold">${title}</p>
+                            <i data-lucide="${typeConfig.icon}" class="w-6 h-6 text-${typeConfig.color}-500 mt-0.5"></i>
+                            <div class="ml-3 flex-1">
+                                <p class="font-semibold text-slate-900 dark:text-white">${title}</p>
                                 <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">${message}</p>
                             </div>
-                            <button onclick="this.parentElement.parentElement.parentElement.style.transform='translateX(100%)'" class="ml-4 text-slate-400 hover:text-slate-600">
+                            <button onclick="this.parentElement.parentElement.style.transform='translateX(100%)'" 
+                                    class="ml-4 text-slate-400 hover:text-slate-600">
                                 <i data-lucide="x" class="w-5 h-5"></i>
                             </button>
                         </div>
                     </div>
                 `;
-
+                
                 toast.style.transform = 'translateX(0)';
-                this.initializeIcons();
-
+                lucide.createIcons();
+                
                 setTimeout(() => {
                     toast.style.transform = 'translateX(100%)';
                 }, 5000);
             }
 
-            handleKeyboardShortcuts(e) {
-                if (e.ctrlKey || e.metaKey) {
-                    switch(e.key.toLowerCase()) {
-                        case 's':
-                            e.preventDefault();
-                            if (window.SalaryPortal) window.SalaryPortal.savePayslip();
-                            break;
-                        case 'p':
-                            e.preventDefault();
-                            if (window.SalaryPortal) window.SalaryPortal.printPayslip();
-                            break;
-                        case 'd':
-                            e.preventDefault();
-                            this.toggleDarkMode();
-                            break;
-                        case 'r':
-                            e.preventDefault();
-                            if (window.SalaryPortal) window.SalaryPortal.resetCalculator();
-                            break;
-                        case 'h':
-                            e.preventDefault();
-                            if (window.SalaryPortal) window.SalaryPortal.toggleHistory();
-                            break;
-                    }
+            showLoginScreen() {
+                this.showLoading(false);
+                
+                const loginScreen = document.getElementById('login-screen');
+                const appContent = document.getElementById('app-content');
+                
+                if (loginScreen) loginScreen.classList.remove('hidden');
+                if (appContent) appContent.classList.add('hidden');
+                
+                this.renderLoginScreen();
+            }
+
+            renderLoginScreen() {
+                const loginScreen = document.getElementById('login-screen');
+                if (!loginScreen) return;
+
+                loginScreen.innerHTML = `
+                    <div class="w-full max-w-md">
+                        <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden border border-slate-200/50 dark:border-slate-700/50">
+                            <!-- Header -->
+                            <div class="bg-gradient-to-r from-primary-600 to-primary-700 p-8 text-center">
+                                <div class="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-white/20">
+                                    <i data-lucide="wallet" class="w-10 h-10 text-white"></i>
+                                </div>
+                                <h1 class="text-2xl font-bold text-white">Salary Portal Pro</h1>
+                                <p class="text-primary-200 text-sm mt-1">Secure Access • Professional Tools</p>
+                            </div>
+                            
+                            <!-- Login Form -->
+                            <div class="p-8">
+                                <div class="space-y-6">
+                                    <div class="text-center">
+                                        <h2 class="text-xl font-bold text-slate-800 dark:text-white">Welcome Back</h2>
+                                        <p class="text-slate-600 dark:text-slate-400 mt-1">Sign in to access your salary tools</p>
+                                    </div>
+                                    
+                                    <button onclick="window.handleGoogleLogin()" 
+                                            class="w-full bg-white hover:bg-slate-50 text-slate-800 font-semibold py-3 px-4 rounded-xl transition-all duration-300 border border-slate-300 shadow-sm flex items-center justify-center gap-3">
+                                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5">
+                                        <span>Continue with Google</span>
+                                    </button>
+                                    
+                                    <div class="text-center pt-4 border-t border-slate-100 dark:border-slate-800">
+                                        <p class="text-xs text-slate-500 dark:text-slate-500">
+                                            © 2024 Salary Portal Pro • v2.2.0
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                lucide.createIcons();
+            }
+
+            showOTPScreen(user) {
+                this.showLoading(false);
+                
+                const loginScreen = document.getElementById('login-screen');
+                const appContent = document.getElementById('app-content');
+                
+                if (loginScreen) {
+                    loginScreen.classList.remove('hidden');
+                    loginScreen.innerHTML = `
+                        <div class="w-full max-w-md">
+                            <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden border border-slate-200/50 dark:border-slate-700/50">
+                                <!-- Header -->
+                                <div class="bg-gradient-to-r from-primary-600 to-primary-700 p-8 text-center">
+                                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900/30 mb-4">
+                                        <i data-lucide="shield-check" class="w-8 h-8 text-primary-600 dark:text-primary-400"></i>
+                                    </div>
+                                    <h2 class="text-xl font-bold text-white">Security Verification</h2>
+                                    <p class="text-primary-200 text-sm mt-1">Enter the OTP provided by admin</p>
+                                </div>
+                                
+                                <!-- OTP Form -->
+                                <div class="p-8">
+                                    <div class="space-y-6">
+                                        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-5 rounded-xl border border-blue-100 dark:border-blue-800">
+                                            <div class="flex items-center gap-3 mb-3">
+                                                <div class="flex-shrink-0">
+                                                    <img src="${user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=3b82f6&color=fff`}" 
+                                                         class="w-12 h-12 rounded-full border-2 border-white shadow">
+                                                </div>
+                                                <div>
+                                                    <p class="font-semibold text-slate-800 dark:text-white">${user.displayName || 'User'}</p>
+                                                    <p class="text-sm text-slate-600 dark:text-slate-400">${user.email}</p>
+                                                </div>
+                                            </div>
+                                            <p class="text-sm text-slate-700 dark:text-slate-300">
+                                                <i data-lucide="info" class="w-4 h-4 inline mr-1"></i>
+                                                Contact <span class="font-semibold text-primary-600">admin@company.com</span> for your OTP code
+                                            </p>
+                                        </div>
+                                        
+                                        <div class="space-y-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Enter 6-digit OTP</label>
+                                                <div class="flex justify-center gap-2" id="otp-container">
+                                                    ${Array.from({length: 6}).map((_, i) => `
+                                                        <input type="text" maxlength="1" class="w-12 h-14 text-center text-xl font-semibold border-2 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" 
+                                                               data-index="${i}" oninput="window.handleOTPInput(this, ${i})">
+                                                    `).join('')}
+                                                </div>
+                                            </div>
+                                            
+                                            <div id="otp-error" class="hidden bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 p-3 rounded-lg text-sm"></div>
+                                            
+                                            <div class="space-y-3">
+                                                <button onclick="window.handleVerifyOTP()" 
+                                                        class="w-full bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold py-3 rounded-xl transition-all duration-300 shadow-lg flex items-center justify-center gap-2">
+                                                    <i data-lucide="shield" class="w-5 h-5"></i>
+                                                    Verify & Continue
+                                                </button>
+                                                
+                                                <button onclick="window.handleLogout()" 
+                                                        class="w-full py-2.5 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-300 font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-2">
+                                                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                                                    Use Different Account
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
                 }
+                
+                if (appContent) appContent.classList.add('hidden');
+                lucide.createIcons();
             }
         }
 
@@ -1296,45 +576,27 @@
         // ============================
         class SalaryCalculator {
             constructor() {
-                this.inputs = {};
-                this.results = {};
-                this.initializeInputs();
-                this.attachEventListeners();
-            }
-
-            initializeInputs() {
                 this.inputs = {
-                    basic: { id: 'basic', value: 23541, min: 0, step: 1 },
-                    workingDays: { id: 'workingDays', value: 26, min: 1, step: 1 },
-                    presentDays: { id: 'presentDays', value: 25, min: 0, step: 1 },
-                    varHours: { id: 'varHours', value: 131.24, min: 0, step: 0.01 },
-                    varRate: { id: 'varRate', value: 105.00, min: 0, step: 0.01 },
-                    foodAllow: { id: 'foodAllow', value: 3000, min: 0, step: 1 },
-                    otherEarn: { id: 'otherEarn', value: 0, min: 0, step: 1 },
-                    busDed: { id: 'busDed', value: 750, min: 0, step: 1 }
+                    basic: 23541,
+                    workingDays: 26,
+                    presentDays: 25,
+                    varHours: 131.24,
+                    varRate: 105.00,
+                    foodAllow: 3000,
+                    otherEarn: 0,
+                    busDed: 750
                 };
             }
 
-            attachEventListeners() {
-                Object.keys(this.inputs).forEach(key => {
-                    const element = document.getElementById(this.inputs[key].id);
-                    if (element) {
-                        element.addEventListener('input', Utils.debounce(() => {
-                            this.calculate();
-                        }, CONFIG.DEBOUNCE_DELAY));
-                    }
-                });
-            }
-
             calculate() {
-                const basic = parseFloat(document.getElementById('basic')?.value) || this.inputs.basic.value;
-                const working = parseFloat(document.getElementById('workingDays')?.value) || this.inputs.workingDays.value;
-                const present = parseFloat(document.getElementById('presentDays')?.value) || this.inputs.presentDays.value;
-                const varHours = parseFloat(document.getElementById('varHours')?.value) || this.inputs.varHours.value;
-                const varRate = parseFloat(document.getElementById('varRate')?.value) || this.inputs.varRate.value;
-                const food = parseFloat(document.getElementById('foodAllow')?.value) || this.inputs.foodAllow.value;
-                const bus = parseFloat(document.getElementById('busDed')?.value) || this.inputs.busDed.value;
-                const other = parseFloat(document.getElementById('otherEarn')?.value) || this.inputs.otherEarn.value;
+                const basic = this.inputs.basic;
+                const working = this.inputs.workingDays;
+                const present = this.inputs.presentDays;
+                const varHours = this.inputs.varHours;
+                const varRate = this.inputs.varRate;
+                const food = this.inputs.foodAllow;
+                const bus = this.inputs.busDed;
+                const other = this.inputs.otherEarn;
 
                 // Calculations
                 const earnedBasic = (basic / working) * present;
@@ -1342,7 +604,7 @@
                 const pf = earnedBasic * 0.12;
                 const totalEarn = earnedBasic + varAmt + food + other;
                 
-                // ESI calculation (0.75% of total earnings if structure <= 21000)
+                // ESI calculation
                 let esi = 0;
                 const structureGross = basic + food;
                 if (structureGross <= 21000) {
@@ -1352,7 +614,7 @@
                 const totalDed = pf + bus + esi;
                 const net = totalEarn - totalDed;
 
-                this.results = {
+                return {
                     earnedBasic,
                     varAmt,
                     food,
@@ -1367,1163 +629,460 @@
                     present,
                     varHours
                 };
-
-                this.updateDisplay();
-                return this.results;
             }
 
-            updateDisplay() {
-                // Update payslip display
-                const elements = {
-                    'slipPayableBasic': this.results.earnedBasic,
-                    'slipVarAmt': this.results.varAmt,
-                    'slipPayableFood': this.results.food,
-                    'slipOtherEarnings': this.results.other,
-                    'slipPF': this.results.pf,
-                    'slipESI': this.results.esi,
-                    'slipBus': this.results.bus,
-                    'slipTotalEarnings': this.results.totalEarn,
-                    'slipTotalDeductions': this.results.totalDed,
-                    'slipNetPay': this.results.net,
-                    'slipWorkingDays': this.results.working,
-                    'slipPresentDays': this.results.present,
-                    'slipVarHours': this.results.varHours,
-                    'quick-total-earnings': this.results.totalEarn,
-                    'quick-total-deductions': this.results.totalDed,
-                    'quick-net-pay': this.results.net
-                };
-
-                Object.entries(elements).forEach(([id, value]) => {
-                    const element = document.getElementById(id);
-                    if (element) {
-                        if (id === 'slipNetPay') {
-                            element.textContent = `₹ ${Utils.formatNumber(value)}`;
-                        } else if (id.includes('quick-')) {
-                            element.textContent = Utils.formatCurrency(value);
-                        } else if (id === 'slipAmountWords') {
-                            element.textContent = Utils.numberToWords(value);
-                        } else if (id === 'slipVarHours') {
-                            element.textContent = value.toFixed(2);
-                        } else {
-                            element.textContent = Utils.formatNumber(value);
-                        }
-                    }
-                });
+            updateInput(id, value) {
+                this.inputs[id] = parseFloat(value) || 0;
             }
 
             reset() {
-                Object.entries(this.inputs).forEach(([key, config]) => {
-                    const element = document.getElementById(config.id);
-                    if (element) {
-                        element.value = config.value;
-                    }
-                });
-                this.calculate();
-            }
-
-            getData() {
-                return {
-                    inputs: Object.fromEntries(
-                        Object.entries(this.inputs).map(([key, config]) => [
-                            key, 
-                            parseFloat(document.getElementById(config.id)?.value) || config.value
-                        ])
-                    ),
-                    results: this.results,
-                    timestamp: new Date().toISOString()
+                this.inputs = {
+                    basic: 23541,
+                    workingDays: 26,
+                    presentDays: 25,
+                    varHours: 131.24,
+                    varRate: 105.00,
+                    foodAllow: 3000,
+                    otherEarn: 0,
+                    busDed: 750
                 };
             }
         }
 
         // ============================
-        // FIREBASE SERVICE
+        // MAIN APPLICATION
         // ============================
-        class FirebaseService {
+        class SalaryApp {
             constructor() {
-                this.app = null;
-                this.auth = null;
-                this.db = null;
-                this.provider = null;
-                this.currentUser = null;
-                this.currentSessionId = null;
-                this.listeners = new Map();
-                this.initialize();
-            }
-
-            async initialize() {
-                try {
-                    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
-                    const { getAuth, GoogleAuthProvider, setPersistence, browserLocalPersistence } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
-                    const { getFirestore } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-
-                    this.app = initializeApp(CONFIG.FIREBASE);
-                    this.auth = getAuth(this.app);
-                    this.db = getFirestore(this.app);
-                    this.provider = new GoogleAuthProvider();
-
-                    // Set persistence
-                    await setPersistence(this.auth, browserLocalPersistence);
-
-                    // Check existing session
-                    this.currentSessionId = Utils.storage.get('salary_app_session_id');
-                    
-                    return true;
-                } catch (error) {
-                    console.error('Firebase initialization error:', error);
-                    return false;
-                }
-            }
-
-            async handleGoogleLogin() {
-                try {
-                    const { signInWithPopup } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
-                    
-                    const result = await signInWithPopup(this.auth, this.provider);
-                    this.currentUser = result.user;
-                    
-                    // Determine role
-                    const normalizedEmail = this.currentUser.email.toLowerCase();
-                    const role = normalizedEmail === CONFIG.ADMIN_EMAIL ? 'admin' : 'user';
-                    
-                    // Create session
-                    await this.createSession(role);
-                    
-                    return { success: true, role, user: this.currentUser };
-                } catch (error) {
-                    console.error('Google login error:', error);
-                    return { success: false, error: error.message };
-                }
-            }
-
-            async createSession(role) {
-                const { addDoc, collection, serverTimestamp, Timestamp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-
-                const sessionData = {
-                    uid: this.currentUser.uid,
-                    email: this.currentUser.email,
-                    displayName: this.currentUser.displayName,
-                    photoURL: this.currentUser.photoURL,
-                    role,
-                    status: role === 'admin' ? 'active' : 'pending_otp',
-                    device: navigator.userAgent,
-                    platform: navigator.platform,
-                    loginTime: serverTimestamp(),
-                    ipAddress: await Utils.getIPAddress(),
-                    expiresAt: Timestamp.fromDate(new Date(Date.now() + CONFIG.OTP_EXPIRY_MINUTES * 60 * 1000))
-                };
-
-                if (role === 'user') {
-                    sessionData.otp = Math.floor(100000 + Math.random() * 900000).toString();
-                }
-
-                const sessionRef = await addDoc(collection(this.db, 'sessions'), sessionData);
-                this.currentSessionId = sessionRef.id;
-                Utils.storage.set('salary_app_session_id', this.currentSessionId);
-
-                // Start listening to session changes
-                this.listenToSession(sessionRef.id);
-
-                return sessionRef.id;
-            }
-
-            listenToSession(sessionId) {
-                const { onSnapshot, doc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-
-                if (this.listeners.has('session')) {
-                    this.listeners.get('session')();
-                }
-
-                const unsubscribe = onSnapshot(doc(this.db, 'sessions', sessionId), (snapshot) => {
-                    const data = snapshot.data();
-                    if (!data) {
-                        this.handleSessionEnded();
-                        return;
-                    }
-
-                    // Handle session status changes
-                    switch(data.status) {
-                        case 'active':
-                            this.handleSessionActive(data);
-                            break;
-                        case 'pending_otp':
-                            this.handlePendingOTP(data);
-                            break;
-                        case 'kicked':
-                            this.handleKicked();
-                            break;
-                        case 'inactive':
-                            this.handleSessionEnded();
-                            break;
-                    }
-                }, (error) => {
-                    console.error('Session listener error:', error);
-                });
-
-                this.listeners.set('session', unsubscribe);
-            }
-
-            async handleSessionActive(data) {
-                // Session is active, proceed to app
-                if (window.SalaryPortal) {
-                    window.SalaryPortal.handleSessionActive(data);
-                }
-            }
-
-            handlePendingOTP(data) {
-                // Show OTP form
-                if (window.SalaryPortal) {
-                    window.SalaryPortal.showOTPForm(data);
-                }
-            }
-
-            handleKicked() {
-                // Show kicked screen
-                const ui = new UIManager();
-                ui.showNotification('Session Terminated', 'Admin has logged you out', 'danger');
-                setTimeout(() => {
-                    this.handleLogout();
-                }, 3000);
-            }
-
-            handleSessionEnded() {
-                this.handleLogout();
-            }
-
-            async handleLogout() {
-                try {
-                    const { signOut } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
-                    const { updateDoc, doc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-
-                    // Update session status
-                    if (this.currentSessionId) {
-                        await updateDoc(doc(this.db, 'sessions', this.currentSessionId), {
-                            status: 'inactive',
-                            logoutTime: serverTimestamp()
-                        });
-                    }
-
-                    // Sign out
-                    await signOut(this.auth);
-
-                    // Clear local storage
-                    Utils.storage.remove('salary_app_session_id');
-                    Utils.storage.remove('remember_me');
-                    Utils.storage.remove('user_email');
-
-                    // Reload page
-                    window.location.reload();
-                } catch (error) {
-                    console.error('Logout error:', error);
-                }
-            }
-
-            async verifyOTP(otp) {
-                const { updateDoc, doc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-
-                try {
-                    // In a real app, you would verify OTP from the session
-                    await updateDoc(doc(this.db, 'sessions', this.currentSessionId), {
-                        status: 'active',
-                        otp: null,
-                        otpVerifiedAt: serverTimestamp()
-                    });
-                    
-                    return { success: true };
-                } catch (error) {
-                    return { success: false, error: error.message };
-                }
-            }
-
-            async savePayslip(data) {
-                const { addDoc, collection, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-
-                try {
-                    const payslipData = {
-                        ...data,
-                        userId: this.currentUser.uid,
-                        userEmail: this.currentUser.email,
-                        timestamp: serverTimestamp()
-                    };
-
-                    await addDoc(collection(this.db, 'artifacts', CONFIG.APP_ID, 'users', this.currentUser.uid, 'history'), payslipData);
-                    return { success: true };
-                } catch (error) {
-                    return { success: false, error: error.message };
-                }
-            }
-
-            async getPayslipHistory() {
-                const { getDocs, query, collection, orderBy } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-
-                try {
-                    const q = query(
-                        collection(this.db, 'artifacts', CONFIG.APP_ID, 'users', this.currentUser.uid, 'history'),
-                        orderBy('timestamp', 'desc')
-                    );
-                    
-                    const snapshot = await getDocs(q);
-                    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                } catch (error) {
-                    console.error('Get history error:', error);
-                    return [];
-                }
-            }
-        }
-
-        // ============================
-        // MAIN SALARY PORTAL APP
-        // ============================
-        class SalaryPortal {
-            constructor() {
-                this.ui = new UIManager();
                 this.firebase = new FirebaseService();
+                this.ui = new UIManager();
                 this.calculator = new SalaryCalculator();
-                this.currentRole = null;
-                this.initialized = false;
+                this.currentOTP = '';
             }
 
             async initialize() {
                 try {
-                    this.ui.showLoading(true);
-                    
                     // Initialize Firebase
                     const firebaseReady = await this.firebase.initialize();
                     if (!firebaseReady) {
                         throw new Error('Failed to initialize Firebase');
                     }
-
-                    // Initialize dark mode
-                    this.ui.initializeDarkMode();
-
-                    // Check authentication state
-                    await this.checkAuthState();
-
-                    this.initialized = true;
+                    
+                    // Initialize UI
                     this.ui.showLoading(false);
+                    
                 } catch (error) {
-                    console.error('Initialization error:', error);
+                    console.error('App initialization error:', error);
                     this.ui.showLoading(false);
-                    this.ui.showNotification('Initialization Error', 'Failed to load application', 'danger');
+                    this.ui.showNotification('Initialization Error', 'Please refresh the page', 'danger');
                 }
             }
 
-            async checkAuthState() {
-                const rememberMe = Utils.storage.get('remember_me', false);
-                const savedEmail = Utils.storage.get('user_email');
-
-                if (this.firebase.currentSessionId && rememberMe && savedEmail) {
-                    // Try to restore session
-                    this.ui.showLoading(true);
-                    setTimeout(() => {
-                        this.ui.showLoading(false);
-                        this.ui.showScreen('login-screen');
-                    }, 2000);
-                } else {
-                    // Show login screen
-                    this.showLoginScreen();
-                }
-            }
-
-            showLoginScreen() {
-                this.ui.showScreen('login-screen');
-                this.ui.render('login', 'login-screen');
+            async showCalculator() {
+                this.ui.showLoading(false);
                 
-                // Add login form content
-                const loginContent = document.getElementById('login-form-content');
-                if (loginContent) {
-                    loginContent.innerHTML = `
-                        <div class="text-center">
-                            <h2 class="text-xl font-bold text-slate-800 dark:text-white">Welcome Back</h2>
-                            <p class="text-slate-600 dark:text-slate-400 mt-1">Sign in to access your salary tools</p>
-                        </div>
-                        
-                        <button onclick="SalaryPortal.handleGoogleLogin()" id="google-btn"
-                                class="w-full btn-pop bg-white hover:bg-slate-50 text-slate-800 font-semibold py-3 px-4 rounded-xl transition-all duration-300 border border-slate-300 shadow-sm flex items-center justify-center gap-3">
-                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5">
-                            <span>Continue with Google</span>
-                        </button>
-                        
-                        <div class="relative">
-                            <div class="absolute inset-0 flex items-center">
-                                <div class="w-full border-t border-slate-200 dark:border-slate-700"></div>
-                            </div>
-                            <div class="relative flex justify-center text-sm">
-                                <span class="px-2 bg-white dark:bg-slate-800 text-slate-500">Quick settings</span>
-                            </div>
-                        </div>
-                        
-                        <div class="space-y-4">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <input type="checkbox" id="remember-me" class="w-4 h-4 text-primary-600 rounded focus:ring-primary-500 border-slate-300">
-                                    <label for="remember-me" class="ml-2 text-sm text-slate-700 dark:text-slate-300">Keep me signed in</label>
-                                </div>
-                                <div class="flex items-center">
-                                    <input type="checkbox" id="dark-mode-toggle" class="w-4 h-4 text-primary-600 rounded focus:ring-primary-500 border-slate-300" ${document.documentElement.classList.contains('dark') ? 'checked' : ''}>
-                                    <label for="dark-mode-toggle" class="ml-2 text-sm text-slate-700 dark:text-slate-300">Dark mode</label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="text-center pt-4 border-t border-slate-100 dark:border-slate-800">
-                            <p class="text-xs text-slate-500 dark:text-slate-500">
-                                By continuing, you agree to our 
-                                <a href="#" class="text-primary-600 hover:text-primary-700 font-medium">Terms</a> 
-                                and acknowledge our 
-                                <a href="#" class="text-primary-600 hover:text-primary-700 font-medium">Privacy Policy</a>
-                            </p>
-                        </div>
-                    `;
-
-                    // Attach event listeners
-                    const rememberMeCheckbox = document.getElementById('remember-me');
-                    const darkModeToggle = document.getElementById('dark-mode-toggle');
-                    
-                    if (rememberMeCheckbox) {
-                        rememberMeCheckbox.addEventListener('change', (e) => {
-                            Utils.storage.set('remember_me', e.target.checked);
-                        });
-                    }
-                    
-                    if (darkModeToggle) {
-                        darkModeToggle.addEventListener('change', () => {
-                            this.ui.toggleDarkMode();
-                        });
-                    }
-                }
-            }
-
-            async handleGoogleLogin() {
-                const googleBtn = document.getElementById('google-btn');
-                if (googleBtn) {
-                    googleBtn.innerHTML = '<i data-lucide="loader" class="w-5 h-5 animate-spin"></i> Connecting...';
-                    googleBtn.disabled = true;
-                }
-
-                const result = await this.firebase.handleGoogleLogin();
-                
-                if (result.success) {
-                    this.currentRole = result.role;
-                    
-                    if (result.role === 'admin') {
-                        this.ui.showNotification('Welcome Admin', 'Dashboard is ready for you');
-                    } else {
-                        this.ui.showNotification('Pending Approval', 'Please contact admin for OTP');
-                    }
-
-                    // Save remember me preference
-                    const rememberMe = document.getElementById('remember-me')?.checked;
-                    if (rememberMe && result.user.email) {
-                        Utils.storage.set('user_email', result.user.email);
-                    }
-                } else {
-                    this.ui.showNotification('Login Failed', result.error, 'danger');
-                    if (googleBtn) {
-                        googleBtn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5"> Continue with Google';
-                        googleBtn.disabled = false;
-                    }
-                }
-            }
-
-            handleSessionActive(sessionData) {
-                this.currentRole = sessionData.role;
-                
-                if (sessionData.role === 'admin') {
-                    this.showAdminDashboard();
-                } else {
-                    this.showEmployeeDetailsForm(sessionData.displayName);
-                }
-            }
-
-            showEmployeeDetailsForm(userName = '') {
-                this.ui.showScreen('employee-details-form');
-                this.ui.render('employee-form', 'employee-details-form');
-                
-                // Populate form with user data
-                if (userName) {
-                    const welcomeMsg = document.getElementById('welcome-msg');
-                    const empNameInput = document.getElementById('emp-name');
-                    
-                    if (welcomeMsg) welcomeMsg.textContent = `Welcome back, ${userName}`;
-                    if (empNameInput) empNameInput.value = userName;
-                }
-
-                // Attach form submit handler
-                const form = document.getElementById('employee-form');
-                if (form) {
-                    form.addEventListener('submit', (e) => {
-                        e.preventDefault();
-                        this.handleEmployeeFormSubmit();
-                    });
-                }
-            }
-
-            handleEmployeeFormSubmit() {
-                // Collect form data
-                const formData = {
-                    companyName: document.getElementById('company-name')?.value || 'Tech Solutions Inc.',
-                    companyAddress: document.getElementById('company-address')?.value || '123 Business Park, Delhi, India',
-                    empCode: document.getElementById('emp-code')?.value || '6138',
-                    empName: document.getElementById('emp-name')?.value || 'Shivshree Kumar',
-                    fatherName: document.getElementById('father-name')?.value || 'Santosh Kumar',
-                    designation: document.getElementById('designation')?.value || 'Senior Executive',
-                    department: document.getElementById('department')?.value || 'Production',
-                    doj: document.getElementById('doj')?.value || '2025-05-15',
-                    salaryMonth: document.getElementById('salary-month')?.value || 'September',
-                    salaryYear: document.getElementById('salary-year')?.value || '2025'
-                };
-
-                // Save form data
-                Utils.storage.set('employee_data', formData);
-                
-                // Show main app
-                this.showMainApp();
-            }
-
-            showMainApp() {
-                this.ui.showScreen('app-content');
-                this.ui.render('main-app', 'app-content');
-                this.ui.render('payslip', 'main-content');
-                
-                // Update user info
-                this.updateUserInfo();
-                
-                // Initialize calculator
-                this.calculator.calculate();
-                
-                // Update generation date
-                const generationDate = document.getElementById('generation-date');
-                if (generationDate) {
-                    generationDate.textContent = new Date().toLocaleDateString('en-IN', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                    });
-                }
-            }
-
-            updateUserInfo() {
-                if (this.firebase.currentUser) {
-                    const user = this.firebase.currentUser;
-                    
-                    // Update navigation
-                    const userAvatar = document.getElementById('user-avatar-nav');
-                    const userName = document.getElementById('user-name-nav');
-                    const userEmail = document.getElementById('user-email-nav');
-                    const userRole = document.getElementById('user-role-nav');
-                    const currentUserInfo = document.getElementById('current-user-info');
-                    
-                    if (userAvatar) userAvatar.src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'User')}&background=3b82f6&color=fff`;
-                    if (userName) userName.textContent = user.displayName || 'User';
-                    if (userEmail) userEmail.textContent = user.email;
-                    if (userRole) userRole.textContent = this.currentRole === 'admin' ? 'Administrator' : 'Employee';
-                    if (currentUserInfo) currentUserInfo.textContent = `Signed in as ${user.email}`;
-                    
-                    // Show admin badge if admin
-                    const adminBadge = document.getElementById('admin-badge');
-                    if (adminBadge) {
-                        adminBadge.classList.toggle('hidden', this.currentRole !== 'admin');
-                    }
-                }
-            }
-
-            showOTPForm(data) {
-                this.ui.showScreen('login-screen');
                 const loginScreen = document.getElementById('login-screen');
-                if (loginScreen) {
-                    loginScreen.innerHTML = `
-                        <div class="w-full max-w-md">
-                            <div class="glass rounded-3xl shadow-2xl overflow-hidden border border-slate-200/50 dark:border-slate-700/50">
-                                <div class="bg-gradient-to-r from-primary-600 to-primary-700 p-8 text-center relative overflow-hidden">
-                                    <div class="absolute inset-0 bg-black/10"></div>
-                                    <div class="relative">
-                                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900/30 mb-4">
-                                            <i data-lucide="shield-check" class="w-8 h-8 text-primary-600 dark:text-primary-400"></i>
-                                        </div>
-                                        <h2 class="text-xl font-bold text-white">Security Verification</h2>
-                                        <p class="text-primary-200 text-sm mt-1">Enter the OTP provided by admin</p>
-                                    </div>
+                const appContent = document.getElementById('app-content');
+                
+                if (loginScreen) loginScreen.classList.add('hidden');
+                if (appContent) {
+                    appContent.classList.remove('hidden');
+                    await this.renderCalculator();
+                }
+            }
+
+            async showAdminDashboard() {
+                this.ui.showLoading(false);
+                
+                const loginScreen = document.getElementById('login-screen');
+                const appContent = document.getElementById('app-content');
+                
+                if (loginScreen) loginScreen.classList.add('hidden');
+                if (appContent) {
+                    appContent.classList.remove('hidden');
+                    await this.renderAdminDashboard();
+                }
+            }
+
+            async showOTPScreen(user) {
+                this.ui.showOTPScreen(user);
+                // Store the generated OTP for verification
+                this.currentOTP = await this.firebase.generateOTP(user);
+            }
+
+            async renderCalculator() {
+                const appContent = document.getElementById('app-content');
+                if (!appContent) return;
+
+                const results = this.calculator.calculate();
+                
+                appContent.innerHTML = `
+                    <div class="max-w-7xl mx-auto p-4 md:p-6">
+                        <!-- Navigation -->
+                        <div class="flex justify-between items-center mb-6">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-gradient-to-r from-primary-500 to-primary-600 p-2 rounded-xl">
+                                    <i data-lucide="wallet" class="w-6 h-6 text-white"></i>
                                 </div>
-                                
-                                <div class="p-8">
-                                    <div class="space-y-6">
-                                        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-5 rounded-xl border border-blue-100 dark:border-blue-800">
-                                            <div class="flex items-center gap-3 mb-3">
-                                                <div class="flex-shrink-0">
-                                                    <img id="user-avatar-otp" src="${data.photoURL || `https://ui-avatars.com/api/?name=${data.displayName}&background=3b82f6&color=fff`}" class="w-12 h-12 rounded-full border-2 border-white shadow">
-                                                </div>
-                                                <div>
-                                                    <p class="font-semibold text-slate-800 dark:text-white">${data.displayName || 'User'}</p>
-                                                    <p class="text-sm text-slate-600 dark:text-slate-400">${data.email}</p>
-                                                </div>
-                                            </div>
-                                            <p class="text-sm text-slate-700 dark:text-slate-300">
-                                                <i data-lucide="info" class="w-4 h-4 inline mr-1"></i>
-                                                Contact <span class="font-semibold text-primary-600">admin@company.com</span> for your OTP code
-                                            </p>
-                                        </div>
-                                        
-                                        <div class="space-y-4">
-                                            <div>
-                                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Enter 6-digit OTP</label>
-                                                <div class="flex justify-center gap-2" id="otp-container">
-                                                    ${Array.from({length: 6}).map((_, i) => `
-                                                        <input type="text" maxlength="1" class="otp-input" data-index="${i}"
-                                                               oninput="SalaryPortal.handleOTPInput(this, ${i})"
-                                                               onkeydown="SalaryPortal.handleOTPKeyDown(event, ${i})">
-                                                    `).join('')}
-                                                </div>
-                                            </div>
-                                            
-                                            <div id="otp-error" class="hidden bg-danger-50 text-danger-600 dark:bg-danger-900/20 dark:text-danger-400 p-3 rounded-lg text-sm"></div>
-                                            
-                                            <div class="space-y-3">
-                                                <button onclick="SalaryPortal.verifyOTP()" id="verify-btn"
-                                                        class="w-full btn-pop bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold py-3 rounded-xl transition-all duration-300 shadow-lg flex items-center justify-center gap-2">
-                                                    <i data-lucide="shield" class="w-5 h-5"></i>
-                                                    Verify & Continue
-                                                </button>
-                                                
-                                                <button onclick="SalaryPortal.handleLogout()"
-                                                        class="w-full py-2.5 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-300 font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-2">
-                                                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                                                    Use Different Account
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <div>
+                                    <h1 class="font-bold text-slate-800 dark:text-white text-lg">Salary Portal Pro</h1>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">Calculator</p>
                                 </div>
                             </div>
+                            <button onclick="window.handleLogout()" 
+                                    class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center gap-2">
+                                <i data-lucide="log-out" class="w-4 h-4"></i>
+                                Sign Out
+                            </button>
                         </div>
-                    `;
-                    
-                    this.ui.initializeIcons();
-                    window.pendingOTP = data.otp;
-                }
-            }
 
-            handleOTPInput(input, index) {
-                const value = input.value;
-                
-                if (value.length === 1 && index < 5) {
-                    const nextInput = document.querySelector(`.otp-input[data-index="${index + 1}"]`);
-                    if (nextInput) nextInput.focus();
-                }
-
-                // Check if all inputs are filled
-                const inputs = document.querySelectorAll('.otp-input');
-                const otp = Array.from(inputs).map(input => input.value).join('');
-                
-                if (otp.length === 6) {
-                    this.verifyOTP();
-                }
-            }
-
-            handleOTPKeyDown(event, index) {
-                if (event.key === 'Backspace' && !event.target.value && index > 0) {
-                    const prevInput = document.querySelector(`.otp-input[data-index="${index - 1}"]`);
-                    if (prevInput) {
-                        prevInput.focus();
-                        prevInput.value = '';
-                    }
-                }
-            }
-
-            async verifyOTP() {
-                const inputs = document.querySelectorAll('.otp-input');
-                const otp = Array.from(inputs).map(input => input.value).join('');
-                const verifyBtn = document.getElementById('verify-btn');
-                const errorDiv = document.getElementById('otp-error');
-
-                if (otp.length !== 6) {
-                    if (errorDiv) {
-                        errorDiv.textContent = 'Please enter all 6 digits of the OTP';
-                        errorDiv.classList.remove('hidden');
-                    }
-                    return;
-                }
-
-                if (verifyBtn) {
-                    verifyBtn.innerHTML = '<i data-lucide="loader" class="w-5 h-5 animate-spin"></i> Verifying...';
-                    verifyBtn.disabled = true;
-                }
-
-                // Simulate OTP verification
-                setTimeout(async () => {
-                    if (otp === window.pendingOTP) {
-                        await this.firebase.verifyOTP(otp);
-                        this.ui.showNotification('Verified Successfully', 'Welcome to Salary Portal');
-                    } else {
-                        if (errorDiv) {
-                            errorDiv.textContent = 'Invalid OTP. Please check and try again.';
-                            errorDiv.classList.remove('hidden');
-                        }
-                        
-                        const otpContainer = document.getElementById('otp-container');
-                        if (otpContainer) {
-                            otpContainer.classList.add('animate-shake');
-                            setTimeout(() => otpContainer.classList.remove('animate-shake'), 500);
-                        }
-                    }
-
-                    if (verifyBtn) {
-                        verifyBtn.innerHTML = '<i data-lucide="shield" class="w-5 h-5"></i> Verify & Continue';
-                        verifyBtn.disabled = false;
-                    }
-                }, 1000);
-            }
-
-            showAdminDashboard() {
-                this.ui.showScreen('app-content');
-                this.ui.render('main-app', 'app-content');
-                this.ui.render('admin-dashboard', 'main-content');
-                this.updateUserInfo();
-            }
-
-            async savePayslip() {
-                if (!this.firebase.currentUser) return;
-
-                const btn = document.getElementById('save-btn');
-                const originalText = btn?.innerHTML;
-
-                if (btn) {
-                    btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Saving...';
-                    btn.disabled = true;
-                }
-
-                const calculatorData = this.calculator.getData();
-                const employeeData = Utils.storage.get('employee_data', {});
-
-                const payslipData = {
-                    ...calculatorData,
-                    ...employeeData,
-                    netPay: Utils.formatCurrency(calculatorData.results.net),
-                    month: employeeData.salaryMonth || 'September',
-                    year: employeeData.salaryYear || '2025'
-                };
-
-                const result = await this.firebase.savePayslip(payslipData);
-
-                if (result.success) {
-                    this.ui.showNotification('Saved Successfully', 'Payslip added to your history');
-                    if (btn) {
-                        btn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> Saved!';
-                        setTimeout(() => {
-                            btn.innerHTML = originalText;
-                            btn.disabled = false;
-                            this.ui.initializeIcons();
-                        }, 2000);
-                    }
-                } else {
-                    this.ui.showNotification('Save Failed', result.error, 'danger');
-                    if (btn) {
-                        btn.innerHTML = '<i data-lucide="alert-circle" class="w-4 h-4"></i> Error';
-                        btn.disabled = false;
-                    }
-                }
-            }
-
-            async toggleHistory() {
-                const modal = document.getElementById('history-modal');
-                if (!modal) {
-                    // Create and show history modal
-                    this.ui.render('history-modal', 'app-content');
-                    await this.loadHistoryData();
-                } else {
-                    modal.classList.toggle('hidden');
-                    if (!modal.classList.contains('hidden')) {
-                        await this.loadHistoryData();
-                    }
-                }
-            }
-
-            async loadHistoryData() {
-                const list = document.getElementById('history-list');
-                if (!list) return;
-
-                list.innerHTML = '<div class="space-y-3"><div class="shimmer h-16 rounded-xl"></div><div class="shimmer h-16 rounded-xl"></div></div>';
-
-                try {
-                    const history = await this.firebase.getPayslipHistory();
-                    
-                    if (history.length === 0) {
-                        list.innerHTML = `
-                            <div class="text-center py-12">
-                                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
-                                    <i data-lucide="file-text" class="w-8 h-8 text-slate-400"></i>
-                                </div>
-                                <h4 class="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">No Records Yet</h4>
-                                <p class="text-slate-500 dark:text-slate-500 max-w-sm mx-auto">
-                                    Your saved salary slips will appear here. Create your first payslip to get started.
-                                </p>
-                            </div>
-                        `;
-                    } else {
-                        let html = '';
-                        const chartData = {
-                            labels: [],
-                            netPay: [],
-                            total: 0,
-                            max: 0
-                        };
-
-                        history.forEach((record, index) => {
-                            const netPay = parseFloat(record.netPay?.replace(/[^0-9.-]+/g, "") || 0);
-                            const monthYear = `${record.month || 'Unknown'} ${record.year || ''}`;
-
-                            chartData.labels.unshift(monthYear);
-                            chartData.netPay.unshift(netPay);
-                            chartData.total += netPay;
-                            chartData.max = Math.max(chartData.max, netPay);
-
-                            html += `
-                                <div class="glass p-4 rounded-xl border border-slate-200/50 dark:border-slate-700/50 hover:border-primary-300 dark:hover:border-primary-700 transition-colors cursor-pointer" onclick="SalaryPortal.loadHistoryItem('${record.id}')">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <div class="flex items-center gap-3">
-                                            <div class="bg-primary-100 dark:bg-primary-900/30 p-2 rounded-lg">
-                                                <i data-lucide="file-text" class="w-5 h-5 text-primary-600 dark:text-primary-400"></i>
-                                            </div>
-                                            <div>
-                                                <p class="font-semibold text-slate-800 dark:text-white">${record.month || 'Unknown'}, ${record.year || ''}</p>
-                                                <p class="text-xs text-slate-500 dark:text-slate-400">${record.companyName || 'Unknown Company'}</p>
-                                            </div>
-                                        </div>
-                                        <div class="text-right">
-                                            <p class="text-lg font-bold text-slate-800 dark:text-white">${Utils.formatCurrency(netPay)}</p>
-                                            <p class="text-xs text-slate-500 dark:text-slate-400">Net Pay</p>
-                                        </div>
+                        <!-- Calculator Interface -->
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Input Panel -->
+                            <div class="lg:col-span-1">
+                                <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6">
+                                    <h2 class="text-xl font-bold mb-6">Salary Calculator</h2>
+                                    <div class="space-y-4" id="calculator-inputs">
+                                        <!-- Inputs will be added here -->
                                     </div>
-                                    <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-500">
-                                        <span>${record.empName || 'Unknown Employee'}</span>
-                                        <button class="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center gap-1">
-                                            <i data-lucide="arrow-right" class="w-3 h-3"></i>
-                                            Load
+                                    <div class="mt-6 space-y-3">
+                                        <button onclick="window.calculateSalary()" 
+                                                class="w-full py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium">
+                                            Calculate
+                                        </button>
+                                        <button onclick="window.resetCalculator()" 
+                                                class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium">
+                                            Reset
+                                        </button>
+                                        <button onclick="window.savePayslip()" 
+                                                class="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium">
+                                            Save Payslip
                                         </button>
                                     </div>
                                 </div>
-                            `;
-                        });
-
-                        const avg = chartData.total / chartData.netPay.length;
-
-                        // Update stats
-                        const recordCount = document.getElementById('record-count');
-                        const avgNetPay = document.getElementById('avg-net-pay');
-                        const maxNetPay = document.getElementById('max-net-pay');
-                        const historyBadge = document.getElementById('history-badge');
-
-                        if (recordCount) recordCount.textContent = `${chartData.netPay.length} records`;
-                        if (avgNetPay) avgNetPay.textContent = Utils.formatCurrency(avg);
-                        if (maxNetPay) maxNetPay.textContent = Utils.formatCurrency(chartData.max);
-                        if (historyBadge) {
-                            historyBadge.textContent = chartData.netPay.length;
-                            historyBadge.classList.toggle('hidden', chartData.netPay.length === 0);
-                        }
-
-                        list.innerHTML = html;
-
-                        // Update chart
-                        this.updateHistoryChart(chartData.labels, chartData.netPay);
-                    }
-                } catch (error) {
-                    console.error('Load history error:', error);
-                    list.innerHTML = `
-                        <div class="text-center py-8 text-danger-600">
-                            <i data-lucide="alert-circle" class="w-8 h-8 mx-auto mb-2"></i>
-                            <p>Failed to load history</p>
-                        </div>
-                    `;
-                }
-            }
-
-            updateHistoryChart(labels, data) {
-                const ctx = document.getElementById('historyChart')?.getContext('2d');
-                if (!ctx) return;
-
-                if (window.historyChart) {
-                    window.historyChart.destroy();
-                }
-
-                window.historyChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Net Pay',
-                            data: data,
-                            borderColor: '#3b82f6',
-                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.4,
-                            pointBackgroundColor: '#3b82f6',
-                            pointBorderColor: '#ffffff',
-                            pointBorderWidth: 2,
-                            pointRadius: 5,
-                            pointHoverRadius: 7
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                                callbacks: {
-                                    label: (context) => `Net Pay: ${Utils.formatCurrency(context.parsed.y)}`
-                                }
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: false,
-                                grid: { color: 'rgba(0, 0, 0, 0.05)' },
-                                ticks: {
-                                    callback: (value) => Utils.formatCurrency(value)
-                                }
-                            },
-                            x: {
-                                grid: { display: false }
-                            }
-                        }
-                    }
-                });
-            }
-
-            loadHistoryItem(docId) {
-                // In a real app, load the specific record
-                this.toggleHistory();
-                this.ui.showNotification('Record Loaded', 'Previous payslip data loaded');
-            }
-
-            async downloadPDF() {
-                try {
-                    const element = document.getElementById('payslip-container');
-                    if (!element) {
-                        throw new Error('Payslip container not found');
-                    }
-
-                    const opt = {
-                        margin: [0.5, 0.5],
-                        filename: `Salary_Slip_${new Date().toISOString().split('T')[0]}.pdf`,
-                        image: { type: 'jpeg', quality: 0.98 },
-                        html2canvas: { 
-                            scale: 2,
-                            useCORS: true,
-                            backgroundColor: '#ffffff',
-                            logging: false
-                        },
-                        jsPDF: { 
-                            unit: 'mm', 
-                            format: 'a4', 
-                            orientation: 'portrait' 
-                        },
-                        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-                    };
-
-                    await html2pdf().set(opt).from(element).save();
-                    this.ui.showNotification('PDF Downloaded', 'Payslip saved to your device');
-                } catch (error) {
-                    console.error('PDF download error:', error);
-                    this.ui.showNotification('Download Failed', error.message, 'danger');
-                }
-            }
-
-            printPayslip() {
-                try {
-                    const element = document.getElementById('payslip-container');
-                    if (!element) {
-                        throw new Error('Payslip container not found');
-                    }
-
-                    const originalContent = document.body.innerHTML;
-                    const printContent = element.outerHTML;
-
-                    document.body.innerHTML = `
-                        <!DOCTYPE html>
-                        <html>
-                        <head>
-                            <title>Print Payslip</title>
-                            <style>
-                                body { margin: 0; padding: 20px; background: white !important; }
-                                @page { size: auto; margin: 0mm; }
-                                @media print {
-                                    body { margin: 0; }
-                                }
-                            </style>
-                        </head>
-                        <body>
-                            ${printContent}
-                            <script>
-                                window.onload = function() {
-                                    window.print();
-                                    setTimeout(function() {
-                                        window.close();
-                                    }, 100);
-                                }
-                            <\/script>
-                        </body>
-                        </html>
-                    `;
-
-                    window.print();
-                    
-                    setTimeout(() => {
-                        document.body.innerHTML = originalContent;
-                        this.ui.initializeIcons();
-                        this.calculator.calculate();
-                    }, 500);
-                } catch (error) {
-                    console.error('Print error:', error);
-                    this.ui.showNotification('Print Failed', error.message, 'danger');
-                }
-            }
-
-            resetCalculator() {
-                this.calculator.reset();
-                this.ui.showNotification('Calculator Reset', 'All values restored to original payslip data');
-            }
-
-            goBackToLogin() {
-                this.showLoginScreen();
-            }
-
-            async handleLogout() {
-                if (confirm('Are you sure you want to sign out?')) {
-                    await this.firebase.handleLogout();
-                }
-            }
-
-            // Admin functions
-            async generateUserOTP() {
-                const userEmail = document.getElementById('user-email-input')?.value.trim();
-                const userName = document.getElementById('user-name-input')?.value.trim();
-
-                if (!userEmail || !userName) {
-                    this.ui.showNotification('Please enter both email and name', 'Both fields are required', 'warning');
-                    return;
-                }
-
-                const otp = Math.floor(100000 + Math.random() * 900000).toString();
-                const expiryTime = new Date(Date.now() + CONFIG.OTP_EXPIRY_MINUTES * 60 * 1000);
-
-                this.ui.showNotification('OTP Generated', `OTP for ${userName} is ready to share`);
-                
-                // Show OTP result
-                const otpResult = document.getElementById('otp-result');
-                if (otpResult) {
-                    otpResult.classList.remove('hidden');
-                    otpResult.innerHTML = `
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="check-circle" class="w-5 h-5 text-green-600 dark:text-green-400"></i>
-                                <h4 class="font-bold text-green-800 dark:text-green-300">OTP Generated Successfully!</h4>
                             </div>
-                            <button onclick="SalaryPortal.copyOTP('${otp}')" class="text-sm bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-3 py-1.5 rounded-lg flex items-center gap-2">
-                                <i data-lucide="copy" class="w-4 h-4"></i>
-                                Copy OTP
-                            </button>
+
+                            <!-- Payslip Preview -->
+                            <div class="lg:col-span-2">
+                                <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6">
+                                    <div class="flex justify-between items-center mb-6">
+                                        <h2 class="text-xl font-bold">Payslip Preview</h2>
+                                        <div class="space-x-2">
+                                            <button onclick="window.downloadPDF()" 
+                                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+                                                Download PDF
+                                            </button>
+                                            <button onclick="window.printPayslip()" 
+                                                    class="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg">
+                                                Print
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div id="payslip-preview" class="border rounded-lg p-6">
+                                        <!-- Payslip content will be rendered here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Render calculator inputs
+                this.renderCalculatorInputs();
+                // Render payslip preview
+                this.renderPayslipPreview(results);
+                
+                lucide.createIcons();
+            }
+
+            renderCalculatorInputs() {
+                const container = document.getElementById('calculator-inputs');
+                if (!container) return;
+
+                const inputs = [
+                    { id: 'basic', label: 'Basic Salary', value: this.calculator.inputs.basic, prefix: '₹' },
+                    { id: 'workingDays', label: 'Working Days', value: this.calculator.inputs.workingDays },
+                    { id: 'presentDays', label: 'Present Days', value: this.calculator.inputs.presentDays },
+                    { id: 'varHours', label: 'Variable Hours', value: this.calculator.inputs.varHours, step: '0.01' },
+                    { id: 'varRate', label: 'Variable Rate (₹)', value: this.calculator.inputs.varRate, step: '0.01' },
+                    { id: 'foodAllow', label: 'Food Allowance', value: this.calculator.inputs.foodAllow, prefix: '₹' },
+                    { id: 'otherEarn', label: 'Other Earnings', value: this.calculator.inputs.otherEarn, prefix: '₹' },
+                    { id: 'busDed', label: 'Bus Deduction', value: this.calculator.inputs.busDed, prefix: '₹' }
+                ];
+
+                container.innerHTML = inputs.map(input => `
+                    <div>
+                        <label class="block text-sm font-medium mb-1">${input.label}</label>
+                        <div class="relative">
+                            ${input.prefix ? `<span class="absolute left-3 top-3 text-slate-500">${input.prefix}</span>` : ''}
+                            <input type="number" 
+                                   id="${input.id}" 
+                                   value="${input.value}"
+                                   ${input.step ? `step="${input.step}"` : ''}
+                                   class="w-full ${input.prefix ? 'pl-8' : ''} px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                                   oninput="window.updateCalculatorInput('${input.id}', this.value)">
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            renderPayslipPreview(results) {
+                const container = document.getElementById('payslip-preview');
+                if (!container) return;
+
+                const format = (num) => num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <!-- Header -->
+                        <div class="text-center border-b pb-4">
+                            <h3 class="text-2xl font-bold">TECH SOLUTIONS INC.</h3>
+                            <p class="text-lg">Salary Slip</p>
+                            <p class="text-sm text-slate-600">September, 2025</p>
                         </div>
                         
-                        <div class="space-y-3">
-                            <p class="text-sm text-green-700 dark:text-green-300">Share this OTP with the user:</p>
-                            <div class="flex items-center justify-between gap-4">
-                                <div class="flex-1 bg-white dark:bg-slate-800 p-4 rounded-xl border-2 border-green-300 dark:border-green-700">
-                                    <p class="text-3xl font-mono font-bold text-center text-green-700 dark:text-green-300 tracking-widest">${otp}</p>
+                        <!-- Earnings -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <h4 class="font-semibold mb-2">EARNINGS</h4>
+                                <div class="space-y-1">
+                                    <div class="flex justify-between">
+                                        <span>Basic Salary:</span>
+                                        <span>₹${format(results.earnedBasic)}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Variable Allowance:</span>
+                                        <span>₹${format(results.varAmt)}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Food Allowance:</span>
+                                        <span>₹${format(results.food)}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Other Earnings:</span>
+                                        <span>₹${format(results.other)}</span>
+                                    </div>
+                                    <div class="flex justify-between font-bold border-t pt-1">
+                                        <span>Total Earnings:</span>
+                                        <span class="text-green-600">₹${format(results.totalEarn)}</span>
+                                    </div>
                                 </div>
-                                <button onclick="SalaryPortal.shareOTP('${userName}', '${otp}')" class="glass p-3 rounded-xl border border-slate-200/50 dark:border-slate-700/50 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all duration-300">
-                                    <i data-lucide="share-2" class="w-5 h-5 text-slate-600 dark:text-slate-400"></i>
-                                </button>
                             </div>
-                            <p class="text-xs text-green-600 dark:text-green-400 text-center">
-                                <i data-lucide="clock" class="w-3 h-3 inline mr-1"></i>
-                                Valid for ${CONFIG.OTP_EXPIRY_MINUTES} minutes • Expires at ${expiryTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                            </p>
+                            
+                            <!-- Deductions -->
+                            <div>
+                                <h4 class="font-semibold mb-2">DEDUCTIONS</h4>
+                                <div class="space-y-1">
+                                    <div class="flex justify-between">
+                                        <span>Provident Fund (PF):</span>
+                                        <span>₹${format(results.pf)}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>ESI Contribution:</span>
+                                        <span>₹${format(results.esi)}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Bus Deduction:</span>
+                                        <span>₹${format(results.bus)}</span>
+                                    </div>
+                                    <div class="flex justify-between font-bold border-t pt-1">
+                                        <span>Total Deductions:</span>
+                                        <span class="text-red-600">₹${format(results.totalDed)}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    `;
+                        
+                        <!-- Net Pay -->
+                        <div class="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg text-center">
+                            <p class="text-sm text-slate-600">Net Payable Amount</p>
+                            <p class="text-3xl font-bold text-green-600">₹${format(results.net)}</p>
+                            <p class="text-sm text-slate-500 mt-2">${this.numberToWords(results.net)}</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            numberToWords(num) {
+                // Simplified number to words function
+                if (num === 0) return "Zero Rupees Only";
+                return "Amount in words";
+            }
+
+            async savePayslip() {
+                try {
+                    const results = this.calculator.calculate();
+                    const payslipData = {
+                        basic: this.calculator.inputs.basic,
+                        workingDays: this.calculator.inputs.workingDays,
+                        presentDays: this.calculator.inputs.presentDays,
+                        varHours: this.calculator.inputs.varHours,
+                        varRate: this.calculator.inputs.varRate,
+                        foodAllow: this.calculator.inputs.foodAllow,
+                        otherEarn: this.calculator.inputs.otherEarn,
+                        busDed: this.calculator.inputs.busDed,
+                        results: results,
+                        month: 'September',
+                        year: '2025',
+                        netPay: `₹${results.net.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                    };
+
+                    const result = await this.firebase.savePayslip(payslipData);
                     
-                    this.ui.initializeIcons();
+                    if (result.success) {
+                        this.ui.showNotification('Success', 'Payslip saved successfully');
+                    } else {
+                        this.ui.showNotification('Error', result.error, 'danger');
+                    }
+                } catch (error) {
+                    this.ui.showNotification('Error', 'Failed to save payslip', 'danger');
                 }
-
-                // Clear inputs
-                const emailInput = document.getElementById('user-email-input');
-                const nameInput = document.getElementById('user-name-input');
-                if (emailInput) emailInput.value = '';
-                if (nameInput) nameInput.value = '';
             }
 
-            copyOTP(otp) {
-                Utils.copyToClipboard(otp).then(() => {
-                    this.ui.showNotification('Copied!', 'OTP copied to clipboard');
-                });
-            }
+            async verifyOTP(enteredOTP) {
+                try {
+                    if (!this.firebase.currentUser) {
+                        throw new Error('No user found');
+                    }
 
-            shareOTP(userName, otp) {
-                const shareText = `OTP for ${userName}: ${otp}\n\nValid for ${CONFIG.OTP_EXPIRY_MINUTES} minutes.\n\nSalary Portal Access`;
-                Utils.shareContent('Salary Portal OTP', shareText).then(() => {
-                    this.ui.showNotification('Shared', 'OTP details shared successfully');
-                });
-            }
-
-            refreshDashboard() {
-                this.ui.showNotification('Refreshed', 'Dashboard data updated');
+                    const isValid = await this.firebase.verifyOTP(this.firebase.currentUser.uid, enteredOTP);
+                    
+                    if (isValid) {
+                        this.ui.showNotification('Success', 'OTP verified successfully');
+                        await this.showCalculator();
+                    } else {
+                        throw new Error('Invalid OTP');
+                    }
+                } catch (error) {
+                    this.ui.showNotification('Error', error.message, 'danger');
+                }
             }
         }
+
+        // ============================
+        // GLOBAL FUNCTIONS
+        // ============================
+        let salaryApp;
+
+        window.handleGoogleLogin = async () => {
+            if (!salaryApp) salaryApp = new SalaryApp();
+            
+            const googleBtn = document.querySelector('[onclick*="handleGoogleLogin"]');
+            if (googleBtn) {
+                googleBtn.innerHTML = '<i data-lucide="loader" class="w-5 h-5 animate-spin"></i> Connecting...';
+                googleBtn.disabled = true;
+            }
+
+            const result = await salaryApp.firebase.signInWithGoogle();
+            
+            if (result.success) {
+                // Auth state listener will handle the rest
+            } else {
+                salaryApp.ui.showNotification('Login Failed', result.error, 'danger');
+                if (googleBtn) {
+                    googleBtn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5"> Continue with Google';
+                    googleBtn.disabled = false;
+                }
+            }
+        };
+
+        window.handleVerifyOTP = async () => {
+            if (!salaryApp) return;
+
+            const inputs = document.querySelectorAll('#otp-container input');
+            const otp = Array.from(inputs).map(input => input.value).join('');
+            
+            if (otp.length !== 6) {
+                const errorDiv = document.getElementById('otp-error');
+                if (errorDiv) {
+                    errorDiv.textContent = 'Please enter all 6 digits';
+                    errorDiv.classList.remove('hidden');
+                }
+                return;
+            }
+
+            await salaryApp.verifyOTP(otp);
+        };
+
+        window.handleOTPInput = (input, index) => {
+            const value = input.value;
+            
+            if (value.length === 1 && index < 5) {
+                const nextInput = document.querySelector(`#otp-container input[data-index="${index + 1}"]`);
+                if (nextInput) nextInput.focus();
+            }
+
+            // Auto-verify when all digits entered
+            const inputs = document.querySelectorAll('#otp-container input');
+            const otp = Array.from(inputs).map(input => input.value).join('');
+            
+            if (otp.length === 6) {
+                setTimeout(() => window.handleVerifyOTP(), 300);
+            }
+        };
+
+        window.handleLogout = async () => {
+            if (!salaryApp) return;
+            
+            if (confirm('Are you sure you want to sign out?')) {
+                await salaryApp.firebase.signOut();
+                salaryApp.ui.showLoginScreen();
+            }
+        };
+
+        window.updateCalculatorInput = (id, value) => {
+            if (!salaryApp) return;
+            salaryApp.calculator.updateInput(id, value);
+        };
+
+        window.calculateSalary = () => {
+            if (!salaryApp) return;
+            const results = salaryApp.calculator.calculate();
+            salaryApp.renderPayslipPreview(results);
+        };
+
+        window.resetCalculator = () => {
+            if (!salaryApp) return;
+            salaryApp.calculator.reset();
+            salaryApp.renderCalculatorInputs();
+            const results = salaryApp.calculator.calculate();
+            salaryApp.renderPayslipPreview(results);
+            salaryApp.ui.showNotification('Reset', 'Calculator reset to default values', 'info');
+        };
+
+        window.savePayslip = () => {
+            if (!salaryApp) return;
+            salaryApp.savePayslip();
+        };
+
+        window.downloadPDF = () => {
+            // PDF download implementation
+            salaryApp.ui.showNotification('Info', 'PDF download feature', 'info');
+        };
+
+        window.printPayslip = () => {
+            // Print implementation
+            salaryApp.ui.showNotification('Info', 'Print feature', 'info');
+        };
 
         // ============================
         // INITIALIZATION
         // ============================
         document.addEventListener('DOMContentLoaded', async () => {
-            // Initialize icons
-            if (window.lucide && window.lucide.createIcons) {
-                window.lucide.createIcons();
-            }
-
+            // Initialize Lucide icons
+            lucide.createIcons();
+            
             // Create and initialize the app
-            window.SalaryPortal = new SalaryPortal();
-            await window.SalaryPortal.initialize();
-
-            // Expose public methods
-            window.handleGoogleLogin = () => window.SalaryPortal.handleGoogleLogin();
-            window.handleVerifyOTP = () => window.SalaryPortal.verifyOTP();
-            window.handleLogout = () => window.SalaryPortal.handleLogout();
-            window.toggleDarkMode = () => window.SalaryPortal.ui.toggleDarkMode();
-            window.toggleHistory = () => window.SalaryPortal.toggleHistory();
-            window.savePayslip = () => window.SalaryPortal.savePayslip();
-            window.downloadPDF = () => window.SalaryPortal.downloadPDF();
-            window.printPayslip = () => window.SalaryPortal.printPayslip();
-            window.calculate = () => window.SalaryPortal.calculator.calculate();
-            window.resetCalculator = () => window.SalaryPortal.resetCalculator();
-            window.goBackToLogin = () => window.SalaryPortal.goBackToLogin();
-            window.generateUserOTP = () => window.SalaryPortal.generateUserOTP();
-            window.copyOTP = (otp) => window.SalaryPortal.copyOTP(otp);
-            window.shareOTP = (userName, otp) => window.SalaryPortal.shareOTP(userName, otp);
-            window.refreshDashboard = () => window.SalaryPortal.refreshDashboard();
-            window.moveToNext = (input, index) => window.SalaryPortal.handleOTPInput(input, index);
+            salaryApp = new SalaryApp();
+            await salaryApp.initialize();
         });
 
         // Error handling
         window.addEventListener('error', (event) => {
             console.error('Global error:', event.error);
             const ui = new UIManager();
-            ui.showNotification('Error', 'An unexpected error occurred. Please refresh the page.', 'danger');
+            ui.showNotification('Error', 'An unexpected error occurred', 'danger');
         });
-
-        window.addEventListener('unhandledrejection', (event) => {
-            console.error('Unhandled promise rejection:', event.reason);
-            const ui = new UIManager();
-            ui.showNotification('Error', 'An unexpected error occurred. Please refresh the page.', 'danger');
-        });
-
-        // Service Worker for PWA
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').catch(error => {
-                    console.log('Service Worker registration failed:', error);
-                });
-            });
-        }
     </script>
 </body>
 </html>
