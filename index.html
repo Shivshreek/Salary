@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Salary Portal Pro | Employee Dashboard</title>
     
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
+    <!-- Firebase SDKs - Updated Version -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -28,12 +28,18 @@
                         danger: { 50: '#fef2f2', 500: '#ef4444', 600: '#dc2626' }
                     },
                     animation: {
-                        'fade-in': 'fadeIn 0.5s ease-out'
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'shake': 'shake 0.5s ease-in-out'
                     },
                     keyframes: {
                         fadeIn: {
                             '0%': { opacity: '0', transform: 'translateY(10px)' },
                             '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        shake: {
+                            '0%, 100%': { transform: 'translateX(0)' },
+                            '10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-5px)' },
+                            '20%, 40%, 60%, 80%': { transform: 'translateX(5px)' }
                         }
                     }
                 }
@@ -114,6 +120,13 @@
             }
             .no-print { display: none !important; }
         }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 min-h-screen text-slate-800 dark:text-slate-200">
@@ -179,19 +192,24 @@
                 };
                 this.isAdmin = false;
                 this.currentOTP = '';
+                this.lastPayslipData = null;
             }
 
             async initialize() {
                 try {
                     this.updateLoadingText('Initializing Firebase...');
                     
+                    // Check Firebase availability
+                    if (typeof firebase === 'undefined') {
+                        throw new Error('Firebase SDK not loaded. Please check your internet connection.');
+                    }
+                    
                     // Initialize Firebase
                     this.app = firebase.initializeApp(FIREBASE_CONFIG);
                     this.auth = firebase.auth();
                     this.db = firebase.firestore();
                     
-                    // Enable offline persistence
-                    await this.db.enablePersistence({ synchronizeTabs: true });
+                    console.log('Firebase initialized successfully');
                     
                     // Set up auth state listener
                     this.auth.onAuthStateChanged((user) => {
@@ -199,13 +217,162 @@
                         this.handleAuthStateChange(user);
                     });
                     
-                    console.log('Firebase initialized successfully');
                     return true;
                 } catch (error) {
                     console.error('Firebase initialization error:', error);
-                    this.showError('Failed to initialize. Please refresh the page.');
+                    this.showErrorOnLoading('Initialization Failed', error.message);
                     return false;
                 }
+            }
+
+            showErrorOnLoading(title, message) {
+                const loadingText = document.getElementById('loading-text');
+                if (loadingText) {
+                    loadingText.innerHTML = `
+                        <div class="text-center animate-fade-in">
+                            <div class="w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i data-lucide="alert-circle" class="w-8 h-8 text-red-600 dark:text-red-400"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-red-600 dark:text-red-400 mb-2">${title}</h3>
+                            <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">${message}</p>
+                            <div class="flex gap-3 justify-center">
+                                <button onclick="window.location.reload()" 
+                                        class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm">
+                                    <i data-lucide="refresh-cw" class="w-4 h-4 inline mr-2"></i>
+                                    Retry
+                                </button>
+                                <button onclick="employeePortal.showOfflineMode()"
+                                        class="bg-slate-100 hover:bg-slate-200 text-slate-800 px-4 py-2 rounded-lg text-sm">
+                                    <i data-lucide="wifi-off" class="w-4 h-4 inline mr-2"></i>
+                                    Offline Mode
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    lucide.createIcons();
+                }
+            }
+
+            showOfflineMode() {
+                const loadingScreen = document.getElementById('loading-screen');
+                const appContent = document.getElementById('app-content');
+                
+                if (loadingScreen) loadingScreen.style.display = 'none';
+                if (appContent) {
+                    appContent.classList.remove('hidden');
+                    this.renderOfflineCalculator();
+                }
+            }
+
+            renderOfflineCalculator() {
+                const appContent = document.getElementById('app-content');
+                if (!appContent) return;
+
+                appContent.innerHTML = `
+                    <div class="min-h-screen p-4">
+                        <div class="max-w-6xl mx-auto">
+                            <!-- Offline Header -->
+                            <div class="glass rounded-3xl p-6 mb-6 border border-slate-200/50 dark:border-slate-700/50">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-4">
+                                        <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 p-3 rounded-xl">
+                                            <i data-lucide="wifi-off" class="w-8 h-8 text-white"></i>
+                                        </div>
+                                        <div>
+                                            <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Offline Salary Calculator</h1>
+                                            <p class="text-slate-600 dark:text-slate-400">Working in offline mode. Some features may be limited.</p>
+                                        </div>
+                                    </div>
+                                    <button onclick="window.location.reload()"
+                                            class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                                        <i data-lucide="wifi" class="w-4 h-4"></i>
+                                        Reconnect
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <!-- Calculator Inputs -->
+                                <div class="lg:col-span-1 space-y-6">
+                                    <div class="glass rounded-3xl p-6 border border-slate-200/50 dark:border-slate-700/50">
+                                        <h3 class="text-lg font-bold mb-4">Salary Calculator</h3>
+                                        <div class="space-y-4" id="offline-calculator-inputs">
+                                            <!-- Inputs will be populated -->
+                                        </div>
+                                        <div class="mt-6 space-y-3">
+                                            <button onclick="employeePortal.calculateOfflineSalary()"
+                                                    class="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg">
+                                                Calculate
+                                            </button>
+                                            <button onclick="employeePortal.editPayslipOffline()"
+                                                    class="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-2.5 rounded-lg flex items-center justify-center gap-2">
+                                                <i data-lucide="edit" class="w-4 h-4"></i>
+                                                Edit Payslip
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Payslip Preview -->
+                                <div class="lg:col-span-2">
+                                    <div class="glass rounded-3xl p-6 border border-slate-200/50 dark:border-slate-700/50">
+                                        <div id="offline-payslip-preview">
+                                            <!-- Payslip will be rendered here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                this.renderOfflineInputs();
+                this.calculateOfflineSalary();
+                lucide.createIcons();
+            }
+
+            renderOfflineInputs() {
+                const container = document.getElementById('offline-calculator-inputs');
+                if (!container) return;
+
+                const inputs = [
+                    { id: 'basic', label: 'Basic Salary', value: this.salaryData.basic, prefix: '₹' },
+                    { id: 'workingDays', label: 'Working Days', value: this.salaryData.workingDays },
+                    { id: 'presentDays', label: 'Present Days', value: this.salaryData.presentDays },
+                    { id: 'varHours', label: 'Variable Hours', value: this.salaryData.varHours, step: '0.01' },
+                    { id: 'varRate', label: 'Variable Rate', value: this.salaryData.varRate, prefix: '₹', step: '0.01' },
+                    { id: 'foodAllow', label: 'Food Allowance', value: this.salaryData.foodAllow, prefix: '₹' },
+                    { id: 'otherEarn', label: 'Other Earnings', value: this.salaryData.otherEarn, prefix: '₹' },
+                    { id: 'busDed', label: 'Bus Deduction', value: this.salaryData.busDed, prefix: '₹' }
+                ];
+
+                container.innerHTML = inputs.map(input => `
+                    <div>
+                        <label class="block text-sm font-medium mb-1">${input.label}</label>
+                        <div class="relative">
+                            ${input.prefix ? `<span class="absolute left-3 top-2.5 text-slate-500">${input.prefix}</span>` : ''}
+                            <input type="number" 
+                                   id="offline-${input.id}" 
+                                   value="${input.value}"
+                                   ${input.step ? `step="${input.step}"` : ''}
+                                   class="w-full ${input.prefix ? 'pl-8' : ''} px-3 py-2 border rounded-lg"
+                                   oninput="employeePortal.updateOfflineSalaryData('${input.id}', this.value)">
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            updateOfflineSalaryData(field, value) {
+                this.salaryData[field] = parseFloat(value) || 0;
+            }
+
+            calculateOfflineSalary() {
+                const preview = document.getElementById('offline-payslip-preview');
+                if (!preview) return;
+
+                const results = this.calculateSalaryResults();
+                preview.innerHTML = this.generatePayslipHTML(results);
+                this.showNotification('Calculated', 'Salary updated', 'success');
             }
 
             async handleAuthStateChange(user) {
@@ -216,7 +383,6 @@
                     this.isAdmin = user.email === 'shivshreek@gmail.com';
                     
                     if (this.isAdmin) {
-                        // Admin goes directly to admin dashboard with payslip option
                         this.updateLoadingText('Loading admin dashboard...');
                         await this.loadAdminDashboard();
                     } else {
@@ -224,18 +390,15 @@
                         const hasActiveSession = await this.checkActiveSession(user.uid);
                         
                         if (hasActiveSession) {
-                            // User has active session, show calculator
                             this.updateLoadingText('Loading your dashboard...');
                             await this.loadEmployeeData();
                             await this.showCalculator();
                         } else {
-                            // New user or session expired, show OTP screen
                             this.updateLoadingText('Verifying access...');
                             await this.showOTPScreen(user);
                         }
                     }
                 } else {
-                    // No user, show login screen
                     this.showLoginScreen();
                 }
             }
@@ -275,7 +438,7 @@
                 }[type];
 
                 toast.innerHTML = `
-                    <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl p-4 border-l-4 border-${typeConfig.color}-500">
+                    <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl p-4 border-l-4 border-${typeConfig.color}-500 animate-fade-in">
                         <div class="flex items-start">
                             <i data-lucide="${typeConfig.icon}" class="w-6 h-6 text-${typeConfig.color}-500 mt-0.5"></i>
                             <div class="ml-3 flex-1">
@@ -311,9 +474,8 @@
                 if (appContent) appContent.classList.add('hidden');
                 if (otpScreen) otpScreen.classList.add('hidden');
                 
-                // Show login UI
                 document.body.innerHTML = `
-                    <div class="min-h-screen flex items-center justify-center p-4">
+                    <div class="min-h-screen flex items-center justify-center p-4 animate-fade-in">
                         <div class="w-full max-w-md">
                             <div class="glass rounded-3xl shadow-2xl overflow-hidden border border-slate-200/50 dark:border-slate-700/50">
                                 <div class="bg-gradient-to-r from-primary-600 to-primary-700 p-8 text-center">
@@ -332,7 +494,7 @@
                                         </div>
                                         
                                         <button onclick="employeePortal.handleGoogleLogin()" 
-                                                class="w-full bg-white hover:bg-slate-50 text-slate-800 font-semibold py-3 px-4 rounded-xl transition-all duration-300 border border-slate-300 shadow-sm flex items-center justify-center gap-3">
+                                                class="w-full bg-white hover:bg-slate-50 text-slate-800 font-semibold py-3 px-4 rounded-xl transition-all duration-300 border border-slate-300 shadow-sm flex items-center justify-center gap-3 btn-pop">
                                             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5">
                                             <span>Sign in with Google</span>
                                         </button>
@@ -375,8 +537,9 @@
                 if (loadingScreen) loadingScreen.style.display = 'none';
                 if (otpScreen) {
                     otpScreen.classList.remove('hidden');
+                    otpScreen.classList.add('flex');
                     otpScreen.innerHTML = `
-                        <div class="w-full max-w-md">
+                        <div class="w-full max-w-md animate-fade-in">
                             <div class="glass rounded-3xl shadow-2xl overflow-hidden border border-slate-200/50 dark:border-slate-700/50">
                                 <!-- Header -->
                                 <div class="bg-gradient-to-r from-primary-600 to-primary-700 p-8 text-center">
@@ -423,7 +586,7 @@
                                             
                                             <div class="space-y-3">
                                                 <button onclick="employeePortal.verifyOTP()" id="verify-btn"
-                                                        class="w-full bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold py-3 rounded-xl transition-all duration-300 shadow-lg flex items-center justify-center gap-2">
+                                                        class="w-full bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold py-3 rounded-xl transition-all duration-300 shadow-lg flex items-center justify-center gap-2 btn-pop">
                                                     <i data-lucide="shield" class="w-5 h-5"></i>
                                                     Verify & Continue
                                                 </button>
@@ -443,6 +606,12 @@
                     
                     lucide.createIcons();
                     
+                    // Focus first OTP input
+                    setTimeout(() => {
+                        const firstInput = document.querySelector('#otp-container input[data-index="0"]');
+                        if (firstInput) firstInput.focus();
+                    }, 100);
+                    
                     // Generate and store OTP
                     this.currentOTP = Math.floor(100000 + Math.random() * 900000).toString();
                     console.log('Generated OTP:', this.currentOTP, 'for user:', user.email);
@@ -451,6 +620,12 @@
 
             handleOTPInput(input, index) {
                 const value = input.value;
+                
+                // Only allow numbers
+                if (!/^\d*$/.test(value)) {
+                    input.value = '';
+                    return;
+                }
                 
                 if (value.length === 1 && index < 5) {
                     const nextInput = document.querySelector(`#otp-container input[data-index="${index + 1}"]`);
@@ -496,7 +671,7 @@
                 }
 
                 try {
-                    // Verify OTP (in real app, check against stored OTP)
+                    // Verify OTP
                     if (otp === this.currentOTP) {
                         // Create active session
                         await this.db.collection('sessions').doc(this.currentUser.uid).set({
@@ -509,14 +684,14 @@
                             platform: navigator.platform,
                             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                             otpVerifiedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                            expiresAt: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 24 * 60 * 60 * 1000)) // 24 hours
+                            expiresAt: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 24 * 60 * 60 * 1000))
                         });
                         
                         this.showNotification('OTP Verified', 'Access granted successfully', 'success');
                         await this.loadEmployeeData();
                         await this.showCalculator();
                     } else {
-                        throw new Error('Invalid OTP');
+                        throw new Error('Invalid OTP code');
                     }
                 } catch (error) {
                     if (errorDiv) {
@@ -539,7 +714,7 @@
 
             async loadEmployeeData() {
                 try {
-                    // Try to load saved employee data
+                    // Load from localStorage
                     const savedData = localStorage.getItem('employee_data');
                     if (savedData) {
                         this.userData = JSON.parse(savedData);
@@ -554,8 +729,8 @@
                             designation: 'Senior Executive',
                             department: 'Production',
                             doj: '2025-05-15',
-                            salaryMonth: 'September',
-                            salaryYear: '2025'
+                            salaryMonth: new Date().toLocaleString('default', { month: 'long' }),
+                            salaryYear: new Date().getFullYear().toString()
                         };
                     }
                 } catch (error) {
@@ -569,21 +744,13 @@
                 const appContent = document.getElementById('app-content');
                 
                 if (loadingScreen) loadingScreen.style.display = 'none';
-                if (otpScreen) otpScreen.classList.add('hidden');
+                if (otpScreen) {
+                    otpScreen.classList.add('hidden');
+                    otpScreen.classList.remove('flex');
+                }
                 if (appContent) {
                     appContent.classList.remove('hidden');
                     this.renderCalculator();
-                }
-            }
-
-            async loadAdminDashboard() {
-                const loadingScreen = document.getElementById('loading-screen');
-                const appContent = document.getElementById('app-content');
-                
-                if (loadingScreen) loadingScreen.style.display = 'none';
-                if (appContent) {
-                    appContent.classList.remove('hidden');
-                    this.renderAdminDashboard();
                 }
             }
 
@@ -592,7 +759,7 @@
                 if (!appContent) return;
 
                 appContent.innerHTML = `
-                    <div class="min-h-screen p-4 md:p-6">
+                    <div class="min-h-screen p-4 md:p-6 animate-fade-in">
                         <!-- Navigation -->
                         <div class="max-w-7xl mx-auto mb-8">
                             <div class="flex flex-col md:flex-row justify-between items-center gap-4">
@@ -608,9 +775,20 @@
                                             </div>
                                         </div>
                                     </div>
+                                    
+                                    <div class="hidden md:flex items-center gap-2">
+                                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                        <span class="text-xs text-green-600 dark:text-green-400">Online</span>
+                                    </div>
                                 </div>
                                 
                                 <div class="flex items-center gap-2">
+                                    <button onclick="employeePortal.showPayslipEditor()" 
+                                            class="glass btn-pop px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg flex items-center gap-2">
+                                        <i data-lucide="edit" class="w-4 h-4"></i>
+                                        Edit Payslip
+                                    </button>
+                                    
                                     <button onclick="employeePortal.toggleDarkMode()" 
                                             class="glass btn-pop p-3 rounded-xl border border-slate-200/50 dark:border-slate-700/50 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all duration-300 group">
                                         <i data-lucide="moon" class="w-5 h-5 text-slate-600 dark:hidden group-hover:text-primary-600"></i>
@@ -619,22 +797,23 @@
                                     
                                     <div class="relative group">
                                         <button class="glass btn-pop flex items-center gap-3 p-3 rounded-xl border border-slate-200/50 dark:border-slate-700/50 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all duration-300">
-                                            <img src="${this.currentUser?.photoURL || ''}" class="w-8 h-8 rounded-full border-2 border-white shadow">
+                                            <img src="${this.currentUser?.photoURL || 'https://ui-avatars.com/api/?name=User&background=3b82f6&color=fff'}" 
+                                                 class="w-8 h-8 rounded-full border-2 border-white shadow">
                                             <div class="text-left">
-                                                <p class="text-sm font-semibold text-slate-800 dark:text-white">${this.currentUser?.displayName || 'Employee'}</p>
-                                                <p class="text-xs text-slate-500 dark:text-slate-400">${this.userData.designation || 'Employee'}</p>
+                                                <p class="text-sm font-semibold text-slate-800 dark:text-white truncate max-w-[120px]">${this.currentUser?.displayName || 'Employee'}</p>
+                                                <p class="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[120px]">${this.userData.designation || 'Employee'}</p>
                                             </div>
                                             <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400"></i>
                                         </button>
                                         
-                                        <div class="absolute right-0 top-full mt-2 w-48 glass rounded-xl shadow-2xl border border-slate-200/50 dark:border-slate-700/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
+                                        <div class="absolute right-0 top-full mt-2 w-48 glass rounded-xl shadow-2xl border border-slate-200/50 dark:border-slate-700/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-10">
                                             <div class="p-2">
                                                 <div class="p-3 border-b border-slate-200/50 dark:border-slate-700/50">
                                                     <p class="text-sm font-medium text-slate-800 dark:text-white">Signed in as</p>
                                                     <p class="text-xs text-slate-500 dark:text-slate-400 truncate">${this.currentUser?.email || ''}</p>
                                                 </div>
                                                 <button onclick="employeePortal.signOut()" 
-                                                        class="w-full text-left px-3 py-2.5 text-sm text-danger-600 hover:bg-danger-50 dark:hover:bg-danger-900/20 rounded-lg flex items-center gap-2">
+                                                        class="w-full text-left px-3 py-2.5 text-sm text-danger-600 hover:bg-danger-50 dark:hover:bg-danger-900/20 rounded-lg flex items-center gap-2 mt-1">
                                                     <i data-lucide="log-out" class="w-4 h-4"></i>
                                                     Sign Out
                                                 </button>
@@ -648,7 +827,7 @@
                         <!-- Main Content -->
                         <div class="max-w-7xl mx-auto">
                             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                                <!-- Input Panel -->
+                                <!-- Left Panel -->
                                 <div class="lg:col-span-1 space-y-6">
                                     <!-- Employee Details Form -->
                                     <div class="glass rounded-3xl p-6 border border-slate-200/50 dark:border-slate-700/50">
@@ -667,32 +846,34 @@
                                                 <div>
                                                     <label class="block text-sm font-medium mb-1">Emp Code</label>
                                                     <input type="text" id="emp-code" value="${this.userData.empCode}" 
-                                                           class="input-focus w-full px-3 py-2 rounded-lg">
+                                                           class="input-focus w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-800">
                                                 </div>
                                                 <div>
                                                     <label class="block text-sm font-medium mb-1">Name</label>
                                                     <input type="text" id="emp-name" value="${this.userData.empName}" 
-                                                           class="input-focus w-full px-3 py-2 rounded-lg">
+                                                           class="input-focus w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-800">
                                                 </div>
                                             </div>
                                             <div>
                                                 <label class="block text-sm font-medium mb-1">Department</label>
-                                                <select id="department" class="input-focus w-full px-3 py-2 rounded-lg">
+                                                <select id="department" class="input-focus w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-800">
                                                     <option value="Production" ${this.userData.department === 'Production' ? 'selected' : ''}>Production</option>
                                                     <option value="Quality" ${this.userData.department === 'Quality' ? 'selected' : ''}>Quality</option>
                                                     <option value="Maintenance" ${this.userData.department === 'Maintenance' ? 'selected' : ''}>Maintenance</option>
                                                     <option value="HR" ${this.userData.department === 'HR' ? 'selected' : ''}>HR</option>
                                                     <option value="Finance" ${this.userData.department === 'Finance' ? 'selected' : ''}>Finance</option>
                                                     <option value="IT" ${this.userData.department === 'IT' ? 'selected' : ''}>IT</option>
+                                                    <option value="Sales" ${this.userData.department === 'Sales' ? 'selected' : ''}>Sales</option>
+                                                    <option value="Marketing" ${this.userData.department === 'Marketing' ? 'selected' : ''}>Marketing</option>
                                                 </select>
                                             </div>
                                             <div>
                                                 <label class="block text-sm font-medium mb-1">Designation</label>
                                                 <input type="text" id="designation" value="${this.userData.designation}" 
-                                                       class="input-focus w-full px-3 py-2 rounded-lg">
+                                                       class="input-focus w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-800">
                                             </div>
                                             <button onclick="employeePortal.saveEmployeeDetails()"
-                                                    class="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2.5 rounded-lg">
+                                                    class="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2.5 rounded-lg btn-pop">
                                                 Save Details
                                             </button>
                                         </div>
@@ -716,16 +897,16 @@
                                         
                                         <div class="space-y-3 mt-6">
                                             <button onclick="employeePortal.calculateSalary()"
-                                                    class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-lg flex items-center justify-center gap-2">
+                                                    class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-lg flex items-center justify-center gap-2 btn-pop">
                                                 <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                                                 Calculate Salary
                                             </button>
                                             <button onclick="employeePortal.resetCalculator()"
-                                                    class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold py-2.5 rounded-lg">
+                                                    class="w-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold py-2.5 rounded-lg">
                                                 Reset Values
                                             </button>
                                             <button onclick="employeePortal.savePayslip()"
-                                                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg flex items-center justify-center gap-2">
+                                                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg flex items-center justify-center gap-2 btn-pop">
                                                 <i data-lucide="save" class="w-4 h-4"></i>
                                                 Save Payslip
                                             </button>
@@ -743,14 +924,19 @@
                                             </div>
                                             <div class="flex items-center gap-2">
                                                 <button onclick="employeePortal.downloadPDF()"
-                                                        class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-lg flex items-center gap-2">
+                                                        class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-lg flex items-center gap-2 btn-pop">
                                                     <i data-lucide="download" class="w-4 h-4"></i>
                                                     Download PDF
                                                 </button>
                                                 <button onclick="employeePortal.printPayslip()"
-                                                        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg flex items-center gap-2">
+                                                        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg flex items-center gap-2 btn-pop">
                                                     <i data-lucide="printer" class="w-4 h-4"></i>
                                                     Print
+                                                </button>
+                                                <button onclick="employeePortal.sharePayslip()"
+                                                        class="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-2 rounded-lg flex items-center gap-2 btn-pop">
+                                                    <i data-lucide="share-2" class="w-4 h-4"></i>
+                                                    Share
                                                 </button>
                                             </div>
                                         </div>
@@ -811,7 +997,7 @@
                                    id="calc-${input.id}" 
                                    value="${input.value}"
                                    ${input.step ? `step="${input.step}"` : ''}
-                                   class="w-full ${input.prefix ? 'pl-8' : ''} px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                                   class="w-full ${input.prefix ? 'pl-8' : ''} px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-slate-800"
                                    oninput="employeePortal.updateSalaryData('${input.id}', this.value)">
                         </div>
                     </div>
@@ -819,7 +1005,12 @@
             }
 
             updateSalaryData(field, value) {
-                this.salaryData[field] = parseFloat(value) || 0;
+                const numValue = parseFloat(value);
+                if (!isNaN(numValue)) {
+                    this.salaryData[field] = numValue;
+                    // Auto-calculate if all fields are filled
+                    setTimeout(() => this.calculateSalary(), 500);
+                }
             }
 
             calculateSalary() {
@@ -827,8 +1018,7 @@
                 this.showNotification('Calculated', 'Salary calculation updated', 'success');
             }
 
-            calculateAndRenderPayslip() {
-                // Perform calculations
+            calculateSalaryResults() {
                 const basic = this.salaryData.basic;
                 const working = this.salaryData.workingDays;
                 const present = this.salaryData.presentDays;
@@ -838,13 +1028,13 @@
                 const bus = this.salaryData.busDed;
                 const other = this.salaryData.otherEarn;
 
-                // Calculations based on the provided payslip
+                // Calculations
                 const earnedBasic = (basic / working) * present;
                 const varAmt = varHours * varRate;
                 const pf = earnedBasic * 0.12;
                 const totalEarn = earnedBasic + varAmt + food + other;
                 
-                // ESI calculation (0.75% of total earnings if structure <= 21000)
+                // ESI calculation
                 let esi = 0;
                 const structureGross = basic + food;
                 if (structureGross <= 21000) {
@@ -854,22 +1044,7 @@
                 const totalDed = pf + bus + esi;
                 const net = totalEarn - totalDed;
 
-                // Update quick stats
-                const format = num => num.toLocaleString('en-IN', { 
-                    minimumFractionDigits: 2, 
-                    maximumFractionDigits: 2 
-                });
-
-                const totalEarningsEl = document.getElementById('total-earnings');
-                const totalDeductionsEl = document.getElementById('total-deductions');
-                const netPayEl = document.getElementById('net-pay');
-
-                if (totalEarningsEl) totalEarningsEl.textContent = `₹${format(totalEarn)}`;
-                if (totalDeductionsEl) totalDeductionsEl.textContent = `₹${format(totalDed)}`;
-                if (netPayEl) netPayEl.textContent = `₹${format(net)}`;
-
-                // Render payslip
-                this.renderPayslip({
+                return {
                     earnedBasic,
                     varAmt,
                     food,
@@ -883,19 +1058,45 @@
                     working,
                     present,
                     varHours
+                };
+            }
+
+            calculateAndRenderPayslip() {
+                const results = this.calculateSalaryResults();
+                this.lastPayslipData = results;
+
+                // Update quick stats
+                const format = num => num.toLocaleString('en-IN', { 
+                    minimumFractionDigits: 2, 
+                    maximumFractionDigits: 2 
                 });
+
+                const totalEarningsEl = document.getElementById('total-earnings');
+                const totalDeductionsEl = document.getElementById('total-deductions');
+                const netPayEl = document.getElementById('net-pay');
+
+                if (totalEarningsEl) totalEarningsEl.textContent = `₹${format(results.totalEarn)}`;
+                if (totalDeductionsEl) totalDeductionsEl.textContent = `₹${format(results.totalDed)}`;
+                if (netPayEl) netPayEl.textContent = `₹${format(results.net)}`;
+
+                // Render payslip
+                this.renderPayslip(results);
             }
 
             renderPayslip(results) {
                 const container = document.getElementById('payslip-container');
                 if (!container) return;
 
+                container.innerHTML = this.generatePayslipHTML(results);
+            }
+
+            generatePayslipHTML(results) {
                 const format = num => num.toLocaleString('en-IN', { 
                     minimumFractionDigits: 2, 
                     maximumFractionDigits: 2 
                 });
 
-                container.innerHTML = `
+                return `
                     <!-- Company Header -->
                     <div class="bg-gradient-to-r from-primary-600 to-primary-700 text-white text-center py-6 px-4">
                         <h1 class="text-2xl font-bold uppercase tracking-wider">${this.userData.companyName.toUpperCase() || 'TECH SOLUTIONS INC.'}</h1>
@@ -1108,19 +1309,16 @@
 
             async savePayslip() {
                 try {
-                    const results = this.calculateAndRenderPayslip();
+                    if (!this.lastPayslipData) {
+                        throw new Error('Please calculate salary first');
+                    }
                     
                     const payslipData = {
                         ...this.salaryData,
                         ...this.userData,
-                        results: {
-                            totalEarn: this.salaryData.basic + (this.salaryData.varHours * this.salaryData.varRate) + this.salaryData.foodAllow + this.salaryData.otherEarn,
-                            totalDed: (this.salaryData.basic / this.salaryData.workingDays * this.salaryData.presentDays * 0.12) + this.salaryData.busDed,
-                            netPay: this.salaryData.basic + (this.salaryData.varHours * this.salaryData.varRate) + this.salaryData.foodAllow + this.salaryData.otherEarn - 
-                                    ((this.salaryData.basic / this.salaryData.workingDays * this.salaryData.presentDays * 0.12) + this.salaryData.busDed)
-                        },
-                        userId: this.currentUser.uid,
-                        userEmail: this.currentUser.email,
+                        results: this.lastPayslipData,
+                        userId: this.currentUser?.uid || 'offline',
+                        userEmail: this.currentUser?.email || 'offline@user.com',
                         createdAt: new Date().toISOString()
                     };
 
@@ -1129,8 +1327,8 @@
                     savedPayslips.push(payslipData);
                     localStorage.setItem('payslips', JSON.stringify(savedPayslips));
 
-                    // Save to Firebase if user is logged in
-                    if (this.currentUser) {
+                    // Save to Firebase if user is logged in and online
+                    if (this.currentUser && this.db) {
                         await this.db.collection('payslips').add({
                             ...payslipData,
                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -1140,7 +1338,7 @@
                     this.showNotification('Saved', 'Payslip saved successfully', 'success');
                 } catch (error) {
                     console.error('Save payslip error:', error);
-                    this.showError('Failed to save payslip');
+                    this.showError('Failed to save payslip: ' + error.message);
                 }
             }
 
@@ -1225,12 +1423,361 @@
                 }
             }
 
+            sharePayslip() {
+                try {
+                    const element = document.getElementById('payslip-container');
+                    if (!element) {
+                        throw new Error('Payslip container not found');
+                    }
+
+                    const text = `Salary Slip for ${this.userData.empName} - ${this.userData.salaryMonth} ${this.userData.salaryYear}`;
+                    
+                    if (navigator.share) {
+                        navigator.share({
+                            title: 'Salary Slip',
+                            text: text,
+                            url: window.location.href
+                        });
+                    } else {
+                        // Fallback: Copy to clipboard
+                        navigator.clipboard.writeText(text + '\n' + window.location.href);
+                        this.showNotification('Copied', 'Payslip link copied to clipboard', 'info');
+                    }
+                } catch (error) {
+                    console.error('Share error:', error);
+                    this.showError('Failed to share payslip');
+                }
+            }
+
+            // ============================
+            // PAYSLIP EDITOR
+            // ============================
+            showPayslipEditor() {
+                const appContent = document.getElementById('app-content');
+                if (!appContent) return;
+
+                appContent.innerHTML = `
+                    <div class="min-h-screen p-4 animate-fade-in">
+                        <div class="max-w-7xl mx-auto">
+                            <!-- Editor Header -->
+                            <div class="flex justify-between items-center mb-8">
+                                <div>
+                                    <h1 class="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-3">
+                                        <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 p-2 rounded-xl">
+                                            <i data-lucide="edit" class="w-6 h-6 text-white"></i>
+                                        </div>
+                                        Payslip Editor
+                                    </h1>
+                                    <p class="text-slate-600 dark:text-slate-400 mt-1">Edit salary components and preview changes</p>
+                                </div>
+                                <button onclick="employeePortal.showCalculator()"
+                                        class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 px-4 py-2 rounded-lg flex items-center gap-2">
+                                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                                    Back to Calculator
+                                </button>
+                            </div>
+
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <!-- Edit Form -->
+                                <div class="space-y-6">
+                                    <!-- Earnings Section -->
+                                    <div class="glass rounded-3xl p-6 border border-slate-200/50 dark:border-slate-700/50">
+                                        <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
+                                            <div class="bg-green-100 dark:bg-green-900/30 p-2 rounded-lg">
+                                                <i data-lucide="trending-up" class="w-5 h-5 text-green-600 dark:text-green-400"></i>
+                                            </div>
+                                            Earnings
+                                        </h3>
+                                        <div class="space-y-4" id="earnings-edit">
+                                            <!-- Earnings inputs -->
+                                        </div>
+                                    </div>
+
+                                    <!-- Deductions Section -->
+                                    <div class="glass rounded-3xl p-6 border border-slate-200/50 dark:border-slate-700/50">
+                                        <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
+                                            <div class="bg-red-100 dark:bg-red-900/30 p-2 rounded-lg">
+                                                <i data-lucide="trending-down" class="w-5 h-5 text-red-600 dark:text-red-400"></i>
+                                            </div>
+                                            Deductions & Attendance
+                                        </h3>
+                                        <div class="space-y-4" id="deductions-edit">
+                                            <!-- Deductions inputs -->
+                                        </div>
+                                    </div>
+
+                                    <!-- Action Buttons -->
+                                    <div class="glass rounded-3xl p-6 border border-slate-200/50 dark:border-slate-700/50">
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <button onclick="employeePortal.applyEditorChanges()"
+                                                    class="bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold btn-pop">
+                                                Apply Changes
+                                            </button>
+                                            <button onclick="employeePortal.showCalculator()"
+                                                    class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 py-3 rounded-lg font-semibold">
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Live Preview -->
+                                <div class="space-y-6">
+                                    <div class="glass rounded-3xl p-6 border border-slate-200/50 dark:border-slate-700/50">
+                                        <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4">Live Preview</h3>
+                                        <div class="bg-white rounded-xl shadow p-4 border max-h-[500px] overflow-y-auto scrollbar-hide" id="editor-preview">
+                                            <!-- Preview will be updated here -->
+                                        </div>
+                                    </div>
+
+                                    <!-- Summary Card -->
+                                    <div class="glass rounded-3xl p-6 border border-slate-200/50 dark:border-slate-700/50">
+                                        <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4">Summary</h3>
+                                        <div class="grid grid-cols-3 gap-4">
+                                            <div class="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-xl">
+                                                <div class="text-sm text-green-600 dark:text-green-400 mb-1">Earnings</div>
+                                                <div class="text-xl font-bold" id="editor-total-earnings">₹0</div>
+                                            </div>
+                                            <div class="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-xl">
+                                                <div class="text-sm text-red-600 dark:text-red-400 mb-1">Deductions</div>
+                                                <div class="text-xl font-bold" id="editor-total-deductions">₹0</div>
+                                            </div>
+                                            <div class="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                                                <div class="text-sm text-blue-600 dark:text-blue-400 mb-1">Net Pay</div>
+                                                <div class="text-xl font-bold text-green-600 dark:text-green-400" id="editor-net-pay">₹0</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                this.renderEditorInputs();
+                this.updateEditorPreview();
+                lucide.createIcons();
+            }
+
+            renderEditorInputs() {
+                // Earnings inputs
+                const earningsContainer = document.getElementById('earnings-edit');
+                if (earningsContainer) {
+                    earningsContainer.innerHTML = `
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Basic Salary</label>
+                                <input type="number" id="edit-basic" value="${this.salaryData.basic}" 
+                                       class="w-full px-3 py-2 border rounded-lg bg-white dark:bg-slate-800" 
+                                       oninput="employeePortal.updateEditorPreview()">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Variable Hours</label>
+                                <input type="number" step="0.01" id="edit-varHours" value="${this.salaryData.varHours}" 
+                                       class="w-full px-3 py-2 border rounded-lg bg-white dark:bg-slate-800"
+                                       oninput="employeePortal.updateEditorPreview()">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Variable Rate (₹/hr)</label>
+                                <input type="number" step="0.01" id="edit-varRate" value="${this.salaryData.varRate}" 
+                                       class="w-full px-3 py-2 border rounded-lg bg-white dark:bg-slate-800"
+                                       oninput="employeePortal.updateEditorPreview()">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Food Allowance</label>
+                                <input type="number" id="edit-foodAllow" value="${this.salaryData.foodAllow}" 
+                                       class="w-full px-3 py-2 border rounded-lg bg-white dark:bg-slate-800"
+                                       oninput="employeePortal.updateEditorPreview()">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Other Earnings</label>
+                                <input type="number" id="edit-otherEarn" value="${this.salaryData.otherEarn}" 
+                                       class="w-full px-3 py-2 border rounded-lg bg-white dark:bg-slate-800"
+                                       oninput="employeePortal.updateEditorPreview()">
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Deductions inputs
+                const deductionsContainer = document.getElementById('deductions-edit');
+                if (deductionsContainer) {
+                    deductionsContainer.innerHTML = `
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Working Days</label>
+                                <input type="number" id="edit-workingDays" value="${this.salaryData.workingDays}" 
+                                       class="w-full px-3 py-2 border rounded-lg bg-white dark:bg-slate-800"
+                                       oninput="employeePortal.updateEditorPreview()">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Present Days</label>
+                                <input type="number" id="edit-presentDays" value="${this.salaryData.presentDays}" 
+                                       class="w-full px-3 py-2 border rounded-lg bg-white dark:bg-slate-800"
+                                       oninput="employeePortal.updateEditorPreview()">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Bus Deduction</label>
+                                <input type="number" id="edit-busDed" value="${this.salaryData.busDed}" 
+                                       class="w-full px-3 py-2 border rounded-lg bg-white dark:bg-slate-800"
+                                       oninput="employeePortal.updateEditorPreview()">
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            updateEditorPreview() {
+                // Get current values from editor
+                const editorData = {
+                    basic: parseFloat(document.getElementById('edit-basic')?.value) || 0,
+                    workingDays: parseFloat(document.getElementById('edit-workingDays')?.value) || 0,
+                    presentDays: parseFloat(document.getElementById('edit-presentDays')?.value) || 0,
+                    varHours: parseFloat(document.getElementById('edit-varHours')?.value) || 0,
+                    varRate: parseFloat(document.getElementById('edit-varRate')?.value) || 0,
+                    foodAllow: parseFloat(document.getElementById('edit-foodAllow')?.value) || 0,
+                    otherEarn: parseFloat(document.getElementById('edit-otherEarn')?.value) || 0,
+                    busDed: parseFloat(document.getElementById('edit-busDed')?.value) || 0
+                };
+
+                // Calculate with editor data
+                const tempSalaryData = { ...this.salaryData };
+                this.salaryData = editorData;
+                const results = this.calculateSalaryResults();
+                this.salaryData = tempSalaryData;
+
+                // Update preview
+                const preview = document.getElementById('editor-preview');
+                if (preview) {
+                    const format = num => num.toLocaleString('en-IN', { 
+                        minimumFractionDigits: 2, 
+                        maximumFractionDigits: 2 
+                    });
+
+                    preview.innerHTML = `
+                        <div class="space-y-4">
+                            <!-- Summary -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
+                                    <div class="text-xs text-green-600 dark:text-green-400">Basic Salary</div>
+                                    <div class="font-bold">₹${format(results.earnedBasic)}</div>
+                                </div>
+                                <div class="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
+                                    <div class="text-xs text-green-600 dark:text-green-400">Variable Amount</div>
+                                    <div class="font-bold">₹${format(results.varAmt)}</div>
+                                </div>
+                            </div>
+
+                            <!-- Earnings -->
+                            <div>
+                                <div class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Earnings Breakdown:</div>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between text-sm">
+                                        <span>Basic Salary:</span>
+                                        <span class="font-semibold">₹${format(results.earnedBasic)}</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span>Variable Allowance:</span>
+                                        <span class="font-semibold">₹${format(results.varAmt)}</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span>Food Allowance:</span>
+                                        <span class="font-semibold">₹${format(results.food)}</span>
+                                    </div>
+                                    ${results.other > 0 ? `
+                                    <div class="flex justify-between text-sm">
+                                        <span>Other Earnings:</span>
+                                        <span class="font-semibold">₹${format(results.other)}</span>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+
+                            <!-- Deductions -->
+                            <div>
+                                <div class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Deductions Breakdown:</div>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between text-sm">
+                                        <span>Provident Fund (PF):</span>
+                                        <span class="font-semibold">₹${format(results.pf)}</span>
+                                    </div>
+                                    ${results.esi > 0 ? `
+                                    <div class="flex justify-between text-sm">
+                                        <span>ESI Contribution:</span>
+                                        <span class="font-semibold">₹${format(results.esi)}</span>
+                                    </div>
+                                    ` : ''}
+                                    <div class="flex justify-between text-sm">
+                                        <span>Bus Deduction:</span>
+                                        <span class="font-semibold">₹${format(results.bus)}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Totals -->
+                            <div class="border-t pt-4">
+                                <div class="flex justify-between text-base font-bold">
+                                    <span>Total Earnings:</span>
+                                    <span class="text-green-600 dark:text-green-400">₹${format(results.totalEarn)}</span>
+                                </div>
+                                <div class="flex justify-between text-base font-bold mt-2">
+                                    <span>Total Deductions:</span>
+                                    <span class="text-red-600 dark:text-red-400">₹${format(results.totalDed)}</span>
+                                </div>
+                                <div class="flex justify-between text-lg font-bold mt-3 pt-3 border-t">
+                                    <span>Net Pay:</span>
+                                    <span class="text-blue-600 dark:text-blue-400">₹${format(results.net)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Update summary cards
+                const totalEarnings = document.getElementById('editor-total-earnings');
+                const totalDeductions = document.getElementById('editor-total-deductions');
+                const netPay = document.getElementById('editor-net-pay');
+
+                if (totalEarnings) totalEarnings.textContent = `₹${results.totalEarn.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+                if (totalDeductions) totalDeductions.textContent = `₹${results.totalDed.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+                if (netPay) netPay.textContent = `₹${results.net.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+            }
+
+            applyEditorChanges() {
+                // Update salary data from editor
+                this.salaryData.basic = parseFloat(document.getElementById('edit-basic')?.value) || 0;
+                this.salaryData.varHours = parseFloat(document.getElementById('edit-varHours')?.value) || 0;
+                this.salaryData.varRate = parseFloat(document.getElementById('edit-varRate')?.value) || 0;
+                this.salaryData.foodAllow = parseFloat(document.getElementById('edit-foodAllow')?.value) || 0;
+                this.salaryData.otherEarn = parseFloat(document.getElementById('edit-otherEarn')?.value) || 0;
+                this.salaryData.workingDays = parseFloat(document.getElementById('edit-workingDays')?.value) || 0;
+                this.salaryData.presentDays = parseFloat(document.getElementById('edit-presentDays')?.value) || 0;
+                this.salaryData.busDed = parseFloat(document.getElementById('edit-busDed')?.value) || 0;
+
+                this.showNotification('Applied', 'Payslip values updated successfully', 'success');
+                this.showCalculator(); // Return to calculator
+            }
+
+            // ============================
+            // ADMIN DASHBOARD
+            // ============================
+            async loadAdminDashboard() {
+                const loadingScreen = document.getElementById('loading-screen');
+                const appContent = document.getElementById('app-content');
+                
+                if (loadingScreen) loadingScreen.style.display = 'none';
+                if (appContent) {
+                    appContent.classList.remove('hidden');
+                    this.renderAdminDashboard();
+                }
+            }
+
             renderAdminDashboard() {
                 const appContent = document.getElementById('app-content');
                 if (!appContent) return;
 
                 appContent.innerHTML = `
-                    <div class="min-h-screen p-4 md:p-6">
+                    <div class="min-h-screen p-4 md:p-6 animate-fade-in">
                         <!-- Navigation -->
                         <div class="max-w-7xl mx-auto mb-8">
                             <div class="flex flex-col md:flex-row justify-between items-center gap-4">
@@ -1257,7 +1804,7 @@
                                 
                                 <div class="flex items-center gap-2">
                                     <!-- Payslip Button for Admin -->
-                                    <button onclick="employeePortal.showPayslipGenerator()"
+                                    <button onclick="employeePortal.showCalculator()"
                                             class="glass btn-pop px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg flex items-center gap-2">
                                         <i data-lucide="file-text" class="w-4 h-4"></i>
                                         Generate Payslip
@@ -1271,22 +1818,23 @@
                                     
                                     <div class="relative group">
                                         <button class="glass btn-pop flex items-center gap-3 p-3 rounded-xl border border-slate-200/50 dark:border-slate-700/50 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all duration-300">
-                                            <img src="${this.currentUser?.photoURL || ''}" class="w-8 h-8 rounded-full border-2 border-white shadow">
+                                            <img src="${this.currentUser?.photoURL || 'https://ui-avatars.com/api/?name=Admin&background=8b5cf6&color=fff'}" 
+                                                 class="w-8 h-8 rounded-full border-2 border-white shadow">
                                             <div class="text-left">
-                                                <p class="text-sm font-semibold text-slate-800 dark:text-white">${this.currentUser?.displayName || 'Admin'}</p>
+                                                <p class="text-sm font-semibold text-slate-800 dark:text-white truncate max-w-[120px]">${this.currentUser?.displayName || 'Admin'}</p>
                                                 <p class="text-xs text-slate-500 dark:text-slate-400">Administrator</p>
                                             </div>
                                             <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400"></i>
                                         </button>
                                         
-                                        <div class="absolute right-0 top-full mt-2 w-48 glass rounded-xl shadow-2xl border border-slate-200/50 dark:border-slate-700/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
+                                        <div class="absolute right-0 top-full mt-2 w-48 glass rounded-xl shadow-2xl border border-slate-200/50 dark:border-slate-700/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-10">
                                             <div class="p-2">
                                                 <div class="p-3 border-b border-slate-200/50 dark:border-slate-700/50">
                                                     <p class="text-sm font-medium text-slate-800 dark:text-white">Signed in as</p>
                                                     <p class="text-xs text-slate-500 dark:text-slate-400 truncate">${this.currentUser?.email || ''}</p>
                                                 </div>
                                                 <button onclick="employeePortal.signOut()" 
-                                                        class="w-full text-left px-3 py-2.5 text-sm text-danger-600 hover:bg-danger-50 dark:hover:bg-danger-900/20 rounded-lg flex items-center gap-2">
+                                                        class="w-full text-left px-3 py-2.5 text-sm text-danger-600 hover:bg-danger-50 dark:hover:bg-danger-900/20 rounded-lg flex items-center gap-2 mt-1">
                                                     <i data-lucide="log-out" class="w-4 h-4"></i>
                                                     Sign Out
                                                 </button>
@@ -1316,16 +1864,16 @@
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label class="block text-sm font-medium mb-1">User Email</label>
-                                            <input type="email" id="admin-user-email" class="input-focus w-full px-3 py-2 rounded-lg" placeholder="employee@company.com">
+                                            <input type="email" id="admin-user-email" class="input-focus w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-800" placeholder="employee@company.com">
                                         </div>
                                         <div>
                                             <label class="block text-sm font-medium mb-1">User Name</label>
-                                            <input type="text" id="admin-user-name" class="input-focus w-full px-3 py-2 rounded-lg" placeholder="John Doe">
+                                            <input type="text" id="admin-user-name" class="input-focus w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-800" placeholder="John Doe">
                                         </div>
                                     </div>
                                     
                                     <button onclick="employeePortal.adminGenerateOTP()"
-                                            class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-lg flex items-center justify-center gap-2">
+                                            class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-lg flex items-center justify-center gap-2 btn-pop">
                                         <i data-lucide="key" class="w-4 h-4"></i>
                                         Generate & Share OTP
                                     </button>
@@ -1375,19 +1923,12 @@
                 this.loadAdminStats();
             }
 
-            showPayslipGenerator() {
-                // Show payslip calculator for admin
-                this.isAdmin = false; // Temporarily switch to employee view
-                this.renderCalculator();
-                this.showNotification('Payslip Generator', 'You can now generate payslips', 'info');
-            }
-
             async adminGenerateOTP() {
                 const userEmail = document.getElementById('admin-user-email')?.value.trim();
                 const userName = document.getElementById('admin-user-name')?.value.trim();
 
                 if (!userEmail || !userName) {
-                    this.showNotification('Please enter both email and name', 'Both fields are required', 'warning');
+                    this.showNotification('Missing Information', 'Please enter both email and name', 'warning');
                     return;
                 }
 
@@ -1406,7 +1947,7 @@
                         platform: 'Admin Panel',
                         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                         generatedBy: this.currentUser.email,
-                        expiresAt: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 10 * 60 * 1000)) // 10 minutes
+                        expiresAt: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 10 * 60 * 1000))
                     });
                     
                     // Show OTP to admin
@@ -1467,6 +2008,11 @@
                     this.showError('Failed to sign out');
                 }
             }
+
+            // Offline mode functions
+            editPayslipOffline() {
+                alert('Payslip editing is available in online mode. Please reconnect to use this feature.');
+            }
         }
 
         // ============================
@@ -1479,7 +2025,8 @@
             lucide.createIcons();
             
             // Initialize dark mode
-            if (localStorage.getItem('darkMode') === 'enabled') {
+            if (localStorage.getItem('darkMode') === 'enabled' || 
+                (window.matchMedia('(prefers-color-scheme: dark)').matches && !localStorage.getItem('darkMode'))) {
                 document.documentElement.classList.add('dark');
             }
             
@@ -1499,19 +2046,18 @@
             }
         });
 
-        // Add shake animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes shake {
-                0%, 100% { transform: translateX(0); }
-                10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-                20%, 40%, 60%, 80% { transform: translateX(5px); }
+        // Handle offline/online status
+        window.addEventListener('online', () => {
+            if (employeePortal) {
+                employeePortal.showNotification('Back Online', 'Connection restored', 'success');
             }
-            .animate-shake {
-                animation: shake 0.5s ease-in-out;
+        });
+
+        window.addEventListener('offline', () => {
+            if (employeePortal) {
+                employeePortal.showNotification('Offline Mode', 'Working offline', 'warning');
             }
-        `;
-        document.head.appendChild(style);
+        });
     </script>
 </body>
 </html>
