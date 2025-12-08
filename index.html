@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Salary Portal Pro</title>
+    <title>Salary Portal Pro | Shivshree Kumar - September 2025</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- PDF Generation Library -->
@@ -182,6 +182,16 @@
             background: #1e293b;
         }
         
+        /* Shake animation */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        .animate-shake {
+            animation: shake 0.5s ease-in-out;
+        }
+        
         /* Print styles */
         @media print {
             body * { visibility: hidden; }
@@ -199,6 +209,32 @@
                 border: none;
             }
             .no-print { display: none !important; }
+        }
+        
+        /* Salary slip specific styles */
+        .salary-table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .salary-table th {
+            border-bottom: 2px solid #e5e7eb;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+        .salary-table td {
+            border-bottom: 1px solid #f3f4f6;
+            padding: 12px 16px;
+        }
+        .salary-table tr:last-child td {
+            border-bottom: none;
+        }
+        .dark .salary-table th {
+            border-bottom-color: #374151;
+        }
+        .dark .salary-table td {
+            border-bottom-color: #374151;
         }
     </style>
 </head>
@@ -419,11 +455,11 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Company Name *</label>
-                                    <input type="text" id="company-name" class="input-focus w-full px-4 py-3 rounded-xl" placeholder="Enter company name" required>
+                                    <input type="text" id="company-name" class="input-focus w-full px-4 py-3 rounded-xl" placeholder="Enter company name" value="Tech Solutions Inc." required>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Company Address</label>
-                                    <input type="text" id="company-address" class="input-focus w-full px-4 py-3 rounded-xl" placeholder="Optional address">
+                                    <input type="text" id="company-address" class="input-focus w-full px-4 py-3 rounded-xl" placeholder="Optional address" value="123 Business Park, Delhi, India">
                                 </div>
                             </div>
                         </div>
@@ -433,22 +469,22 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Employee Code *</label>
-                                    <input type="text" id="emp-code" class="input-focus w-full px-4 py-3 rounded-xl" placeholder="e.g., EMP001" required>
+                                    <input type="text" id="emp-code" class="input-focus w-full px-4 py-3 rounded-xl" placeholder="e.g., EMP001" value="6138" required>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Employee Name *</label>
-                                    <input type="text" id="emp-name" class="input-focus w-full px-4 py-3 rounded-xl" placeholder="Full name" required>
+                                    <input type="text" id="emp-name" class="input-focus w-full px-4 py-3 rounded-xl" placeholder="Full name" value="Shivshree Kumar" required>
                                 </div>
                             </div>
                             
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Father/Husband Name *</label>
-                                    <input type="text" id="father-name" class="input-focus w-full px-4 py-3 rounded-xl" placeholder="Guardian's name" required>
+                                    <input type="text" id="father-name" class="input-focus w-full px-4 py-3 rounded-xl" placeholder="Guardian's name" value="Santosh Kumar" required>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Designation</label>
-                                    <input type="text" id="designation" class="input-focus w-full px-4 py-3 rounded-xl" placeholder="Job title">
+                                    <input type="text" id="designation" class="input-focus w-full px-4 py-3 rounded-xl" placeholder="Job title" value="Senior Executive">
                                 </div>
                             </div>
                             
@@ -460,7 +496,7 @@
                                             <option value="">Select Department</option>
                                             <option value="Maintenance">Maintenance</option>
                                             <option value="Quality">Quality</option>
-                                            <option value="Production">Production</option>
+                                            <option value="Production" selected>Production</option>
                                             <option value="HR">Human Resources</option>
                                             <option value="Finance">Finance</option>
                                             <option value="IT">Information Technology</option>
@@ -472,7 +508,7 @@
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Date of Joining *</label>
-                                    <input type="date" id="doj" class="input-focus w-full px-4 py-3 rounded-xl" required>
+                                    <input type="date" id="doj" class="input-focus w-full px-4 py-3 rounded-xl" value="2025-05-15" required>
                                 </div>
                             </div>
                             
@@ -481,7 +517,7 @@
                                     <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Salary Month *</label>
                                     <div class="relative">
                                         <select id="salary-month" class="input-focus w-full px-4 py-3 rounded-xl appearance-none" required>
-                                            <option value="October" selected>October</option>
+                                            <option value="October">October</option>
                                             <option value="November">November</option>
                                             <option value="December">December</option>
                                             <option value="January">January</option>
@@ -492,7 +528,7 @@
                                             <option value="June">June</option>
                                             <option value="July">July</option>
                                             <option value="August">August</option>
-                                            <option value="September">September</option>
+                                            <option value="September" selected>September</option>
                                         </select>
                                         <i data-lucide="chevron-down" class="absolute right-3 top-3.5 w-5 h-5 text-slate-400 pointer-events-none"></i>
                                     </div>
@@ -891,7 +927,7 @@
                                 <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Basic Salary</label>
                                 <div class="relative">
                                     <span class="absolute left-3 top-3 text-slate-500">₹</span>
-                                    <input type="number" id="basic" value="25941" oninput="calculate()" 
+                                    <input type="number" id="basic" value="23541" oninput="calculate()" 
                                            class="input-focus w-full pl-8 pr-4 py-3 rounded-xl">
                                 </div>
                             </div>
@@ -900,12 +936,12 @@
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="space-y-2">
                                     <label class="block text-xs font-medium text-slate-500 dark:text-slate-400">Working Days</label>
-                                    <input type="number" id="workingDays" value="23" oninput="calculate()" 
+                                    <input type="number" id="workingDays" value="26" oninput="calculate()" 
                                            class="input-focus w-full px-4 py-3 rounded-xl">
                                 </div>
                                 <div class="space-y-2">
                                     <label class="block text-xs font-medium text-slate-500 dark:text-slate-400">Present Days</label>
-                                    <input type="number" id="presentDays" value="17" oninput="calculate()" 
+                                    <input type="number" id="presentDays" value="25" oninput="calculate()" 
                                            class="input-focus w-full px-4 py-3 rounded-xl">
                                 </div>
                             </div>
@@ -916,12 +952,12 @@
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Hours</label>
-                                        <input type="number" id="varHours" value="58.47" step="0.01" oninput="calculate()" 
+                                        <input type="number" id="varHours" value="131.24" step="0.01" oninput="calculate()" 
                                                class="input-focus w-full px-4 py-3 rounded-xl">
                                     </div>
                                     <div>
                                         <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Rate (₹)</label>
-                                        <input type="number" id="varRate" value="144.52" step="0.01" oninput="calculate()" 
+                                        <input type="number" id="varRate" value="105.00" step="0.01" oninput="calculate()" 
                                                class="input-focus w-full px-4 py-3 rounded-xl">
                                     </div>
                                 </div>
@@ -1003,7 +1039,7 @@
                         <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
                             <div>
                                 <h2 class="text-2xl font-bold text-slate-800 dark:text-white">Payslip Preview</h2>
-                                <p id="slip-month-display" class="text-slate-600 dark:text-slate-400">October 2025</p>
+                                <p id="slip-month-display" class="text-slate-600 dark:text-slate-400">September 2025</p>
                             </div>
                             <div class="flex items-center gap-3">
                                 <button onclick="downloadPDF()" 
@@ -1023,10 +1059,10 @@
                         <div id="payslip-container" class="bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-slate-800 fade-in">
                             <!-- Company Header -->
                             <div class="bg-gradient-to-r from-primary-600 to-primary-700 text-white text-center py-6 px-4">
-                                <h1 class="text-2xl font-bold uppercase tracking-wider" id="slipCompanyName">COMPANY NAME</h1>
+                                <h1 class="text-2xl font-bold uppercase tracking-wider" id="slipCompanyName">TECH SOLUTIONS INC.</h1>
                                 <p class="text-lg opacity-90 mt-1">Salary Slip</p>
-                                <p class="text-sm opacity-80 mt-1" id="slipMonthYear">October, 2025</p>
-                                <p class="text-xs opacity-70 mt-2" id="slipCompanyAddress"></p>
+                                <p class="text-sm opacity-80 mt-1" id="slipMonthYear">September, 2025</p>
+                                <p class="text-xs opacity-70 mt-2" id="slipCompanyAddress">123 Business Park, Delhi, India</p>
                             </div>
                             
                             <!-- Employee Details -->
@@ -1035,11 +1071,13 @@
                                     <div class="flex"><span class="w-32 text-slate-600">Emp Code:</span> <span class="font-semibold" id="slipEmpCode">6138</span></div>
                                     <div class="flex"><span class="w-32 text-slate-600">Emp Name:</span> <span class="font-semibold" id="slipEmpName">Shivshree Kumar</span></div>
                                     <div class="flex"><span class="w-32 text-slate-600">F/H Name:</span> <span class="font-semibold" id="slipFatherName">Santosh Kumar</span></div>
+                                    <div class="flex"><span class="w-32 text-slate-600">PF. No.:</span> <span class="font-semibold">--</span></div>
                                 </div>
                                 <div class="p-4 space-y-2">
                                     <div class="flex"><span class="w-32 text-slate-600">Department:</span> <span class="font-semibold" id="slipDepartment">Production</span></div>
-                                    <div class="flex"><span class="w-32 text-slate-600">Designation:</span> <span class="font-semibold" id="slipDesignation">--</span></div>
-                                    <div class="flex"><span class="w-32 text-slate-600">D.O.J.:</span> <span class="font-semibold" id="slipDOJ">2025-04-15</span></div>
+                                    <div class="flex"><span class="w-32 text-slate-600">Designation:</span> <span class="font-semibold" id="slipDesignation">Senior Executive</span></div>
+                                    <div class="flex"><span class="w-32 text-slate-600">D.O.J.:</span> <span class="font-semibold" id="slipDOJ">2025-05-15</span></div>
+                                    <div class="flex"><span class="w-32 text-slate-600">E.S.I. No.:</span> <span class="font-semibold">--</span></div>
                                 </div>
                             </div>
                             
@@ -1047,21 +1085,21 @@
                             <div class="grid grid-cols-3 border-b border-slate-800 text-center">
                                 <div class="p-3 border-r border-slate-300">
                                     <div class="text-xs text-slate-500 uppercase tracking-wider">Working Days</div>
-                                    <div class="text-xl font-bold" id="slipWorkingDays">23</div>
+                                    <div class="text-xl font-bold" id="slipWorkingDays">26</div>
                                 </div>
                                 <div class="p-3 border-r border-slate-300">
                                     <div class="text-xs text-slate-500 uppercase tracking-wider">Present Days</div>
-                                    <div class="text-xl font-bold" id="slipPresentDays">17</div>
+                                    <div class="text-xl font-bold" id="slipPresentDays">25</div>
                                 </div>
                                 <div class="p-3">
                                     <div class="text-xs text-slate-500 uppercase tracking-wider">Variable Hours</div>
-                                    <div class="text-xl font-bold"><span id="slipVarHours">58.47</span> Hr</div>
+                                    <div class="text-xl font-bold"><span id="slipVarHours">131.24</span> Hr</div>
                                 </div>
                             </div>
                             
                             <!-- Salary Breakdown -->
                             <div class="p-4">
-                                <table class="w-full">
+                                <table class="w-full salary-table">
                                     <thead>
                                         <tr class="bg-slate-100">
                                             <th class="text-left p-3 text-sm font-semibold text-slate-700">EARNINGS</th>
@@ -1073,13 +1111,13 @@
                                     <tbody>
                                         <tr class="border-b border-slate-200">
                                             <td class="p-3">Basic Salary</td>
-                                            <td class="p-3 text-right font-semibold" id="slipPayableBasic">0.00</td>
+                                            <td class="p-3 text-right font-semibold" id="slipPayableBasic">22,635.58</td>
                                             <td class="p-3">Provident Fund (PF)</td>
-                                            <td class="p-3 text-right font-semibold" id="slipPF">0.00</td>
+                                            <td class="p-3 text-right font-semibold" id="slipPF">2,716.27</td>
                                         </tr>
                                         <tr class="border-b border-slate-200">
                                             <td class="p-3">Variable Allowance</td>
-                                            <td class="p-3 text-right" id="slipVarAmt">0.00</td>
+                                            <td class="p-3 text-right" id="slipVarAmt">13,780.20</td>
                                             <td class="p-3">ESI Contribution</td>
                                             <td class="p-3 text-right" id="slipESI">0.00</td>
                                         </tr>
@@ -1097,9 +1135,9 @@
                                         </tr>
                                         <tr class="bg-slate-50 font-bold">
                                             <td class="p-3">Total Earnings</td>
-                                            <td class="p-3 text-right text-green-700" id="slipTotalEarnings">0.00</td>
+                                            <td class="p-3 text-right text-green-700" id="slipTotalEarnings">39,415.78</td>
                                             <td class="p-3">Total Deductions</td>
-                                            <td class="p-3 text-right text-danger-700" id="slipTotalDeductions">0.00</td>
+                                            <td class="p-3 text-right text-danger-700" id="slipTotalDeductions">3,466.27</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -1109,10 +1147,10 @@
                             <div class="bg-gradient-to-r from-slate-800 to-slate-900 text-white p-6 text-center">
                                 <div class="mb-2">
                                     <div class="text-sm opacity-80">Net Payable Amount</div>
-                                    <div class="text-3xl font-bold mt-1" id="slipNetPay">₹ 0.00</div>
+                                    <div class="text-3xl font-bold mt-1" id="slipNetPay">₹ 35,949.51</div>
                                 </div>
                                 <div class="text-sm opacity-90 italic border-t border-white/20 pt-3 mt-3">
-                                    In Words: <span id="slipAmountWords" class="font-medium">Zero Rupees Only</span>
+                                    In Words: <span id="slipAmountWords" class="font-medium">Thirty Five Thousand Nine Hundred Forty Nine Rupees Fifty One Paise Only</span>
                                 </div>
                             </div>
                             
@@ -1127,15 +1165,15 @@
                         <div class="grid grid-cols-3 gap-4 mt-8">
                             <div class="glass rounded-2xl p-4 text-center border border-slate-200/50 dark:border-slate-700/50">
                                 <div class="text-sm text-slate-600 dark:text-slate-400 mb-1">Total Earnings</div>
-                                <div class="text-xl font-bold text-slate-800 dark:text-white" id="quick-total-earnings">₹0</div>
+                                <div class="text-xl font-bold text-slate-800 dark:text-white" id="quick-total-earnings">₹39,415.78</div>
                             </div>
                             <div class="glass rounded-2xl p-4 text-center border border-slate-200/50 dark:border-slate-700/50">
                                 <div class="text-sm text-slate-600 dark:text-slate-400 mb-1">Total Deductions</div>
-                                <div class="text-xl font-bold text-slate-800 dark:text-white" id="quick-total-deductions">₹0</div>
+                                <div class="text-xl font-bold text-slate-800 dark:text-white" id="quick-total-deductions">₹3,466.27</div>
                             </div>
                             <div class="glass rounded-2xl p-4 text-center border border-slate-200/50 dark:border-slate-700/50">
                                 <div class="text-sm text-slate-600 dark:text-slate-400 mb-1">Net Pay</div>
-                                <div class="text-xl font-bold text-green-700 dark:text-green-400" id="quick-net-pay">₹0</div>
+                                <div class="text-xl font-bold text-green-700 dark:text-green-400" id="quick-net-pay">₹35,949.51</div>
                             </div>
                         </div>
                     </div>
@@ -1206,6 +1244,8 @@
         window.moveToNext = moveToNext;
         window.toggleDarkMode = toggleDarkMode;
         window.printPayslip = printPayslip;
+        window.calculate = calculate;
+        window.resetCalculator = resetCalculator;
 
         // --- INITIALIZATION ---
         onAuthStateChanged(auth, (user) => {
@@ -2092,7 +2132,7 @@
             document.getElementById('dark-mode-toggle').checked = true;
         }
 
-        // Number to words conversion
+        // Enhanced Number to words conversion with paise support
         function numberToWords(num) {
             if (num === 0) return "Zero Rupees Only";
             
@@ -2100,44 +2140,55 @@
             const teens = ["Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
             const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
             
+            function convertTwoDigits(n) {
+                if (n === 0) return "";
+                if (n < 10) return units[n];
+                if (n < 20) return teens[n - 10];
+                return tens[Math.floor(n / 10)] + (n % 10 !== 0 ? " " + units[n % 10] : "");
+            }
+
             function convertThreeDigits(n) {
                 let str = "";
                 if (n > 99) {
                     str += units[Math.floor(n / 100)] + " Hundred ";
                     n %= 100;
                 }
-                if (n > 19) {
-                    str += tens[Math.floor(n / 10)] + " ";
-                    n %= 10;
-                }
-                if (n > 9) {
-                    str += teens[n - 10] + " ";
-                    n = 0;
-                }
-                if (n > 0) {
-                    str += units[n] + " ";
-                }
-                return str;
+                str += convertTwoDigits(n);
+                return str.trim();
             }
 
             let integerPart = Math.floor(num);
+            let decimalPart = Math.round((num - integerPart) * 100);
             let words = "";
             
+            // Convert integer part
             if (integerPart >= 10000000) {
-                words += convertThreeDigits(Math.floor(integerPart / 10000000)) + "Crore ";
+                words += convertThreeDigits(Math.floor(integerPart / 10000000)) + " Crore ";
                 integerPart %= 10000000;
             }
             if (integerPart >= 100000) {
-                words += convertThreeDigits(Math.floor(integerPart / 100000)) + "Lakh ";
+                words += convertThreeDigits(Math.floor(integerPart / 100000)) + " Lakh ";
                 integerPart %= 100000;
             }
             if (integerPart >= 1000) {
-                words += convertThreeDigits(Math.floor(integerPart / 1000)) + "Thousand ";
+                words += convertThreeDigits(Math.floor(integerPart / 1000)) + " Thousand ";
                 integerPart %= 1000;
             }
             words += convertThreeDigits(integerPart);
             
-            return (words.trim() + " Rupees Only").replace(/\s+/g, ' ');
+            // Add currency
+            if (words.trim() === "") {
+                words = "Zero";
+            }
+            
+            words = words.trim() + " Rupees";
+            
+            // Add paise if any
+            if (decimalPart > 0) {
+                words += " " + convertTwoDigits(decimalPart) + " Paise";
+            }
+            
+            return words + " Only";
         }
 
         // UI Helpers
@@ -2177,6 +2228,9 @@
             
             // Initialize icons
             lucide.createIcons();
+            
+            // Calculate initial values
+            calculate();
         };
 
         // Form submission
@@ -2227,26 +2281,33 @@
 
         window.calculate = function() {
             const basic = parseFloat(document.getElementById('basic').value) || 0;
-            const working = parseFloat(document.getElementById('workingDays').value) || 23;
-            const present = parseFloat(document.getElementById('presentDays').value) || 0;
+            const working = parseFloat(document.getElementById('workingDays').value) || 26;
+            const present = parseFloat(document.getElementById('presentDays').value) || 25;
             const varHours = parseFloat(document.getElementById('varHours').value) || 0;
             const varRate = parseFloat(document.getElementById('varRate').value) || 0;
             const food = parseFloat(document.getElementById('foodAllow').value) || 0;
             const bus = parseFloat(document.getElementById('busDed').value) || 0;
             const otherEarn = parseFloat(document.getElementById('otherEarn').value) || 0;
 
-            // Calculations
-            let earnedBasic = working > 0 ? (basic / working) * present : 0;
+            // Calculations based on the provided payslip
+            let earnedBasic = (basic / working) * present;
             let varAmt = varHours * varRate;
             let totalEarn = earnedBasic + varAmt + food + otherEarn;
-            let structureGross = basic + food;
-
+            
+            // PF calculation (12% of earned basic)
             let pf = earnedBasic * 0.12;
-            let esi = (structureGross <= 21000) ? (totalEarn * 0.0075) : 0;
+            
+            // ESI calculation (0.75% of total earnings if structure <= 21000)
+            let esi = 0;
+            let structureGross = basic + food;
+            if (structureGross <= 21000) {
+                esi = totalEarn * 0.0075;
+            }
+            
             let totalDed = pf + bus + esi;
             let net = totalEarn - totalDed;
 
-            // Update payslip
+            // Update payslip display
             document.getElementById('slipPayableBasic').textContent = formatNum(earnedBasic);
             document.getElementById('slipVarAmt').textContent = formatNum(varAmt);
             document.getElementById('slipPayableFood').textContent = formatNum(food);
@@ -2261,7 +2322,7 @@
             
             document.getElementById('slipWorkingDays').textContent = working;
             document.getElementById('slipPresentDays').textContent = present;
-            document.getElementById('slipVarHours').textContent = varHours;
+            document.getElementById('slipVarHours').textContent = varHours.toFixed(2);
 
             // Update quick stats
             document.getElementById('quick-total-earnings').textContent = `₹${formatNum(totalEarn)}`;
@@ -2270,16 +2331,17 @@
         };
 
         window.resetCalculator = function() {
-            document.getElementById('basic').value = 25941;
-            document.getElementById('workingDays').value = 23;
-            document.getElementById('presentDays').value = 17;
-            document.getElementById('varHours').value = 58.47;
-            document.getElementById('varRate').value = 144.52;
+            // Reset to original values from the payslip image
+            document.getElementById('basic').value = 23541;
+            document.getElementById('workingDays').value = 26;
+            document.getElementById('presentDays').value = 25;
+            document.getElementById('varHours').value = 131.24;
+            document.getElementById('varRate').value = 105.00;
             document.getElementById('foodAllow').value = 3000;
             document.getElementById('busDed').value = 750;
             document.getElementById('otherEarn').value = 0;
             calculate();
-            showNotification('Calculator Reset', 'All values restored to defaults');
+            showNotification('Calculator Reset', 'All values restored to original payslip data');
         };
 
         // PDF Generation
@@ -2346,7 +2408,7 @@
             }, 500);
         };
 
-        // Initialize calculator
+        // Initialize calculator with original values
         calculate();
 
         // Keyboard shortcuts
@@ -2368,6 +2430,18 @@
                 e.preventDefault();
                 toggleDarkMode();
             }
+            // Ctrl + R to reset
+            if (e.ctrlKey && e.key === 'r') {
+                e.preventDefault();
+                resetCalculator();
+            }
+        });
+
+        // Auto-calculate on input changes
+        document.querySelectorAll('#basic, #workingDays, #presentDays, #varHours, #varRate, #foodAllow, #busDed, #otherEarn').forEach(input => {
+            input.addEventListener('input', () => {
+                calculate();
+            });
         });
     </script>
 </body>
