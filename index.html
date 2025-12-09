@@ -18,7 +18,8 @@
             getAuth, 
             signInWithEmailAndPassword, 
             signOut, 
-            onAuthStateChanged 
+            onAuthStateChanged,
+            createUserWithEmailAndPassword
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { 
             getFirestore, 
@@ -61,6 +62,8 @@
         let adminUsersListener = null;
         let salaryHistoryListener = null;
         let currentTheme = 'light';
+        let currentSalaryData = null;
+        let currentCalculations = null;
 
         // Initialize theme from localStorage
         function initTheme() {
@@ -98,7 +101,7 @@
         // Screen management
         function switchScreen(screenName) {
             // Hide all screens first
-            const screens = ['login-screen', 'app-content', 'loading-screen', 'otp-screen', 'admin-dashboard'];
+            const screens = ['login-screen', 'app-content', 'loading-screen', 'otp-screen', 'admin-dashboard', 'salary-history-modal', 'add-user-modal', 'user-management'];
             screens.forEach(screen => {
                 const element = document.getElementById(screen);
                 if (element) element.classList.add('hidden');
@@ -119,55 +122,63 @@
         async function initAdminDashboard() {
             const pendingUsersList = document.getElementById('pending-users-list');
             const activeUsersList = document.getElementById('active-users-list');
+            const allUsersList = document.getElementById('all-users-list');
             
             // Clear existing listeners
             if (adminUsersListener) {
                 adminUsersListener();
             }
             
-            // Listen for pending users
+            // Listen for all users
             adminUsersListener = onSnapshot(
                 collection(db, 'users'),
                 (snapshot) => {
                     pendingUsersList.innerHTML = '';
                     activeUsersList.innerHTML = '';
+                    allUsersList.innerHTML = '';
+                    
+                    let totalUsers = 0;
+                    let pendingUsers = 0;
+                    let activeUsers = 0;
                     
                     snapshot.docs.forEach(doc => {
                         const userData = doc.data();
                         const listItem = createUserListItem(doc.id, userData);
+                        const allUsersItem = createAllUserListItem(doc.id, userData);
                         
                         if (userData.status === 'pending_otp') {
                             pendingUsersList.appendChild(listItem);
+                            pendingUsers++;
                         } else if (userData.status === 'active') {
                             activeUsersList.appendChild(listItem);
+                            activeUsers++;
                         }
+                        
+                        allUsersList.appendChild(allUsersItem);
+                        totalUsers++;
                     });
+                    
+                    // Update counters
+                    document.getElementById('total-users').textContent = totalUsers;
+                    document.getElementById('pending-count').textContent = pendingUsers;
+                    document.getElementById('active-count').textContent = activeUsers;
+                    document.getElementById('pending-actions').textContent = pendingUsers;
+                    
+                    // Show empty state if no users
+                    if (pendingUsers === 0) {
+                        pendingUsersList.innerHTML = '<li class="text-center text-gray-500 dark:text-gray-400 py-8">No pending approvals</li>';
+                    }
+                    if (activeUsers === 0) {
+                        activeUsersList.innerHTML = '<li class="text-center text-gray-500 dark:text-gray-400 py-8">No active users</li>';
+                    }
+                    if (totalUsers === 0) {
+                        allUsersList.innerHTML = '<li class="text-center text-gray-500 dark:text-gray-400 py-8">No users found</li>';
+                    }
                 }
             );
             
             // Add admin badge
             document.getElementById('admin-badge').classList.remove('hidden');
-            
-            // Load admin stats
-            loadAdminStats();
-        }
-
-        // Load admin statistics
-        async function loadAdminStats() {
-            try {
-                const usersSnapshot = await getDocs(collection(db, 'users'));
-                const totalUsers = usersSnapshot.size;
-                const pendingUsers = usersSnapshot.docs.filter(doc => doc.data().status === 'pending_otp').length;
-                const activeUsers = totalUsers - pendingUsers;
-                
-                document.getElementById('total-users').textContent = totalUsers;
-                document.getElementById('pending-count').textContent = pendingUsers;
-                document.getElementById('active-count').textContent = activeUsers;
-                document.getElementById('pending-actions').textContent = pendingUsers;
-                
-            } catch (error) {
-                console.error('Error loading admin stats:', error);
-            }
         }
 
         // Create user list item for admin
@@ -182,6 +193,7 @@
                         Status: ${userData.status === 'pending_otp' ? 'Pending Approval' : 'Active'}
                     </div>
                     ${userData.monthlySalary ? `<div class="text-sm text-gray-600 dark:text-gray-400">Salary: ₹${userData.monthlySalary}</div>` : ''}
+                    ${userData.employeeName ? `<div class="text-sm text-gray-600 dark:text-gray-400">Name: ${userData.employeeName}</div>` : ''}
                 </div>
                 <div class="flex gap-2 ml-4">
                     ${userData.status === 'pending_otp' ? 
@@ -198,6 +210,47 @@
             return li;
         }
 
+        // Create all users list item
+        function createAllUserListItem(userId, userData) {
+            const li = document.createElement('li');
+            li.className = 'flex justify-between items-center p-3 bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700 mb-2';
+            
+            li.innerHTML = `
+                <div class="flex-1">
+                    <div class="font-semibold text-gray-800 dark:text-gray-200">${userData.email}</div>
+                    <div class="flex items-center gap-3 mt-1">
+                        <span class="text-sm px-2 py-1 rounded ${userData.status === 'active' ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300' : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-300'}">
+                            ${userData.status === 'active' ? 'Active' : 'Pending'}
+                        </span>
+                        ${userData.role === 'admin' ? 
+                            '<span class="text-sm bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-300 px-2 py-1 rounded">Admin</span>' : ''
+                        }
+                    </div>
+                    ${userData.employeeName ? `<div class="text-sm text-gray-600 dark:text-gray-400 mt-1">Name: ${userData.employeeName}</div>` : ''}
+                    <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        Last Login: ${userData.lastLogin ? new Date(userData.lastLogin).toLocaleDateString() : 'Never'}
+                    </div>
+                </div>
+                <div class="flex gap-2 ml-4">
+                    ${userData.status === 'pending_otp' ? 
+                        `<button onclick="approveUser('${userId}')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded transition">
+                            Approve
+                        </button>` : ''
+                    }
+                    <button onclick="deleteUser('${userId}')" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded transition">
+                        Delete
+                    </button>
+                    ${userData.role !== 'admin' ? 
+                        `<button onclick="makeAdmin('${userId}')" class="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded transition">
+                            Make Admin
+                        </button>` : ''
+                    }
+                </div>
+            `;
+            
+            return li;
+        }
+
         // Admin functions (exposed globally)
         window.approveUser = async function(userId) {
             try {
@@ -205,7 +258,6 @@
                     status: 'active',
                     lastUpdated: new Date().toISOString()
                 });
-                console.log('User approved:', userId);
                 
                 // Show success message
                 showNotification('User approved successfully!', 'success');
@@ -215,17 +267,114 @@
             }
         };
 
+        window.makeAdmin = async function(userId) {
+            if (confirm('Are you sure you want to make this user an admin?')) {
+                try {
+                    await updateDoc(doc(db, 'users', userId), {
+                        role: 'admin',
+                        lastUpdated: new Date().toISOString()
+                    });
+                    
+                    showNotification('User promoted to admin successfully!', 'success');
+                } catch (error) {
+                    console.error('Error making user admin:', error);
+                    showNotification('Error making user admin', 'error');
+                }
+            }
+        };
+
         window.deleteUser = async function(userId) {
             if (confirm('Are you sure you want to delete this user?')) {
                 try {
                     await deleteDoc(doc(db, 'users', userId));
-                    console.log('User deleted:', userId);
                     showNotification('User deleted successfully!', 'success');
                 } catch (error) {
                     console.error('Error deleting user:', error);
                     showNotification('Error deleting user', 'error');
                 }
             }
+        };
+
+        // Show add user modal
+        window.showAddUserModal = function() {
+            document.getElementById('add-user-modal').classList.remove('hidden');
+        };
+
+        // Close add user modal
+        window.closeAddUserModal = function() {
+            document.getElementById('add-user-modal').classList.add('hidden');
+            document.getElementById('add-user-form').reset();
+            document.getElementById('add-user-error').classList.add('hidden');
+        };
+
+        // Add new user
+        window.addNewUser = async function(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('new-user-email').value;
+            const password = document.getElementById('new-user-password').value;
+            const name = document.getElementById('new-user-name').value;
+            const salary = document.getElementById('new-user-salary').value;
+            const errorDiv = document.getElementById('add-user-error');
+            
+            // Validate email
+            if (!email || !password || !name) {
+                errorDiv.textContent = 'Please fill all required fields';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+            
+            try {
+                // Show loading
+                const addBtn = document.getElementById('add-user-btn');
+                const originalText = addBtn.innerHTML;
+                addBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Adding...';
+                addBtn.disabled = true;
+                
+                // Create user in Firebase Auth
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const newUser = userCredential.user;
+                
+                // Save user data to Firestore
+                await setDoc(doc(db, 'users', newUser.uid), {
+                    email: email,
+                    employeeName: name,
+                    monthlySalary: salary ? parseFloat(salary) : 0,
+                    status: 'active',
+                    role: 'employee',
+                    createdBy: currentUser.email,
+                    createdAt: new Date().toISOString(),
+                    lastUpdated: new Date().toISOString()
+                });
+                
+                // Reset form and close modal
+                document.getElementById('add-user-form').reset();
+                addBtn.innerHTML = originalText;
+                addBtn.disabled = false;
+                closeAddUserModal();
+                
+                showNotification(`User ${email} added successfully!`, 'success');
+                
+            } catch (error) {
+                console.error('Error adding user:', error);
+                errorDiv.textContent = error.message;
+                errorDiv.classList.remove('hidden');
+                
+                // Reset button
+                const addBtn = document.getElementById('add-user-btn');
+                addBtn.innerHTML = '<i data-lucide="user-plus"></i> Add User';
+                addBtn.disabled = false;
+            }
+        };
+
+        // Show user management
+        window.showUserManagement = function() {
+            switchScreen('user-management');
+        };
+
+        // Back to admin dashboard
+        window.backToAdminDashboard = function() {
+            switchScreen('admin-dashboard');
         };
 
         // Show notification
@@ -267,7 +416,7 @@
             lucide.createIcons();
         }
 
-        // Login function
+        // Login function - Fixed credentials
         window.handleLogin = async function(event) {
             event.preventDefault();
             
@@ -279,46 +428,59 @@
                 // Show loading
                 switchScreen('loading-screen');
                 
-                // Sign in with Firebase Auth
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                currentUser = userCredential.user;
-                
-                // Check if this is the admin
+                // Special handling for admin login
                 if (email === ADMIN_EMAIL) {
-                    currentRole = 'admin';
+                    // Try to sign in with provided password
+                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                    currentUser = userCredential.user;
+                    
+                    // Ensure admin user exists in Firestore
                     await setDoc(doc(db, 'users', currentUser.uid), {
                         email: email,
                         status: 'active',
                         role: 'admin',
-                        lastLogin: new Date().toISOString()
+                        lastLogin: new Date().toISOString(),
+                        employeeName: 'System Administrator'
                     }, { merge: true });
                     
                     // Show admin dashboard
                     switchScreen('admin-dashboard');
-                    document.getElementById('admin-dashboard').classList.remove('hidden');
                     initAdminDashboard();
                     showNotification('Welcome Admin!', 'success');
                     return;
                 }
                 
-                // For regular users, check their status
+                // For other users, try to login
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                currentUser = userCredential.user;
+                
+                // Check user status in Firestore
                 const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
                 
                 if (!userDoc.exists()) {
-                    // First time login - create pending session
+                    // First time login - create active session
                     await setDoc(doc(db, 'users', currentUser.uid), {
                         email: email,
-                        status: 'pending_otp',
-                        lastUpdated: new Date().toISOString()
+                        status: 'active',
+                        role: 'employee',
+                        lastLogin: new Date().toISOString(),
+                        createdAt: new Date().toISOString()
                     });
                     
-                    // Show OTP screen
-                    switchScreen('otp-screen');
+                    // Show app content
+                    switchScreen('app-content');
+                    await loadUserSalaryData();
+                    showNotification('Welcome! Account created successfully.', 'success');
                 } else {
                     const userData = userDoc.data();
                     
                     if (userData.status === 'active') {
-                        // Active user - show app
+                        // Update last login
+                        await updateDoc(doc(db, 'users', currentUser.uid), {
+                            lastLogin: new Date().toISOString()
+                        });
+                        
+                        // Show app content
                         switchScreen('app-content');
                         await loadUserSalaryData();
                         showNotification('Welcome back!', 'success');
@@ -330,6 +492,34 @@
                 
             } catch (error) {
                 console.error('Login error:', error);
+                
+                // Special case: If user doesn't exist, create with default password
+                if (error.code === 'auth/user-not-found') {
+                    try {
+                        // Create new user
+                        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                        currentUser = userCredential.user;
+                        
+                        // Add to Firestore
+                        await setDoc(doc(db, 'users', currentUser.uid), {
+                            email: email,
+                            status: 'active',
+                            role: 'employee',
+                            lastLogin: new Date().toISOString(),
+                            createdAt: new Date().toISOString(),
+                            employeeName: email.split('@')[0] // Use email prefix as name
+                        });
+                        
+                        // Show app content
+                        switchScreen('app-content');
+                        await loadUserSalaryData();
+                        showNotification('New account created successfully!', 'success');
+                        return;
+                    } catch (createError) {
+                        error = createError;
+                    }
+                }
+                
                 loginError.textContent = error.message;
                 loginError.classList.remove('hidden');
                 switchScreen('login-screen');
@@ -354,7 +544,8 @@
                 if (otp === '123456') {
                     await updateDoc(doc(db, 'users', currentUser.uid), {
                         status: 'active',
-                        lastUpdated: new Date().toISOString()
+                        lastUpdated: new Date().toISOString(),
+                        lastLogin: new Date().toISOString()
                     });
                     
                     // Show app content
@@ -381,14 +572,15 @@
                 const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
                 const userData = userDoc.data();
                 
-                // Set user email
+                // Set user email and name
                 document.getElementById('user-email').textContent = userData.email;
+                document.getElementById('user-name').textContent = userData.employeeName || userData.email.split('@')[0];
                 
                 // Load salary history
                 await loadSalaryHistory();
                 
                 // Generate current month salary slip
-                await generateCurrentSalarySlip();
+                await generateCurrentSalarySlip(userData);
                 
             } catch (error) {
                 console.error('Error loading user data:', error);
@@ -396,24 +588,24 @@
         }
 
         // Generate current month salary slip
-        async function generateCurrentSalarySlip() {
+        async function generateCurrentSalarySlip(userData) {
             const salaryData = {
-                employeeName: "John Doe",
-                employeeId: "EMP001",
-                designation: "Software Engineer",
-                department: "Engineering",
-                bankAccount: "XXXXXX1234",
-                panNumber: "ABCDE1234F",
+                employeeName: userData.employeeName || "John Doe",
+                employeeId: userData.employeeId || "EMP001",
+                designation: userData.designation || "Software Engineer",
+                department: userData.department || "Engineering",
+                bankAccount: userData.bankAccount || "XXXXXX1234",
+                panNumber: userData.panNumber || "ABCDE1234F",
                 payPeriod: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
                 paidDays: 31,
                 lossOfPayDays: 0,
                 
-                // Earnings
-                basic: 30000,
-                hra: 12000,
+                // Earnings (use user's monthly salary if available)
+                basic: userData.monthlySalary ? Math.round(userData.monthlySalary * 0.5) : 30000,
+                hra: userData.monthlySalary ? Math.round(userData.monthlySalary * 0.4) : 12000,
                 conveyanceAllowance: 1600,
                 medicalAllowance: 1250,
-                specialAllowance: 15350,
+                specialAllowance: userData.monthlySalary ? Math.round(userData.monthlySalary * 0.1) : 15350,
                 overtime: 2000,
                 bonus: 5000,
                 
@@ -423,8 +615,18 @@
                 loanRecovery: 1000
             };
             
+            // Adjust to match monthly salary if provided
+            if (userData.monthlySalary) {
+                const totalEarnings = salaryData.basic + salaryData.hra + salaryData.conveyanceAllowance + 
+                                    salaryData.medicalAllowance + salaryData.specialAllowance;
+                const difference = userData.monthlySalary - totalEarnings;
+                if (difference > 0) {
+                    salaryData.specialAllowance += difference;
+                }
+            }
+            
             // Store current salary data globally
-            window.currentSalaryData = salaryData;
+            currentSalaryData = salaryData;
             
             // Calculate and display
             updateSalaryDisplay(salaryData);
@@ -432,6 +634,9 @@
 
         // Update salary display
         function updateSalaryDisplay(salaryData) {
+            // Store current data
+            currentSalaryData = salaryData;
+            
             // Calculations
             const totalEarnings = salaryData.basic + salaryData.hra + salaryData.conveyanceAllowance + 
                                 salaryData.medicalAllowance + salaryData.specialAllowance + 
@@ -451,8 +656,14 @@
             
             const netPay = totalEarnings - totalDeductions;
             
-            // Store net pay globally
-            window.currentNetPay = netPay;
+            // Store calculations
+            currentCalculations = {
+                totalEarnings,
+                pf,
+                esi,
+                totalDeductions,
+                netPay
+            };
             
             // Display data
             document.getElementById('employee-name').textContent = salaryData.employeeName;
@@ -486,11 +697,14 @@
             // Net pay
             document.getElementById('net-pay').textContent = `₹${netPay.toLocaleString()}`;
             document.getElementById('net-pay-words').textContent = numberToWords(netPay);
+            
+            // Update WhatsApp message
+            updateWhatsAppMessage(salaryData.payPeriod, netPay);
         }
 
         // Save salary slip to history
         window.saveSalaryToHistory = async function() {
-            if (!window.currentSalaryData || !window.currentNetPay) {
+            if (!currentSalaryData || !currentCalculations) {
                 showNotification('No salary data to save!', 'error');
                 return;
             }
@@ -502,20 +716,18 @@
                 saveBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Saving...';
                 saveBtn.disabled = true;
                 
-                // Get current salary data
-                const salaryData = window.currentSalaryData;
-                const netPay = window.currentNetPay;
-                
                 // Save to history
                 await addDoc(collection(db, `users/${currentUser.uid}/salaryHistory`), {
-                    ...salaryData,
-                    netPay: netPay,
+                    ...currentSalaryData,
+                    netPay: currentCalculations.netPay,
                     createdAt: Timestamp.now(),
-                    monthYear: salaryData.payPeriod,
-                    totalEarnings: calculateTotalEarnings(salaryData),
-                    totalDeductions: calculateTotalDeductions(salaryData),
-                    pf: Math.round(salaryData.basic * 0.12),
-                    esi: calculateESI(salaryData)
+                    monthYear: currentSalaryData.payPeriod,
+                    totalEarnings: currentCalculations.totalEarnings,
+                    totalDeductions: currentCalculations.totalDeductions,
+                    pf: currentCalculations.pf,
+                    esi: currentCalculations.esi,
+                    userId: currentUser.uid,
+                    userEmail: currentUser.email
                 });
                 
                 // Reset button
@@ -541,32 +753,6 @@
                 saveBtn.disabled = false;
             }
         };
-
-        // Calculate total earnings
-        function calculateTotalEarnings(salaryData) {
-            return salaryData.basic + salaryData.hra + salaryData.conveyanceAllowance + 
-                   salaryData.medicalAllowance + salaryData.specialAllowance + 
-                   salaryData.overtime + salaryData.bonus;
-        }
-
-        // Calculate ESI
-        function calculateESI(salaryData) {
-            const totalEarnings = calculateTotalEarnings(salaryData);
-            if (totalEarnings <= 21000) {
-                return Math.round(totalEarnings * 0.0075);
-            }
-            return 0;
-        }
-
-        // Calculate total deductions
-        function calculateTotalDeductions(salaryData) {
-            const totalEarnings = calculateTotalEarnings(salaryData);
-            const pf = Math.round(salaryData.basic * 0.12);
-            const esi = calculateESI(salaryData);
-            
-            return salaryData.professionalTax + salaryData.tds + 
-                   salaryData.loanRecovery + pf + esi;
-        }
 
         // Load salary history
         async function loadSalaryHistory() {
@@ -595,9 +781,9 @@
                     if (snapshot.empty) {
                         historyList.innerHTML = `
                             <div class="text-center py-12">
-                                <i data-lucide="file-text" class="w-16 h-16 text-gray-300 mx-auto"></i>
+                                <i data-lucide="file-text" class="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto"></i>
                                 <p class="mt-4 text-gray-500 dark:text-gray-400">No salary history yet</p>
-                                <p class="text-sm text-gray-400 mt-2">Generate and save your first salary slip!</p>
+                                <p class="text-sm text-gray-400 dark:text-gray-500 mt-2">Generate and save your first salary slip!</p>
                             </div>
                         `;
                         lucide.createIcons();
@@ -631,35 +817,48 @@
         // Create history list item
         function createHistoryListItem(docId, data, index) {
             const div = document.createElement('div');
-            div.className = 'p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition';
+            div.className = 'p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition cursor-pointer group';
+            div.onclick = () => loadHistoryToCalculator(docId);
             
-            const netPay = data.netPay || (calculateTotalEarnings(data) - calculateTotalDeductions(data));
+            const netPay = data.netPay || calculateNetPayFromData(data);
             
             div.innerHTML = `
                 <div class="flex justify-between items-start">
-                    <div>
-                        <h3 class="font-semibold text-gray-800 dark:text-gray-200">${data.payPeriod || 'Salary Slip'}</h3>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2">
+                            <h3 class="font-semibold text-gray-800 dark:text-gray-200 group-hover:text-blue-600 dark:group-hover:text-blue-400">${data.payPeriod || 'Salary Slip'}</h3>
+                            <span class="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 px-2 py-1 rounded">Saved</span>
+                        </div>
                         <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                            Saved on ${data.createdAt?.toDate().toLocaleDateString() || new Date().toLocaleDateString()}
+                            ${data.createdAt?.toDate().toLocaleDateString('en-IN', { 
+                                day: 'numeric', 
+                                month: 'short', 
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            }) || 'No date'}
                         </p>
                         <div class="flex items-center gap-4 mt-2 text-sm">
                             <span class="text-gray-600 dark:text-gray-400">Basic: ₹${data.basic?.toLocaleString() || '0'}</span>
                             <span class="text-gray-600 dark:text-gray-400">HRA: ₹${data.hra?.toLocaleString() || '0'}</span>
                         </div>
                     </div>
-                    <div class="text-right">
+                    <div class="text-right ml-4">
                         <div class="text-xl font-bold text-green-600">₹${netPay.toLocaleString()}</div>
                         <div class="flex gap-2 mt-2">
-                            <button onclick="viewHistoryItem('${docId}')" 
-                                    class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
-                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            <button onclick="event.stopPropagation(); loadHistoryToCalculator('${docId}')" 
+                                    class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                    title="Load into Calculator">
+                                <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
                             </button>
-                            <button onclick="downloadHistoryItem('${docId}', '${data.payPeriod || 'Salary'}')" 
-                                    class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300">
-                                <i data-lucide="download" class="w-4 h-4"></i>
+                            <button onclick="event.stopPropagation(); shareOnWhatsAppFromHistory('${docId}')" 
+                                    class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300"
+                                    title="Share on WhatsApp">
+                                <i data-lucide="message-circle" class="w-4 h-4"></i>
                             </button>
-                            <button onclick="deleteHistoryItem('${docId}')" 
-                                    class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                            <button onclick="event.stopPropagation(); deleteHistoryItem('${docId}')" 
+                                    class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                                    title="Delete">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
                         </div>
@@ -670,6 +869,24 @@
             return div;
         }
 
+        // Calculate net pay from data
+        function calculateNetPayFromData(data) {
+            const totalEarnings = data.basic + data.hra + data.conveyanceAllowance + 
+                                data.medicalAllowance + data.specialAllowance + 
+                                data.overtime + data.bonus;
+            
+            const pf = Math.round(data.basic * 0.12);
+            let esi = 0;
+            if (totalEarnings <= 21000) {
+                esi = Math.round(totalEarnings * 0.0075);
+            }
+            
+            const totalDeductions = data.professionalTax + data.tds + 
+                                  data.loanRecovery + pf + esi;
+            
+            return totalEarnings - totalDeductions;
+        }
+
         // Update history statistics
         function updateHistoryStats(docs) {
             let totalEarnings = 0;
@@ -678,9 +895,13 @@
             
             docs.forEach(doc => {
                 const data = doc.data();
-                totalEarnings += data.totalEarnings || calculateTotalEarnings(data);
-                totalDeductions += data.totalDeductions || calculateTotalDeductions(data);
-                totalNetPay += data.netPay || (calculateTotalEarnings(data) - calculateTotalDeductions(data));
+                const netPay = data.netPay || calculateNetPayFromData(data);
+                const earnings = data.totalEarnings || calculateTotalEarningsFromData(data);
+                const deductions = data.totalDeductions || calculateTotalDeductionsFromData(data);
+                
+                totalEarnings += earnings;
+                totalDeductions += deductions;
+                totalNetPay += netPay;
             });
             
             document.getElementById('history-count').textContent = docs.length;
@@ -689,8 +910,26 @@
             document.getElementById('total-saved-netpay').textContent = `₹${totalNetPay.toLocaleString()}`;
         }
 
-        // View history item
-        window.viewHistoryItem = async function(docId) {
+        function calculateTotalEarningsFromData(data) {
+            return data.basic + data.hra + data.conveyanceAllowance + 
+                   data.medicalAllowance + data.specialAllowance + 
+                   data.overtime + data.bonus;
+        }
+
+        function calculateTotalDeductionsFromData(data) {
+            const totalEarnings = calculateTotalEarningsFromData(data);
+            const pf = Math.round(data.basic * 0.12);
+            let esi = 0;
+            if (totalEarnings <= 21000) {
+                esi = Math.round(totalEarnings * 0.0075);
+            }
+            
+            return data.professionalTax + data.tds + 
+                   data.loanRecovery + pf + esi;
+        }
+
+        // Load history item into calculator
+        window.loadHistoryToCalculator = async function(docId) {
             try {
                 const docRef = doc(db, `users/${currentUser.uid}/salaryHistory`, docId);
                 const docSnap = await getDoc(docRef);
@@ -704,18 +943,12 @@
                     // Scroll to top
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                     
-                    showNotification('Loaded historical salary slip', 'success');
+                    showNotification(`Loaded ${data.payPeriod} salary slip into calculator`, 'success');
                 }
             } catch (error) {
-                console.error('Error viewing history item:', error);
+                console.error('Error loading history item:', error);
                 showNotification('Error loading salary slip', 'error');
             }
-        };
-
-        // Download history item
-        window.downloadHistoryItem = function(docId, fileName) {
-            // In a real implementation, this would generate and download PDF
-            showNotification('Download feature coming soon!', 'info');
         };
 
         // Delete history item
@@ -729,6 +962,57 @@
                     showNotification('Error deleting salary slip', 'error');
                 }
             }
+        };
+
+        // Share on WhatsApp from history
+        window.shareOnWhatsAppFromHistory = async function(docId) {
+            try {
+                const docRef = doc(db, `users/${currentUser.uid}/salaryHistory`, docId);
+                const docSnap = await getDoc(docRef);
+                
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const netPay = data.netPay || calculateNetPayFromData(data);
+                    
+                    const message = `Hello, Please find attached my Salary Slip for ${data.payPeriod || 'this month'}. Net Payable: ₹${netPay.toLocaleString()}.`;
+                    
+                    const encodedMessage = encodeURIComponent(message);
+                    const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+                    
+                    window.open(whatsappUrl, '_blank');
+                    
+                    showNotification('WhatsApp share opened!', 'success');
+                }
+            } catch (error) {
+                console.error('Error sharing via WhatsApp:', error);
+                showNotification('Error sharing on WhatsApp', 'error');
+            }
+        };
+
+        // Update WhatsApp message
+        function updateWhatsAppMessage(payPeriod, netPay) {
+            const message = `Hello, Please find attached my Salary Slip for ${payPeriod}. Net Payable: ₹${netPay.toLocaleString()}.`;
+            document.getElementById('whatsapp-message').value = message;
+        }
+
+        // Share on WhatsApp function
+        window.shareOnWhatsApp = function() {
+            const message = document.getElementById('whatsapp-message').value;
+            const encodedMessage = encodeURIComponent(message);
+            const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+            
+            window.open(whatsappUrl, '_blank');
+            showNotification('Opening WhatsApp...', 'info');
+        };
+
+        // Show salary history modal
+        window.showSalaryHistory = function() {
+            document.getElementById('salary-history-modal').classList.remove('hidden');
+        };
+
+        // Close salary history modal
+        window.closeSalaryHistory = function() {
+            document.getElementById('salary-history-modal').classList.add('hidden');
         };
 
         // Number to words conversion
@@ -829,7 +1113,7 @@
             }
         };
 
-        // Initialize app
+        // Initialize app with pre-filled credentials
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize theme
             initTheme();
@@ -837,38 +1121,34 @@
             // Initialize icons
             lucide.createIcons();
             
+            // Auto-fill demo credentials
+            document.getElementById('login-email').value = ADMIN_EMAIL;
+            document.getElementById('login-password').value = 'Hare Krishna';
+            
             // Setup auth state listener
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     currentUser = user;
                     
                     // Check if admin
-                    if (user.email === ADMIN_EMAIL) {
-                        currentRole = 'admin';
-                        switchScreen('admin-dashboard');
-                        document.getElementById('admin-dashboard').classList.remove('hidden');
-                        initAdminDashboard();
-                        return;
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        
+                        if (userData.role === 'admin') {
+                            currentRole = 'admin';
+                            switchScreen('admin-dashboard');
+                            initAdminDashboard();
+                            showNotification('Welcome back, Admin!', 'success');
+                            return;
+                        }
                     }
                     
-                    // Check user status
-                    try {
-                        const userDoc = await getDoc(doc(db, 'users', user.uid));
-                        
-                        if (userDoc.exists()) {
-                            const userData = userDoc.data();
-                            
-                            if (userData.status === 'active') {
-                                switchScreen('app-content');
-                                await loadUserSalaryData();
-                            } else if (userData.status === 'pending_otp') {
-                                switchScreen('otp-screen');
-                            }
-                        }
-                    } catch (error) {
-                        console.error('Error checking user status:', error);
-                        switchScreen('login-screen');
-                    }
+                    // For regular users
+                    switchScreen('app-content');
+                    await loadUserSalaryData();
+                    showNotification('Welcome back!', 'success');
+                    
                 } else {
                     // No user is signed in
                     currentUser = null;
@@ -1020,8 +1300,10 @@
             </form>
             
             <div class="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-                <p>Demo Admin: shivshreek@gmail.com (any password)</p>
-                <p class="mt-2">Demo OTP: 123456</p>
+                <p class="font-semibold">Demo Credentials:</p>
+                <p>Admin: shivshreek@gmail.com</p>
+                <p>Password: Hare Krishna</p>
+                <p class="mt-4 text-xs text-gray-500">Note: Admin can add new users via User Management</p>
             </div>
         </div>
     </div>
@@ -1072,7 +1354,10 @@
                 <div class="flex justify-between items-center">
                     <div class="flex items-center space-x-3">
                         <i data-lucide="dollar-sign" class="w-8 h-8 text-blue-600 dark:text-blue-400"></i>
-                        <h1 class="text-xl font-bold text-gray-800 dark:text-white">Salary Slip Portal</h1>
+                        <div>
+                            <h1 class="text-xl font-bold text-gray-800 dark:text-white">Salary Slip Portal</h1>
+                            <p class="text-sm text-gray-600 dark:text-gray-400" id="user-name">Welcome</p>
+                        </div>
                         <span id="admin-badge" class="hidden bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-300 text-xs font-semibold px-2.5 py-0.5 rounded">
                             Admin
                         </span>
@@ -1083,6 +1368,11 @@
                                 class="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white transition">
                             <i data-lucide="moon" id="theme-toggle-icon" class="w-5 h-5"></i>
                             <span id="theme-toggle-text">Dark Mode</span>
+                        </button>
+                        <button onclick="showSalaryHistory()"
+                                class="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white transition">
+                            <i data-lucide="history" class="w-5 h-5"></i>
+                            <span>History</span>
                         </button>
                         <span id="user-email" class="text-gray-600 dark:text-gray-400"></span>
                         <button onclick="handleLogout()" 
@@ -1097,194 +1387,156 @@
 
         <!-- Main Content -->
         <main class="container mx-auto px-4 py-8">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Left Column: Salary History -->
-                <div class="lg:col-span-1">
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 sticky top-8">
-                        <div class="flex items-center justify-between mb-6">
-                            <div>
-                                <h2 class="text-xl font-bold text-gray-800 dark:text-white">Salary History</h2>
-                                <p class="text-gray-600 dark:text-gray-400">Your saved salary slips</p>
-                            </div>
-                            <div class="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 text-sm font-semibold px-3 py-1 rounded-full">
-                                <span id="history-count">0</span> Saved
-                            </div>
+            <!-- Salary Slip Card -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+                <!-- Header -->
+                <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h1 class="text-2xl font-bold">SALARY SLIP</h1>
+                            <p class="text-blue-100 mt-1" id="pay-period">January 2024</p>
                         </div>
-                        
-                        <!-- History Stats -->
-                        <div class="grid grid-cols-3 gap-3 mb-6">
-                            <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg text-center">
-                                <div class="text-sm text-gray-600 dark:text-gray-400">Total Earnings</div>
-                                <div class="font-bold text-green-600 dark:text-green-400" id="total-saved-earnings">₹0</div>
-                            </div>
-                            <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg text-center">
-                                <div class="text-sm text-gray-600 dark:text-gray-400">Total Deductions</div>
-                                <div class="font-bold text-red-600 dark:text-red-400" id="total-saved-deductions">₹0</div>
-                            </div>
-                            <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg text-center">
-                                <div class="text-sm text-gray-600 dark:text-gray-400">Net Pay</div>
-                                <div class="font-bold text-blue-600 dark:text-blue-400" id="total-saved-netpay">₹0</div>
-                            </div>
-                        </div>
-                        
-                        <!-- History List -->
-                        <div class="space-y-4 max-h-[500px] overflow-y-auto scrollbar-hide" id="salary-history-list">
-                            <!-- Salary history will be loaded here dynamically -->
-                            <div class="text-center py-8">
-                                <i data-lucide="file-text" class="w-12 h-12 text-gray-300 mx-auto"></i>
-                                <p class="mt-4 text-gray-500">No salary history yet</p>
-                            </div>
+                        <div class="flex gap-2">
+                            <button id="save-salary-btn" onclick="saveSalaryToHistory()"
+                                    class="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition no-print">
+                                <i data-lucide="save" class="w-4 h-4"></i>
+                                <span>Save Slip</span>
+                            </button>
+                            <button onclick="shareOnWhatsApp()"
+                                    class="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition no-print">
+                                <i data-lucide="message-circle" class="w-4 h-4"></i>
+                                <span>WhatsApp</span>
+                            </button>
+                            <button onclick="printSalarySlip()"
+                                    class="flex items-center space-x-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition no-print">
+                                <i data-lucide="printer" class="w-4 h-4"></i>
+                                <span>Print</span>
+                            </button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Right Column: Current Salary Slip -->
-                <div class="lg:col-span-2">
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
-                        <!-- Header -->
-                        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <h1 class="text-2xl font-bold">SALARY SLIP</h1>
-                                    <p class="text-blue-100 mt-1" id="pay-period">January 2024</p>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button id="save-salary-btn" onclick="saveSalaryToHistory()"
-                                            class="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition no-print">
-                                        <i data-lucide="save" class="w-4 h-4"></i>
-                                        <span>Save Slip</span>
-                                    </button>
-                                    <button onclick="printSalarySlip()"
-                                            class="flex items-center space-x-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition no-print">
-                                        <i data-lucide="printer" class="w-4 h-4"></i>
-                                        <span>Print</span>
-                                    </button>
-                                </div>
-                            </div>
+                <!-- Employee Details -->
+                <div class="p-6 border-b dark:border-gray-700">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Employee Name</p>
+                            <p class="font-semibold text-gray-800 dark:text-white" id="employee-name">John Doe</p>
                         </div>
-
-                        <!-- Employee Details -->
-                        <div class="p-6 border-b dark:border-gray-700">
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                <div>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">Employee Name</p>
-                                    <p class="font-semibold text-gray-800 dark:text-white" id="employee-name">John Doe</p>
-                                </div>
-                                <div>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">Designation</p>
-                                    <p class="font-semibold text-gray-800 dark:text-white" id="designation">Software Engineer</p>
-                                </div>
-                                <div>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">Department</p>
-                                    <p class="font-semibold text-gray-800 dark:text-white" id="department">Engineering</p>
-                                </div>
-                                <div>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">Bank Account</p>
-                                    <p class="font-semibold text-gray-800 dark:text-white" id="bank-account">XXXXXX1234</p>
-                                </div>
-                            </div>
-                            
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                                <div>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">Paid Days</p>
-                                    <p class="font-semibold text-gray-800 dark:text-white" id="paid-days">31</p>
-                                </div>
-                                <div>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">Loss of Pay Days</p>
-                                    <p class="font-semibold text-gray-800 dark:text-white" id="lop-days">0</p>
-                                </div>
-                                <div>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">PAN Number</p>
-                                    <p class="font-semibold text-gray-800 dark:text-white" id="pan-number">ABCDE1234F</p>
-                                </div>
-                            </div>
+                        <div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Designation</p>
+                            <p class="font-semibold text-gray-800 dark:text-white" id="designation">Software Engineer</p>
                         </div>
-
-                        <!-- Salary Details Table -->
-                        <div class="overflow-x-auto">
-                            <table class="salary-table">
-                                <thead>
-                                    <tr>
-                                        <th colspan="2" class="text-center bg-blue-50 dark:bg-gray-700">EARNINGS</th>
-                                        <th colspan="2" class="text-center bg-blue-50 dark:bg-gray-700">DEDUCTIONS</th>
-                                    </tr>
-                                    <tr>
-                                        <th class="dark:text-gray-200">Particulars</th>
-                                        <th class="dark:text-gray-200">Amount (₹)</th>
-                                        <th class="dark:text-gray-200">Particulars</th>
-                                        <th class="dark:text-gray-200">Amount (₹)</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="dark:text-gray-300">
-                                    <tr>
-                                        <td>Basic</td>
-                                        <td id="basic-amount">30,000</td>
-                                        <td>Provident Fund</td>
-                                        <td id="pf-amount">3,600</td>
-                                    </tr>
-                                    <tr>
-                                        <td>House Rent Allowance</td>
-                                        <td id="hra-amount">12,000</td>
-                                        <td>ESI</td>
-                                        <td id="esi-amount">0</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Conveyance Allowance</td>
-                                        <td id="conveyance-amount">1,600</td>
-                                        <td>Professional Tax</td>
-                                        <td id="pt-amount">200</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Medical Allowance</td>
-                                        <td id="medical-amount">1,250</td>
-                                        <td>TDS</td>
-                                        <td id="tds-amount">1,500</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Special Allowance</td>
-                                        <td id="special-amount">15,350</td>
-                                        <td>Loan Recovery</td>
-                                        <td id="loan-amount">1,000</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Overtime</td>
-                                        <td id="overtime-amount">2,000</td>
-                                        <td></td>
-                                        <td></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Bonus</td>
-                                        <td id="bonus-amount">5,000</td>
-                                        <td></td>
-                                        <td></td>
-                                    </tr>
-                                    <tr class="font-semibold bg-gray-50 dark:bg-gray-700">
-                                        <td class="dark:text-white">Total Earnings</td>
-                                        <td class="dark:text-white" id="total-earnings">66,200</td>
-                                        <td class="dark:text-white">Total Deductions</td>
-                                        <td class="dark:text-white" id="total-deductions">6,300</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Department</p>
+                            <p class="font-semibold text-gray-800 dark:text-white" id="department">Engineering</p>
                         </div>
+                        <div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Bank Account</p>
+                            <p class="font-semibold text-gray-800 dark:text-white" id="bank-account">XXXXXX1234</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                        <div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Paid Days</p>
+                            <p class="font-semibold text-gray-800 dark:text-white" id="paid-days">31</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Loss of Pay Days</p>
+                            <p class="font-semibold text-gray-800 dark:text-white" id="lop-days">0</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">PAN Number</p>
+                            <p class="font-semibold text-gray-800 dark:text-white" id="pan-number">ABCDE1234F</p>
+                        </div>
+                    </div>
+                </div>
 
-                        <!-- Net Pay Section -->
-                        <div class="p-6 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-gray-700 dark:to-gray-800">
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">NET PAYABLE</p>
-                                    <p class="text-3xl font-bold text-green-700 dark:text-green-400" id="net-pay">₹59,900</p>
-                                    <p class="text-gray-600 dark:text-gray-400 italic mt-1" id="net-pay-words">
-                                        Fifty Nine Thousand Nine Hundred Rupees Only
-                                    </p>
-                                </div>
-                                <div class="text-right space-x-2 no-print">
-                                    <button onclick="saveSalaryToHistory()" 
-                                            class="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white px-6 py-3 rounded-lg font-semibold transition flex items-center space-x-2">
-                                        <i data-lucide="save" class="w-5 h-5"></i>
-                                        <span>Save to History</span>
-                                    </button>
-                                </div>
+                <!-- Salary Details Table -->
+                <div class="overflow-x-auto">
+                    <table class="salary-table">
+                        <thead>
+                            <tr>
+                                <th colspan="2" class="text-center bg-blue-50 dark:bg-gray-700">EARNINGS</th>
+                                <th colspan="2" class="text-center bg-blue-50 dark:bg-gray-700">DEDUCTIONS</th>
+                            </tr>
+                            <tr>
+                                <th class="dark:text-gray-200">Particulars</th>
+                                <th class="dark:text-gray-200">Amount (₹)</th>
+                                <th class="dark:text-gray-200">Particulars</th>
+                                <th class="dark:text-gray-200">Amount (₹)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="dark:text-gray-300">
+                            <tr>
+                                <td>Basic</td>
+                                <td id="basic-amount">30,000</td>
+                                <td>Provident Fund</td>
+                                <td id="pf-amount">3,600</td>
+                            </tr>
+                            <tr>
+                                <td>House Rent Allowance</td>
+                                <td id="hra-amount">12,000</td>
+                                <td>ESI</td>
+                                <td id="esi-amount">0</td>
+                            </tr>
+                            <tr>
+                                <td>Conveyance Allowance</td>
+                                <td id="conveyance-amount">1,600</td>
+                                <td>Professional Tax</td>
+                                <td id="pt-amount">200</td>
+                            </tr>
+                            <tr>
+                                <td>Medical Allowance</td>
+                                <td id="medical-amount">1,250</td>
+                                <td>TDS</td>
+                                <td id="tds-amount">1,500</td>
+                            </tr>
+                            <tr>
+                                <td>Special Allowance</td>
+                                <td id="special-amount">15,350</td>
+                                <td>Loan Recovery</td>
+                                <td id="loan-amount">1,000</td>
+                            </tr>
+                            <tr>
+                                <td>Overtime</td>
+                                <td id="overtime-amount">2,000</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Bonus</td>
+                                <td id="bonus-amount">5,000</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr class="font-semibold bg-gray-50 dark:bg-gray-700">
+                                <td class="dark:text-white">Total Earnings</td>
+                                <td class="dark:text-white" id="total-earnings">66,200</td>
+                                <td class="dark:text-white">Total Deductions</td>
+                                <td class="dark:text-white" id="total-deductions">6,300</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Net Pay Section -->
+                <div class="p-6 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-gray-700 dark:to-gray-800">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">NET PAYABLE</p>
+                            <p class="text-3xl font-bold text-green-700 dark:text-green-400" id="net-pay">₹59,900</p>
+                            <p class="text-gray-600 dark:text-gray-400 italic mt-1" id="net-pay-words">
+                                Fifty Nine Thousand Nine Hundred Rupees Only
+                            </p>
+                        </div>
+                        <div class="text-right space-x-2 no-print">
+                            <!-- WhatsApp Message Input -->
+                            <div class="mb-3">
+                                <textarea id="whatsapp-message" rows="2" 
+                                          class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-sm"
+                                          placeholder="WhatsApp message will auto-generate..."></textarea>
                             </div>
                         </div>
                     </div>
@@ -1301,18 +1553,25 @@
                 <div class="flex justify-between items-center">
                     <div class="flex items-center space-x-3">
                         <i data-lucide="shield-check" class="w-8 h-8 text-purple-600 dark:text-purple-400"></i>
-                        <h1 class="text-xl font-bold text-gray-800 dark:text-white">Admin Dashboard</h1>
+                        <div>
+                            <h1 class="text-xl font-bold text-gray-800 dark:text-white">Admin Dashboard</h1>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Logged in as: shivshreek@gmail.com</p>
+                        </div>
                     </div>
                     
                     <div class="flex items-center space-x-4">
                         <button onclick="toggleTheme()" 
                                 class="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white transition">
-                            <i data-lucide="moon" id="admin-theme-toggle" class="w-5 h-5"></i>
+                            <i data-lucide="moon" class="w-5 h-5"></i>
                             <span>Dark Mode</span>
                         </button>
-                        <span class="text-gray-600 dark:text-gray-400">Logged in as: <span class="font-semibold">shivshreek@gmail.com</span></span>
+                        <button onclick="showUserManagement()"
+                                class="flex items-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition">
+                            <i data-lucide="users" class="w-4 h-4"></i>
+                            <span>User Management</span>
+                        </button>
                         <button onclick="handleLogout()" 
-                                class="flex items-center space-x-2 bg-red-50 dark:bg-red-900/50 text-red-600 dark:text-red-400 px-4 py-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900 transition">
+                                class="flex items-center space-x-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition">
                             <i data-lucide="log-out" class="w-4 h-4"></i>
                             <span>Logout</span>
                         </button>
@@ -1323,50 +1582,8 @@
 
         <!-- Admin Content -->
         <main class="container mx-auto px-4 py-8">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Pending Approvals -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <div>
-                            <h2 class="text-xl font-bold text-gray-800 dark:text-white">Pending Approvals</h2>
-                            <p class="text-gray-600 dark:text-gray-400">Users waiting for OTP verification</p>
-                        </div>
-                        <div class="bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-300 text-sm font-semibold px-3 py-1 rounded-full">
-                            <span id="pending-count">0</span> Pending
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-4 max-h-96 overflow-y-auto scrollbar-hide">
-                        <ul id="pending-users-list" class="space-y-3">
-                            <!-- Users will be loaded here dynamically -->
-                            <li class="text-center text-gray-500 dark:text-gray-400 py-8">No pending approvals</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Active Users -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <div>
-                            <h2 class="text-xl font-bold text-gray-800 dark:text-white">Active Users</h2>
-                            <p class="text-gray-600 dark:text-gray-400">Users with access to the portal</p>
-                        </div>
-                        <div class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 text-sm font-semibold px-3 py-1 rounded-full">
-                            <span id="active-count">0</span> Active
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-4 max-h-96 overflow-y-auto scrollbar-hide">
-                        <ul id="active-users-list" class="space-y-3">
-                            <!-- Users will be loaded here dynamically -->
-                            <li class="text-center text-gray-500 dark:text-gray-400 py-8">No active users</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
             <!-- Quick Stats -->
-            <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
                     <div class="flex items-center justify-between">
                         <div>
@@ -1382,7 +1599,7 @@
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Pending Actions</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Pending Approvals</p>
                             <p class="text-2xl font-bold text-gray-800 dark:text-white" id="pending-actions">0</p>
                         </div>
                         <div class="bg-yellow-100 dark:bg-yellow-900 p-3 rounded-lg">
@@ -1403,7 +1620,200 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Pending Approvals -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-white">Pending Approvals</h2>
+                        <p class="text-gray-600 dark:text-gray-400">Users waiting for OTP verification</p>
+                    </div>
+                    <div class="bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-300 text-sm font-semibold px-3 py-1 rounded-full">
+                        <span id="pending-count">0</span> Pending
+                    </div>
+                </div>
+                
+                <div class="space-y-4 max-h-96 overflow-y-auto scrollbar-hide">
+                    <ul id="pending-users-list" class="space-y-3">
+                        <!-- Users will be loaded here dynamically -->
+                        <li class="text-center text-gray-500 dark:text-gray-400 py-8">No pending approvals</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Active Users -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-white">Active Users</h2>
+                        <p class="text-gray-600 dark:text-gray-400">Users with access to the portal</p>
+                    </div>
+                    <div class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 text-sm font-semibold px-3 py-1 rounded-full">
+                        <span id="active-count">0</span> Active
+                    </div>
+                </div>
+                
+                <div class="space-y-4 max-h-96 overflow-y-auto scrollbar-hide">
+                    <ul id="active-users-list" class="space-y-3">
+                        <!-- Users will be loaded here dynamically -->
+                        <li class="text-center text-gray-500 dark:text-gray-400 py-8">No active users</li>
+                    </ul>
+                </div>
+            </div>
         </main>
+    </div>
+
+    <!-- User Management Screen -->
+    <div id="user-management" class="hidden min-h-screen bg-gray-50 dark:bg-gray-900">
+        <!-- Header -->
+        <header class="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700">
+            <div class="container mx-auto px-4 py-4">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-3">
+                        <button onclick="backToAdminDashboard()"
+                                class="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white transition">
+                            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                            <span>Back</span>
+                        </button>
+                        <div>
+                            <h1 class="text-xl font-bold text-gray-800 dark:text-white">User Management</h1>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Add, edit, and manage system users</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <button onclick="showAddUserModal()"
+                                class="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition">
+                            <i data-lucide="user-plus" class="w-4 h-4"></i>
+                            <span>Add User</span>
+                        </button>
+                        <button onclick="handleLogout()" 
+                                class="flex items-center space-x-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition">
+                            <i data-lucide="log-out" class="w-4 h-4"></i>
+                            <span>Logout</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- User Management Content -->
+        <main class="container mx-auto px-4 py-8">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-6">All Users</h2>
+                
+                <div class="overflow-x-auto">
+                    <ul id="all-users-list" class="space-y-3">
+                        <!-- All users will be loaded here dynamically -->
+                        <li class="text-center text-gray-500 dark:text-gray-400 py-8">No users found</li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Salary History Modal -->
+    <div id="salary-history-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <div class="p-6 border-b dark:border-gray-700">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-white">Salary History</h2>
+                    <button onclick="closeSalaryHistory()" 
+                            class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+                <!-- History Stats -->
+                <div class="grid grid-cols-3 gap-4 mb-6">
+                    <div class="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg text-center">
+                        <div class="text-sm text-gray-600 dark:text-gray-400">Total Saved</div>
+                        <div class="text-2xl font-bold text-blue-600 dark:text-blue-400" id="history-count">0</div>
+                    </div>
+                    <div class="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg text-center">
+                        <div class="text-sm text-gray-600 dark:text-gray-400">Total Earnings</div>
+                        <div class="text-2xl font-bold text-green-600 dark:text-green-400" id="total-saved-earnings">₹0</div>
+                    </div>
+                    <div class="bg-purple-50 dark:bg-purple-900/30 p-4 rounded-lg text-center">
+                        <div class="text-sm text-gray-600 dark:text-gray-400">Net Pay</div>
+                        <div class="text-2xl font-bold text-purple-600 dark:text-purple-400" id="total-saved-netpay">₹0</div>
+                    </div>
+                </div>
+                
+                <!-- History List -->
+                <div class="space-y-4" id="salary-history-list">
+                    <!-- Salary history will be loaded here dynamically -->
+                    <div class="text-center py-12">
+                        <i data-lucide="file-text" class="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto"></i>
+                        <p class="mt-4 text-gray-500 dark:text-gray-400">No salary history yet</p>
+                        <p class="text-sm text-gray-400 dark:text-gray-500 mt-2">Generate and save your first salary slip!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div id="add-user-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md">
+            <div class="p-6 border-b dark:border-gray-700">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-white">Add New User</h2>
+                    <button onclick="closeAddUserModal()" 
+                            class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <form id="add-user-form" onsubmit="addNewUser(event)" class="p-6">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email Address *</label>
+                        <input id="new-user-email" type="email" required 
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                               placeholder="user@example.com">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password *</label>
+                        <input id="new-user-password" type="password" required 
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                               placeholder="Enter password">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Full Name *</label>
+                        <input id="new-user-name" type="text" required 
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                               placeholder="John Doe">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Monthly Salary (Optional)</label>
+                        <input id="new-user-salary" type="number" 
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                               placeholder="50000">
+                    </div>
+                    
+                    <div id="add-user-error" class="bg-red-50 dark:bg-red-900/50 text-red-600 dark:text-red-400 p-3 rounded-lg hidden"></div>
+                    
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" onclick="closeAddUserModal()"
+                                class="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white px-4 py-3 rounded-lg font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+                            Cancel
+                        </button>
+                        <button id="add-user-btn" type="submit"
+                                class="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-lg font-semibold transition flex items-center justify-center space-x-2">
+                            <i data-lucide="user-plus" class="w-4 h-4"></i>
+                            <span>Add User</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 
     <script>
