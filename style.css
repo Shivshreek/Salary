@@ -1,0 +1,32 @@
+/* style.css */
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eef2f5; margin: 0; padding: 0; }
+.container { max-width: 900px; margin: 40px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+h2, h3 { text-align: center; color: #2c3e50; }
+.hidden { display: none; }
+
+/* Inputs & Buttons */
+input, select { padding: 12px; margin: 8px 0; width: 95%; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
+button { padding: 12px; margin-top: 15px; width: 100%; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; transition: 0.3s; }
+button:hover { opacity: 0.9; }
+
+.btn-login { background: #28a745; } /* Green */
+.btn-approve { background: #007bff; width: auto; padding: 5px 15px; font-size: 12px; } /* Blue */
+.btn-danger { background: #dc3545; width: auto; } /* Red */
+.btn-secondary { background: #6c757d; } /* Grey */
+
+/* Admin Approval List */
+.approval-item { 
+    background: #fff3cd; border: 1px solid #ffeeba; 
+    padding: 10px; margin-bottom: 10px; border-radius: 5px;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.otp-display { font-weight: bold; color: #856404; margin-right: 10px; }
+
+/* Payslip Specific */
+.split-view { display: flex; gap: 20px; flex-wrap: wrap; }
+.form-section { flex: 1; min-width: 300px; background: #f8f9fa; padding: 20px; border-radius: 8px; }
+.preview-section { flex: 1.5; min-width: 350px; background: white; border: 1px solid #ddd; padding: 10px; }
+
+/* Waiting Animation */
+.loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 20px; height: 20px; animation: spin 2s linear infinite; display:inline-block; vertical-align:middle; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
