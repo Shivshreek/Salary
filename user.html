@@ -218,6 +218,87 @@
             background: white;
         }
 
+        /* Toggle Switch for 12% Basic */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #e9ecef;
+        }
+
+        .toggle-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: #27ae60;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(30px);
+        }
+
+        .toggle-status {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+
+        .toggle-status.on {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .toggle-status.off {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
         /* Calculation Box */
         .calc-box {
             background: linear-gradient(135deg, #e8f4fc, #f0f8ff);
@@ -227,6 +308,22 @@
             text-align: right;
             font-size: 13px;
             margin-top: 10px;
+        }
+
+        /* PF Calculation Info */
+        .pf-info-box {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid #f39c12;
+            font-size: 12px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .pf-info-box.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
         }
 
         /* --- PAYSLIP DESIGN (EXACT REPLICA) --- */
@@ -546,6 +643,32 @@
                 </p>
             </div>
 
+            <!-- 12% Basic Toggle -->
+            <div class="section-box" style="border-left-color: #e74c3c;">
+                <h3><i class="fas fa-percentage"></i> PF Calculation Settings</h3>
+                <div class="toggle-container">
+                    <div>
+                        <div class="toggle-label">Consider 12% of Basic for PF</div>
+                        <div id="pfCalcInfo" class="pf-info-box">
+                            <strong><i class="fas fa-calculator"></i> Calculation:</strong><br>
+                            PF = 12% of Basic (Structure)<br>
+                            Current Basic: <span id="currentBasic">23,541</span><br>
+                            12% PF Amount: <span id="calculatedPF">2,824.92</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <span id="toggleStatus" class="toggle-status off">OFF</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="pf12Toggle" onchange="togglePFCalculation()">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <p style="font-size: 12px; color: #7f8c8d; margin-top: 10px;">
+                    <i class="fas fa-info-circle"></i> When ON, PF will be calculated as 12% of Basic Salary (Structure)
+                </p>
+            </div>
+
             <!-- Employee Details -->
             <div class="section-box" style="border-left-color: #3498db;">
                 <h3><i class="fas fa-user-tie"></i> Employee Details</h3>
@@ -741,8 +864,7 @@
 
 <script>
     // --- CONSTANTS AND VARIABLES ---
-    const ADMIN_EMAIL = "shivshreek@gmail.com";
-    const ADMIN_PASSWORD = "Shiv@2004.";
+    let isPF12Enabled = false;
 
     // --- AUTHENTICATION CHECK ---
     document.addEventListener('DOMContentLoaded', function() {
@@ -768,6 +890,27 @@
             updatePayslip();
         }
     });
+
+    // --- TOGGLE PF CALCULATION ---
+    function togglePFCalculation() {
+        const toggle = document.getElementById('pf12Toggle');
+        const status = document.getElementById('toggleStatus');
+        const pfInfoBox = document.getElementById('pfCalcInfo');
+        
+        isPF12Enabled = toggle.checked;
+        
+        if (isPF12Enabled) {
+            status.textContent = "ON";
+            status.className = "toggle-status on";
+            pfInfoBox.classList.add('active');
+        } else {
+            status.textContent = "OFF";
+            status.className = "toggle-status off";
+            pfInfoBox.classList.remove('active');
+        }
+        
+        updatePayslip();
+    }
 
     // --- NUMBER FORMATTING HELPER ---
     function formatIndianCurrency(num, decimals = 2) {
@@ -828,10 +971,21 @@
         const basicPayable = parseFloat(document.getElementById('i-bp').value) || 0;
         const foodAllowance = parseFloat(document.getElementById('i-food').value) || 0;
         
-        // Deductions Calculation
-        const pfDeduction = parseFloat(document.getElementById('i-pf').value) || 0;
+        // Deductions Calculation with 12% PF Logic
+        let pfDeduction = parseFloat(document.getElementById('i-pf').value) || 0;
         const esiDeduction = parseFloat(document.getElementById('i-esi').value) || 0;
         const busFee = parseFloat(document.getElementById('i-bus').value) || 0;
+        
+        // Update PF info box
+        document.getElementById('currentBasic').textContent = formatIndianCurrency(basicStruct, 0);
+        const calculatedPF = basicStruct * 0.12;
+        document.getElementById('calculatedPF').textContent = formatIndianCurrency(calculatedPF);
+        
+        // Apply 12% PF calculation if toggle is ON
+        if (isPF12Enabled) {
+            pfDeduction = calculatedPF;
+            document.getElementById('i-pf').value = calculatedPF.toFixed(2);
+        }
         
         // Totals Calculation
         const totalEarnings = basicPayable + mvValue + foodAllowance;
@@ -851,6 +1005,11 @@
         document.getElementById('p-tot-earn').textContent = formatIndianCurrency(totalEarnings);
         document.getElementById('p-tot-ded').textContent = formatIndianCurrency(totalDeductions);
         document.getElementById('p-net').textContent = formatIndianCurrency(netPayable);
+        
+        // Show notification if PF was auto-calculated
+        if (isPF12Enabled) {
+            showMessage(`PF auto-calculated as 12% of Basic: ${formatIndianCurrency(pfDeduction)}`, 'success');
+        }
     }
 
     // --- DOWNLOAD FUNCTION ---
@@ -873,7 +1032,8 @@
             const link = document.createElement('a');
             const employeeName = document.getElementById('i-name').value || 'Employee';
             const month = document.getElementById('i-month').value || 'Month';
-            const fileName = `Payslip_${employeeName.replace(/\s+/g, '_')}_${month.replace(/\s+/g, '_')}.png`;
+            const pfMode = isPF12Enabled ? '_12PF' : '';
+            const fileName = `Payslip_${employeeName.replace(/\s+/g, '_')}_${month.replace(/\s+/g, '_')}${pfMode}.png`;
             
             link.download = fileName;
             link.href = canvas.toDataURL("image/png", 1.0);
@@ -944,6 +1104,12 @@
         if (event.ctrlKey && event.key === 'd') {
             event.preventDefault();
             downloadPayslip();
+        }
+        
+        // Ctrl+P to toggle PF calculation
+        if (event.ctrlKey && event.key === 'p') {
+            event.preventDefault();
+            document.getElementById('pf12Toggle').click();
         }
     });
 </script>
