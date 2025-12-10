@@ -451,7 +451,7 @@
             width: 100%;
         }
 
-        /* U-MAN WATERMARK - HORIZONTAL POSITION */
+        /* DYNAMIC WATERMARK */
         .watermark {
             position: absolute;
             top: 50%;
@@ -459,13 +459,23 @@
             transform: translate(-50%, -50%);
             font-size: 140px;
             font-weight: 900;
-            color: #d8d6e0; /* SOLID COLOR - NO OPACITY */
             z-index: 0;
             pointer-events: none;
             letter-spacing: 20px;
             white-space: nowrap;
             text-transform: uppercase;
             font-family: Arial, Helvetica, sans-serif;
+        }
+
+        /* U-MAN Watermark Style (Default) */
+        .watermark.udamandi {
+            color: #d8d6e0; /* Light purple for Udamandi */
+        }
+
+        /* GSPL Watermark Style (Maroon for Gautam Solar) */
+        .watermark.gautam {
+            color: #800000; /* MAROON COLOR for GSPL */
+            letter-spacing: 25px; /* More spacing for GSPL */
         }
 
         /* Watermark Text Effect */
@@ -616,6 +626,10 @@
                 letter-spacing: 15px;
             }
             
+            .watermark.gautam {
+                letter-spacing: 18px;
+            }
+            
             .company-selector {
                 flex-direction: column;
             }
@@ -646,6 +660,10 @@
             .watermark {
                 font-size: 70px;
                 letter-spacing: 10px;
+            }
+            
+            .watermark.gautam {
+                letter-spacing: 12px;
             }
             
             .company-name-header {
@@ -741,22 +759,25 @@
                     <div class="company-option" onclick="selectCompany('udamandi')">
                         <i class="fas fa-industry"></i>
                         <div class="company-name-select">Udamandi Services Private Limited</div>
-                        <div class="company-hint">Click to select</div>
+                        <div class="company-hint">Watermark: U-MAN (Light Purple)</div>
                     </div>
                     <div class="company-option" onclick="selectCompany('gautam')">
                         <i class="fas fa-solar-panel"></i>
                         <div class="company-name-select">Gautam Solar Private Limited</div>
-                        <div class="company-hint">Click to select</div>
+                        <div class="company-hint">Watermark: GSPL (Maroon Color)</div>
                     </div>
                 </div>
                 
                 <div id="companyPreview" class="company-preview" style="display: none;">
                     <div class="company-preview-name" id="previewName"></div>
                     <div class="company-preview-address" id="previewAddress"></div>
+                    <div style="margin-top: 8px; font-size: 12px; color: #3498db;">
+                        <i class="fas fa-water"></i> Watermark: <strong id="previewWatermark"></strong>
+                    </div>
                 </div>
                 
                 <p style="font-size: 12px; color: #7f8c8d; margin-top: 10px;">
-                    <i class="fas fa-info-circle"></i> Selected company will appear as header on payslip
+                    <i class="fas fa-info-circle"></i> Watermark changes automatically based on selected company
                 </p>
             </div>
 
@@ -901,8 +922,8 @@
         <!-- Right Panel: Preview -->
         <div class="preview-panel">
             <div id="payslip-paper">
-                <!-- HORIZONTAL U-MAN WATERMARK -->
-                <div class="watermark">U-MAN</div>
+                <!-- DYNAMIC WATERMARK - Changes based on company -->
+                <div class="watermark udamandi" id="dynamicWatermark">U-MAN</div>
 
                 <!-- EXACT COMPANY HEADER - Top Section -->
                 <div class="company-header" id="comp-header-box">
@@ -989,15 +1010,23 @@
     let isPF12Enabled = false;
     let selectedCompany = null;
 
-    // Company Data
+    // Company Data with Watermark Info
     const companyData = {
         'udamandi': {
             name: 'UDAMANDI SERVICES PRIVATE LIMITED',
-            address: 'Unit 317 Road/Street: Bye-Pass Road, Mathura Road Faridabad, Sector 37, Faridabad, Haryana, PIN Code: 121003'
+            address: 'Unit 317 Road/Street: Bye-Pass Road, Mathura Road Faridabad, Sector 37, Faridabad, Haryana, PIN Code: 121003',
+            watermark: {
+                text: 'U-MAN',
+                colorClass: 'udamandi'
+            }
         },
         'gautam': {
             name: 'GAUTAM SOLAR PRIVATE LIMITED',
-            address: '7 KM Milestone, Tosham Road, Bhiwani, Haryana, INDIA'
+            address: '7 KM Milestone, Tosham Road, Bhiwani, Haryana, INDIA',
+            watermark: {
+                text: 'GSPL',
+                colorClass: 'gautam'
+            }
         }
     };
 
@@ -1043,16 +1072,47 @@
         const preview = document.getElementById('companyPreview');
         const name = document.getElementById('previewName');
         const address = document.getElementById('previewAddress');
+        const watermarkPreview = document.getElementById('previewWatermark');
         
         name.textContent = companyData[companyType].name;
         address.textContent = companyData[companyType].address;
+        watermarkPreview.textContent = companyData[companyType].watermark.text;
         preview.style.display = 'block';
+        
+        // Update watermark on payslip
+        updateWatermark();
         
         // Update payslip
         updatePayslip();
         
         // Show notification
         showMessage(`Company set to: ${companyData[companyType].name}`, 'success');
+    }
+
+    // --- UPDATE WATERMARK ---
+    function updateWatermark() {
+        const watermarkElement = document.getElementById('dynamicWatermark');
+        
+        if (selectedCompany) {
+            const watermarkData = companyData[selectedCompany].watermark;
+            
+            // Update watermark text
+            watermarkElement.textContent = watermarkData.text;
+            
+            // Remove all color classes
+            watermarkElement.classList.remove('udamandi', 'gautam');
+            
+            // Add appropriate color class
+            watermarkElement.classList.add(watermarkData.colorClass);
+            
+            // Show watermark
+            watermarkElement.style.display = 'block';
+        } else {
+            // Default watermark if no company selected
+            watermarkElement.textContent = 'U-MAN';
+            watermarkElement.classList.remove('gautam');
+            watermarkElement.classList.add('udamandi');
+        }
     }
 
     // --- TOGGLE PF CALCULATION ---
@@ -1100,7 +1160,10 @@
             headerBox.classList.remove('active');
         }
 
-        // 2. TEXT FIELDS UPDATE
+        // 2. UPDATE WATERMARK
+        updateWatermark();
+
+        // 3. TEXT FIELDS UPDATE
         const textFields = [
             { input: 'i-month', output: 'p-month' },
             { input: 'i-code', output: 'p-code' },
@@ -1121,7 +1184,7 @@
             }
         });
         
-        // 3. CALCULATIONS
+        // 4. CALCULATIONS
         // Variable Calculation
         const varHours = parseFloat(document.getElementById('i-var-hrs').value) || 0;
         const varRate = parseFloat(document.getElementById('i-var-rate').value) || 0;
@@ -1154,7 +1217,7 @@
         const totalDeductions = pfDeduction + esiDeduction + busFee;
         const netPayable = totalEarnings - totalDeductions;
         
-        // 4. TABLE UPDATE
+        // 5. TABLE UPDATE
         document.getElementById('p-bs').textContent = formatIndianCurrency(basicStruct);
         document.getElementById('p-bp').textContent = formatIndianCurrency(basicPayable);
         document.getElementById('p-mv').textContent = formatIndianCurrency(mvValue);
