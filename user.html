@@ -174,6 +174,74 @@
             gap: 10px;
         }
 
+        /* Company Selection */
+        .company-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .company-option {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .company-option:hover {
+            border-color: #3498db;
+            background: #f8f9fa;
+        }
+
+        .company-option.selected {
+            border-color: #27ae60;
+            background: #d4edda;
+            box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
+        }
+
+        .company-option i {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #3498db;
+        }
+
+        .company-name-select {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .company-hint {
+            font-size: 11px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+
+        /* Company Details Display */
+        .company-preview {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            margin-top: 15px;
+            font-size: 13px;
+        }
+
+        .company-preview-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .company-preview-address {
+            color: #666;
+            line-height: 1.4;
+        }
+
         /* Input Group Design */
         .input-group {
             margin-bottom: 20px;
@@ -339,10 +407,10 @@
             overflow: hidden;
         }
 
-        /* Dynamic Company Header */
+        /* EXACT COMPANY HEADER - Top Section */
         .company-header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             padding-bottom: 15px;
             border-bottom: 2px solid #000;
             display: none;
@@ -358,19 +426,29 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .company-name {
+        .company-name-header {
             font-size: 28px;
             font-weight: 900;
             text-transform: uppercase;
-            color: #2c3e50;
-            letter-spacing: 1px;
-            margin-bottom: 5px;
+            color: #404040; /* SOLID LIGHT GRAY - NO OPACITY */
+            letter-spacing: 1.5px;
+            margin-bottom: 8px;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.1);
+            font-family: 'Arial Black', 'Arial', sans-serif;
         }
 
-        .company-details {
+        .company-details-header {
             font-size: 13px;
-            color: #555;
-            line-height: 1.4;
+            color: #666;
+            line-height: 1.5;
+            letter-spacing: 0.5px;
+        }
+
+        .header-separator {
+            height: 2px;
+            background: #000;
+            margin-top: 15px;
+            width: 100%;
         }
 
         /* U-MAN WATERMARK - HORIZONTAL POSITION */
@@ -381,14 +459,13 @@
             transform: translate(-50%, -50%);
             font-size: 140px;
             font-weight: 900;
-            color: rgba(100, 80, 180, 0.10);
+            color: #d8d6e0; /* SOLID COLOR - NO OPACITY */
             z-index: 0;
             pointer-events: none;
             letter-spacing: 20px;
             white-space: nowrap;
             text-transform: uppercase;
             font-family: Arial, Helvetica, sans-serif;
-            opacity: 0.8;
         }
 
         /* Watermark Text Effect */
@@ -538,6 +615,10 @@
                 font-size: 100px;
                 letter-spacing: 15px;
             }
+            
+            .company-selector {
+                flex-direction: column;
+            }
         }
 
         @media (max-width: 768px) {
@@ -565,6 +646,10 @@
             .watermark {
                 font-size: 70px;
                 letter-spacing: 10px;
+            }
+            
+            .company-name-header {
+                font-size: 22px;
             }
         }
 
@@ -649,19 +734,29 @@
     <div class="content-wrapper">
         <!-- Left Panel: Input Form -->
         <div class="input-panel">
-            <!-- Company Header Section -->
+            <!-- Company Selection -->
             <div class="section-box" style="border-left-color: #9b59b6;">
-                <h3><i class="fas fa-building"></i> Company Details (Optional)</h3>
-                <div class="input-group">
-                    <label>Company Name</label>
-                    <input type="text" id="i-comp-name" placeholder="Example: U-MAN PRIVATE LIMITED" oninput="updatePayslip()">
+                <h3><i class="fas fa-building"></i> Select Company</h3>
+                <div class="company-selector">
+                    <div class="company-option" onclick="selectCompany('udamandi')">
+                        <i class="fas fa-industry"></i>
+                        <div class="company-name-select">Udamandi Services Private Limited</div>
+                        <div class="company-hint">Click to select</div>
+                    </div>
+                    <div class="company-option" onclick="selectCompany('gautam')">
+                        <i class="fas fa-solar-panel"></i>
+                        <div class="company-name-select">Gautam Solar Private Limited</div>
+                        <div class="company-hint">Click to select</div>
+                    </div>
                 </div>
-                <div class="input-group">
-                    <label>Address / Subtitle</label>
-                    <input type="text" id="i-comp-details" placeholder="Example: Rajkot, Gujarat - 360001" oninput="updatePayslip()">
+                
+                <div id="companyPreview" class="company-preview" style="display: none;">
+                    <div class="company-preview-name" id="previewName"></div>
+                    <div class="company-preview-address" id="previewAddress"></div>
                 </div>
+                
                 <p style="font-size: 12px; color: #7f8c8d; margin-top: 10px;">
-                    <i class="fas fa-info-circle"></i> Leave empty to hide header from payslip
+                    <i class="fas fa-info-circle"></i> Selected company will appear as header on payslip
                 </p>
             </div>
 
@@ -809,10 +904,11 @@
                 <!-- HORIZONTAL U-MAN WATERMARK -->
                 <div class="watermark">U-MAN</div>
 
-                <!-- Dynamic Company Header -->
+                <!-- EXACT COMPANY HEADER - Top Section -->
                 <div class="company-header" id="comp-header-box">
-                    <div class="company-name" id="p-comp-name">COMPANY NAME</div>
-                    <div class="company-details" id="p-comp-details">Address Line 1</div>
+                    <div class="company-name-header" id="p-comp-name">COMPANY NAME</div>
+                    <div class="company-details-header" id="p-comp-details">Company Address Details</div>
+                    <div class="header-separator"></div>
                 </div>
 
                 <!-- Payslip Table -->
@@ -891,6 +987,19 @@
 <script>
     // --- CONSTANTS AND VARIABLES ---
     let isPF12Enabled = false;
+    let selectedCompany = null;
+
+    // Company Data
+    const companyData = {
+        'udamandi': {
+            name: 'UDAMANDI SERVICES PRIVATE LIMITED',
+            address: 'Unit 317 Road/Street: Bye-Pass Road, Mathura Road Faridabad, Sector 37, Faridabad, Haryana, PIN Code: 121003'
+        },
+        'gautam': {
+            name: 'GAUTAM SOLAR PRIVATE LIMITED',
+            address: '7 KM Milestone, Tosham Road, Bhiwani, Haryana, INDIA'
+        }
+    };
 
     // --- AUTHENTICATION CHECK ---
     document.addEventListener('DOMContentLoaded', function() {
@@ -916,6 +1025,35 @@
             updatePayslip();
         }
     });
+
+    // --- COMPANY SELECTION ---
+    function selectCompany(companyType) {
+        // Remove selected class from all options
+        document.querySelectorAll('.company-option').forEach(option => {
+            option.classList.remove('selected');
+        });
+        
+        // Add selected class to clicked option
+        event.currentTarget.classList.add('selected');
+        
+        // Set selected company
+        selectedCompany = companyType;
+        
+        // Show preview
+        const preview = document.getElementById('companyPreview');
+        const name = document.getElementById('previewName');
+        const address = document.getElementById('previewAddress');
+        
+        name.textContent = companyData[companyType].name;
+        address.textContent = companyData[companyType].address;
+        preview.style.display = 'block';
+        
+        // Update payslip
+        updatePayslip();
+        
+        // Show notification
+        showMessage(`Company set to: ${companyData[companyType].name}`, 'success');
+    }
 
     // --- TOGGLE PF CALCULATION ---
     function togglePFCalculation() {
@@ -949,19 +1087,17 @@
 
     // --- MAIN UPDATE FUNCTION ---
     function updatePayslip() {
-        // 1. COMPANY HEADER LOGIC (Smart Hide/Show)
-        const companyName = document.getElementById('i-comp-name').value.trim();
-        const companyDetails = document.getElementById('i-comp-details').value.trim();
+        // 1. COMPANY HEADER LOGIC
         const headerBox = document.getElementById('comp-header-box');
         
-        if (companyName === "") {
-            // Hide company header if name is empty
-            headerBox.classList.remove('active');
-        } else {
+        if (selectedCompany) {
             // Show company header
             headerBox.classList.add('active');
-            document.getElementById('p-comp-name').textContent = companyName;
-            document.getElementById('p-comp-details').textContent = companyDetails;
+            document.getElementById('p-comp-name').textContent = companyData[selectedCompany].name;
+            document.getElementById('p-comp-details').textContent = companyData[selectedCompany].address;
+        } else {
+            // Hide company header if no company selected
+            headerBox.classList.remove('active');
         }
 
         // 2. TEXT FIELDS UPDATE
@@ -1040,6 +1176,11 @@
 
     // --- DOWNLOAD FUNCTION ---
     function downloadPayslip() {
+        if (!selectedCompany) {
+            showMessage('Please select a company first!', 'error');
+            return;
+        }
+        
         const payslipElement = document.getElementById("payslip-paper");
         const loadingOverlay = document.getElementById("loadingOverlay");
         
@@ -1059,7 +1200,7 @@
             const employeeName = document.getElementById('i-name').value || 'Employee';
             const month = document.getElementById('i-month').value || 'Month';
             const pfMode = isPF12Enabled ? '_12PF_Payable' : '';
-            const fileName = `Payslip_${employeeName.replace(/\s+/g, '_')}_${month.replace(/\s+/g, '_')}${pfMode}.png`;
+            const fileName = `Payslip_${employeeName.replace(/\s+/g, '_')}_${month.replace(/\s+/g, '_')}_${selectedCompany.toUpperCase()}${pfMode}.png`;
             
             link.download = fileName;
             link.href = canvas.toDataURL("image/png", 1.0);
@@ -1109,7 +1250,7 @@
         
         document.body.appendChild(messageBox);
         
-        // Remove after 4 seconds
+        // Auto remove after 4 seconds
         setTimeout(() => {
             if (messageBox.parentNode) {
                 messageBox.remove();
@@ -1136,6 +1277,17 @@
         if (event.ctrlKey && event.key === 'p') {
             event.preventDefault();
             document.getElementById('pf12Toggle').click();
+        }
+        
+        // 1 for Udamandi, 2 for Gautam
+        if (event.key === '1') {
+            event.preventDefault();
+            selectCompany('udamandi');
+        }
+        
+        if (event.key === '2') {
+            event.preventDefault();
+            selectCompany('gautam');
         }
     });
 </script>
