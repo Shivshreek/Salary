@@ -1,109 +1,834 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Uda-Mandi</title>
-    <link rel="stylesheet" href="style.css">
+    <title>लॉगिन - Uda-Mandi पेरोल प्रबंधन</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- आधुनिक CSS रीसेट --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Nirmala UI', 'Arial', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* पृष्ठभूमि डिजाइन */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            top: -100px;
+            right: -100px;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.03);
+            bottom: -50px;
+            left: -50px;
+            z-index: 0;
+        }
+
+        /* मुख्य लॉगिन कार्ड */
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 45px 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .login-container:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        /* लोगो और शीर्षक */
+        .logo-area {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .logo-icon {
+            background: linear-gradient(135deg, #5b42a7, #764ba2);
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            box-shadow: 0 8px 20px rgba(91, 66, 167, 0.3);
+        }
+
+        .logo-icon i {
+            font-size: 30px;
+            color: white;
+        }
+
+        h1 {
+            color: #5b42a7;
+            font-size: 28px;
+            margin-bottom: 5px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 30px;
+            font-weight: 400;
+        }
+
+        /* इनपुट समूह */
+        .input-group {
+            position: relative;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+            letter-spacing: 0.3px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 14px 45px 14px 15px;
+            border: 1.5px solid #e1e1e1;
+            border-radius: 10px;
+            outline: none;
+            transition: all 0.3s ease;
+            font-size: 15px;
+            background: #f9f9f9;
+            color: #333;
+        }
+
+        .input-field:focus {
+            border-color: #764ba2;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.15);
+        }
+
+        /* आंख आइकन */
+        .eye-toggle {
+            position: absolute;
+            right: 15px;
+            top: 40px;
+            cursor: pointer;
+            color: #777;
+            transition: color 0.3s;
+            font-size: 18px;
+            background: none;
+            border: none;
+            outline: none;
+            padding: 5px;
+        }
+
+        .eye-toggle:hover {
+            color: #5b42a7;
+        }
+
+        /* बटन स्टाइल */
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(to right, #5b42a7, #764ba2);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .login-btn:hover {
+            background: linear-gradient(to right, #4a3590, #643a85);
+            box-shadow: 0 8px 20px rgba(91, 66, 167, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        /* त्रुटि संदेश */
+        .error-message {
+            background: #fee;
+            color: #d32f2f;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-top: 15px;
+            display: none;
+            border-left: 4px solid #d32f2f;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* प्रतीक्षा अनुभाग */
+        .hidden {
+            display: none !important;
+        }
+
+        .waiting-section {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loader-container {
+            margin: 25px 0;
+        }
+
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #5b42a7;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .waiting-title {
+            color: #5b42a7;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        .waiting-text {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        /* OTP बॉक्स */
+        .otp-container {
+            background: linear-gradient(135deg, #f0f4f8, #e8f0fe);
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px dashed #5b42a7;
+            margin: 25px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .otp-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(to right, #5b42a7, #764ba2);
+        }
+
+        .otp-label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .otp-code {
+            font-size: 32px;
+            font-weight: 700;
+            color: #5b42a7;
+            letter-spacing: 8px;
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin: 10px 0;
+        }
+
+        .otp-note {
+            font-size: 12px;
+            color: #888;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        /* रद्द बटन */
+        .cancel-btn {
+            width: 100%;
+            padding: 12px;
+            background: #f1f1f1;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            color: #666;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+        }
+
+        .cancel-btn:hover {
+            background: #e5e5e5;
+            color: #444;
+        }
+
+        /* फुटर */
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .security-note {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        /* उत्तरदायी डिजाइन */
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 35px 25px;
+                max-width: 90%;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .otp-code {
+                font-size: 26px;
+                letter-spacing: 6px;
+            }
+        }
+
+        /* सफलता/चेतावनी संदेश */
+        .alert-box {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            padding: 18px 25px;
+            border-radius: 10px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            animation: slideInRight 0.5s ease, fadeOut 0.5s ease 3.5s;
+            animation-fill-mode: forwards;
+            max-width: 350px;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; visibility: hidden; }
+        }
+
+        .alert-success {
+            background: linear-gradient(to right, #4CAF50, #45a049);
+            color: white;
+            border-left: 5px solid #2E7D32;
+        }
+
+        .alert-warning {
+            background: linear-gradient(to right, #FF9800, #F57C00);
+            color: white;
+            border-left: 5px solid #EF6C00;
+        }
+
+        .alert-error {
+            background: linear-gradient(to right, #F44336, #D32F2F);
+            color: white;
+            border-left: 5px solid #B71C1C;
+        }
+
+        /* पासवर्ड ताकत सूचक */
+        .password-strength {
+            height: 4px;
+            background: #eee;
+            border-radius: 2px;
+            margin-top: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .strength-meter {
+            height: 100%;
+            width: 0%;
+            border-radius: 2px;
+            transition: width 0.3s ease, background 0.3s ease;
+        }
+
+        .strength-weak { background: #F44336; width: 30%; }
+        .strength-medium { background: #FF9800; width: 60%; }
+        .strength-strong { background: #4CAF50; width: 100%; }
+    </style>
 </head>
 <body>
 
-<div class="container" style="max-width: 400px; margin-top: 80px;">
-    <h2>Login Portal</h2>
-    
-    <div id="login-form">
-        <label>Email / Username</label>
-        <input type="text" id="email" placeholder="Enter Email">
-        
-        <label>Password</label>
-        <input type="password" id="password" placeholder="Enter Password">
-        
-        <button class="btn-login" onclick="attemptLogin()">Login</button>
+<div class="login-container">
+    <!-- लॉगिन अनुभाग -->
+    <div id="login-section">
+        <div class="logo-area">
+            <div class="logo-icon">
+                <i class="fas fa-lock"></i>
+            </div>
+            <h1>Uda-Mandi</h1>
+            <p class="subtitle">सुरक्षित पेरोल प्रबंधन प्रणाली</p>
+        </div>
+
+        <form id="loginForm" onsubmit="event.preventDefault(); attemptLogin();">
+            <div class="input-group">
+                <label class="input-label">
+                    <i class="fas fa-envelope"></i> ईमेल आईडी
+                </label>
+                <input type="email" id="email" class="input-field" placeholder="आपका ईमेल दर्ज करें" required>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">
+                    <i class="fas fa-key"></i> पासवर्ड
+                </label>
+                <input type="password" id="password" class="input-field" placeholder="पासवर्ड दर्ज करें" required minlength="6">
+                <button type="button" class="eye-toggle" onclick="togglePassword()">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <div class="password-strength">
+                    <div id="strengthMeter" class="strength-meter"></div>
+                </div>
+            </div>
+
+            <button type="submit" class="login-btn">
+                <i class="fas fa-sign-in-alt"></i> सुरक्षित लॉगिन करें
+            </button>
+            
+            <div id="errorText" class="error-message hidden">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="errorMessage">अमान्य प्रविष्टियाँ!</span>
+            </div>
+        </form>
     </div>
 
-    <div id="waiting-screen" class="hidden" style="text-align: center;">
-        <h3>Verification Pending...</h3>
-        <p>Please wait. The Admin needs to approve your login.</p>
-        <div class="loader"></div>
-        <br><br>
-        <p style="font-size: 18px; color: #007bff;">Your OTP: <strong id="user-otp-display"></strong></p>
-        <p style="font-size: 12px; color: gray;">(Share this OTP with Admin if asked)</p>
-        <button class="btn-secondary" onclick="cancelLogin()">Cancel</button>
+    <!-- प्रतीक्षा अनुभाग -->
+    <div id="waiting-section" class="hidden waiting-section">
+        <div class="logo-area">
+            <div class="logo-icon" style="background: linear-gradient(135deg, #FF9800, #F57C00);">
+                <i class="fas fa-clock"></i>
+            </div>
+            <h2 class="waiting-title">प्रमाणीकरण प्रलंबित</h2>
+            <p class="waiting-text">
+                प्रशासक से अनुमोदन की प्रतीक्षा कर रहे हैं...
+                <br>
+                कृपया धैर्य रखें, यह कुछ क्षण ले सकता है।
+            </p>
+        </div>
+
+        <div class="loader-container">
+            <div class="loader"></div>
+        </div>
+
+        <div class="otp-container">
+            <span class="otp-label">प्रशासक के साथ इस OTP को साझा करें</span>
+            <div class="otp-code" id="displayOtp">----</div>
+            <div class="otp-note">
+                <i class="fas fa-info-circle"></i> यह OTP 10 मिनट के लिए वैध रहेगा
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <button class="cancel-btn" onclick="cancelLogin()">
+                <i class="fas fa-times"></i> अनुरोध रद्द करें
+            </button>
+            <button class="login-btn" style="padding: 12px;" onclick="copyOTP()">
+                <i class="fas fa-copy"></i> OTP कॉपी करें
+            </button>
+        </div>
+        
+        <div style="margin-top: 20px; font-size: 12px; color: #888;">
+            <i class="fas fa-shield-alt"></i> आपका सत्र सुरक्षित है | समय: <span id="timer">00:00</span>
+        </div>
     </div>
 
+    <div class="footer">
+        <div>&copy; 2025 Uda-Mandi सिस्टम्स. सभी अधिकार सुरक्षित।</div>
+        <div class="security-note">
+            <i class="fas fa-lock"></i>
+            <span>256-बिट SSL एन्क्रिप्शन द्वारा संरक्षित</span>
+        </div>
+    </div>
 </div>
 
 <script>
-    const ADMIN_ID = "shivshreek@gmail.com";
-    const ADMIN_PASS = "Shiv@2004.";
+    // --- स्थिरांक और चर ---
+    const ADMIN_EMAIL = "shivshreek@gmail.com";
+    const ADMIN_PASSWORD = "Shiv@2004.";
+    let checkInterval = null;
+    let timerInterval = null;
+    let secondsElapsed = 0;
+    let currentOTP = "";
 
-    let checkInterval;
+    // --- DOM तैयार होने पर ---
+    document.addEventListener('DOMContentLoaded', function() {
+        // पासवर्ड ताकत जांच
+        const passwordInput = document.getElementById('password');
+        passwordInput.addEventListener('input', checkPasswordStrength);
+        
+        // ईमेल ऑटोफिल (विकल्प)
+        const savedEmail = localStorage.getItem('last_email');
+        if (savedEmail) {
+            document.getElementById('email').value = savedEmail;
+        }
+        
+        // फॉर्म सबमिशन
+        document.getElementById('loginForm').addEventListener('submit', attemptLogin);
+    });
 
-    function attemptLogin() {
-        const email = document.getElementById('email').value;
-        const pass = document.getElementById('password').value;
-
-        // 1. Check if Admin
-        if (email === ADMIN_ID && pass === ADMIN_PASS) {
-            localStorage.setItem('role', 'admin');
-            window.location.href = 'admin.html';
+    // --- पासवर्ड ताकत जांच ---
+    function checkPasswordStrength() {
+        const password = document.getElementById('password').value;
+        const meter = document.getElementById('strengthMeter');
+        
+        if (password.length === 0) {
+            meter.className = 'strength-meter';
             return;
         }
-
-        // 2. If User (Password "user" for demo, or anything else)
-        if (email) {
-            startUserApprovalProcess(email);
+        
+        let strength = 0;
+        
+        // लंबाई जांच
+        if (password.length >= 8) strength += 1;
+        
+        // लोअरकेस जांच
+        if (/[a-z]/.test(password)) strength += 1;
+        
+        // अपरकेस जांच
+        if (/[A-Z]/.test(password)) strength += 1;
+        
+        // संख्या जांच
+        if (/\d/.test(password)) strength += 1;
+        
+        // विशेष वर्ण जांच
+        if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+        
+        // मीटर अपडेट
+        meter.className = 'strength-meter';
+        if (strength <= 2) {
+            meter.classList.add('strength-weak');
+        } else if (strength <= 4) {
+            meter.classList.add('strength-medium');
         } else {
-            alert("Please enter a username/email");
+            meter.classList.add('strength-strong');
         }
     }
 
-    function startUserApprovalProcess(username) {
-        // Generate OTP
-        const otp = Math.floor(1000 + Math.random() * 9000);
+    // --- पासवर्ड दृश्यता टॉगल ---
+    function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        const eyeIcon = document.querySelector('.eye-toggle i');
         
-        // Show Waiting Screen
-        document.getElementById('login-form').classList.add('hidden');
-        document.getElementById('waiting-screen').classList.remove('hidden');
-        document.getElementById('user-otp-display').innerText = otp;
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            eyeIcon.className = 'fas fa-eye-slash';
+        } else {
+            passwordInput.type = 'password';
+            eyeIcon.className = 'fas fa-eye';
+        }
+    }
 
-        // Save Request to LocalStorage (Admin will read this)
-        const request = {
-            user: username,
-            otp: otp,
-            status: 'pending', // pending, approved
-            timestamp: new Date().getTime()
-        };
-        localStorage.setItem('login_request', JSON.stringify(request));
-
-        // Start checking every 1 second if Admin approved
-        checkInterval = setInterval(() => {
-            const currentReq = JSON.parse(localStorage.getItem('login_request'));
+    // --- लॉगिन प्रयास ---
+    function attemptLogin() {
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const errorElement = document.getElementById('errorText');
+        const errorMessage = document.getElementById('errorMessage');
+        
+        // त्रुटि रीसेट
+        errorElement.classList.add('hidden');
+        
+        // मान्यता जांच
+        if (!validateEmail(email)) {
+            showError("कृपया एक वैध ईमेल पता दर्ज करें।");
+            return;
+        }
+        
+        if (password.length < 6) {
+            showError("पासवर्ड कम से कम 6 वर्ण लंबा होना चाहिए।");
+            return;
+        }
+        
+        // ईमेल सहेजें
+        localStorage.setItem('last_email', email);
+        
+        // 1. व्यवस्थापक जांच
+        if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+            showAlert("सफलता! व्यवस्थापक लॉगिन...", "success");
+            localStorage.setItem('role', 'admin');
+            localStorage.setItem('currentUser', 'Administrator');
+            localStorage.setItem('auth_token', generateToken());
             
-            if (currentReq && currentReq.status === 'approved') {
+            // विलंबित रीडायरेक्ट
+            setTimeout(() => {
+                window.location.href = 'admin.html';
+            }, 1500);
+            return;
+        }
+        
+        // 2. व्यवस्थापक ईमेल लेकिन गलत पासवर्ड
+        if (email === ADMIN_EMAIL && password !== ADMIN_PASSWORD) {
+            showError("गलत व्यवस्थापक पासवर्ड! कृपया पुनः प्रयास करें।");
+            return;
+        }
+        
+        // 3. उपयोगकर्ता लॉगिन प्रक्रिया
+        startUserApprovalProcess(email);
+    }
+
+    // --- उपयोगकर्ता अनुमोदन प्रक्रिया ---
+    function startUserApprovalProcess(email) {
+        // UI स्विच
+        document.getElementById('login-section').classList.add('hidden');
+        document.getElementById('waiting-section').classList.remove('hidden');
+        
+        // OTP जनरेट करें
+        currentOTP = generateOTP();
+        document.getElementById('displayOtp').textContent = currentOTP;
+        
+        // अनुरोध सहेजें
+        const requestData = {
+            user: email,
+            otp: currentOTP,
+            status: 'pending',
+            timestamp: Date.now(),
+            ip: 'user_side'
+        };
+        localStorage.setItem('login_request', JSON.stringify(requestData));
+        
+        // टाइमर शुरू
+        startTimer();
+        
+        // पोलिंग शुरू (प्रशासक अनुमोदन जांच)
+        checkInterval = setInterval(() => {
+            const storedRequest = localStorage.getItem('login_request');
+            
+            if (!storedRequest) {
+                // अनुरोध हटाया गया (अस्वीकृत)
                 clearInterval(checkInterval);
-                localStorage.setItem('role', 'user');
-                localStorage.setItem('currentUser', username);
-                alert("Login Approved by Admin!");
-                window.location.href = 'user.html';
+                clearInterval(timerInterval);
+                showAlert("अनुरोध प्रशासक द्वारा अस्वीकृत कर दिया गया।", "error");
+                resetLoginForm();
+                return;
             }
             
-            // If request is deleted (Admin rejected)
-            if (!currentReq) {
-                clearInterval(checkInterval);
-                alert("Login Rejected.");
+            try {
+                const request = JSON.parse(storedRequest);
+                
+                if (request.status === 'approved') {
+                    // अनुमोदित
+                    clearInterval(checkInterval);
+                    clearInterval(timerInterval);
+                    
+                    showAlert("सफलता! लॉगिन अनुमोदित हो गया।", "success");
+                    
+                    localStorage.setItem('role', 'user');
+                    localStorage.setItem('currentUser', email);
+                    localStorage.setItem('auth_token', generateToken());
+                    
+                    // विलंबित रीडायरेक्ट
+                    setTimeout(() => {
+                        window.location.href = 'user.html';
+                    }, 2000);
+                }
+                
+                // 10 मिनट की समय सीमा जांच
+                if (Date.now() - request.timestamp > 10 * 60 * 1000) {
+                    clearInterval(checkInterval);
+                    clearInterval(timerInterval);
+                    localStorage.removeItem('login_request');
+                    showAlert("OTP की समय सीमा समाप्त हो गई। कृपया पुनः प्रयास करें।", "warning");
+                    resetLoginForm();
+                }
+            } catch (e) {
+                console.error("अनुरोध पार्सिंग त्रुटि:", e);
+            }
+        }, 1500);
+    }
+
+    // --- टाइमर प्रबंधन ---
+    function startTimer() {
+        secondsElapsed = 0;
+        updateTimerDisplay();
+        
+        timerInterval = setInterval(() => {
+            secondsElapsed++;
+            updateTimerDisplay();
+            
+            // 10 मिनट समय सीमा
+            if (secondsElapsed >= 600) {
+                clearInterval(timerInterval);
+                showAlert("सत्र समय समाप्त। कृपया पुनः प्रयास करें।", "warning");
                 cancelLogin();
             }
-
         }, 1000);
     }
+    
+    function updateTimerDisplay() {
+        const minutes = Math.floor(secondsElapsed / 60).toString().padStart(2, '0');
+        const seconds = (secondsElapsed % 60).toString().padStart(2, '0');
+        document.getElementById('timer').textContent = `${minutes}:${seconds}`;
+    }
 
+    // --- OTP कॉपी करें ---
+    function copyOTP() {
+        navigator.clipboard.writeText(currentOTP).then(() => {
+            showAlert("OTP क्लिपबोर्ड पर कॉपी हो गया!", "success");
+        }).catch(err => {
+            console.error("कॉपी विफल:", err);
+            showAlert("कॉपी विफल. मैन्युअल रूप से कॉपी करें।", "error");
+        });
+    }
+
+    // --- लॉगिन रद्द करें ---
     function cancelLogin() {
         clearInterval(checkInterval);
+        clearInterval(timerInterval);
         localStorage.removeItem('login_request');
-        document.getElementById('waiting-screen').classList.add('hidden');
-        document.getElementById('login-form').classList.remove('hidden');
+        resetLoginForm();
+        showAlert("लॉगिन अनुरोध रद्द कर दिया गया।", "warning");
     }
+
+    // --- फॉर्म रीसेट ---
+    function resetLoginForm() {
+        document.getElementById('waiting-section').classList.add('hidden');
+        document.getElementById('login-section').classList.remove('hidden');
+        document.getElementById('password').value = '';
+        document.getElementById('strengthMeter').className = 'strength-meter';
+    }
+
+    // --- उपयोगिता कार्य ---
+    function validateEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+    }
+    
+    function generateOTP() {
+        return Math.floor(1000 + Math.random() * 9000).toString();
+    }
+    
+    function generateToken() {
+        return 'token_' + Math.random().toString(36).substr(2) + Date.now().toString(36);
+    }
+    
+    function showError(message) {
+        const errorElement = document.getElementById('errorText');
+        const errorMessage = document.getElementById('errorMessage');
+        
+        errorMessage.textContent = message;
+        errorElement.classList.remove('hidden');
+        
+        // ऑटो हाइड
+        setTimeout(() => {
+            errorElement.classList.add('hidden');
+        }, 5000);
+    }
+    
+    function showAlert(message, type) {
+        // मौजूदा अलर्ट हटाएं
+        const existingAlert = document.querySelector('.alert-box');
+        if (existingAlert) existingAlert.remove();
+        
+        // नया अलर्ट बनाएं
+        const alertBox = document.createElement('div');
+        alertBox.className = `alert-box alert-${type}`;
+        
+        const icon = type === 'success' ? 'fa-check-circle' : 
+                     type === 'warning' ? 'fa-exclamation-triangle' : 'fa-times-circle';
+        
+        alertBox.innerHTML = `
+            <i class="fas ${icon} fa-lg"></i>
+            <div style="flex: 1;">
+                <strong>${type === 'success' ? 'सफलता' : type === 'warning' ? 'चेतावनी' : 'त्रुटि'}</strong><br>
+                <span style="font-size: 13px;">${message}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(alertBox);
+        
+        // 4 सेकंड बाद हटाएं
+        setTimeout(() => {
+            if (alertBox.parentNode) {
+                alertBox.remove();
+            }
+        }, 4000);
+    }
+
+    // कीबोर्ड शॉर्टकट
+    document.addEventListener('keydown', function(event) {
+        // Ctrl+Enter लॉगिन के लिए
+        if (event.ctrlKey && event.key === 'Enter') {
+            attemptLogin();
+        }
+        
+        // Escape कैंसल के लिए
+        if (event.key === 'Escape' && !document.getElementById('waiting-section').classList.contains('hidden')) {
+            cancelLogin();
+        }
+    });
 </script>
 
 </body>
