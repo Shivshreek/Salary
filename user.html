@@ -1,166 +1,212 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>पेस्लिप जेनरेटर | Uda-Mandi</title>
+    <title>Payslip Generator | Smart Payroll System</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* --- RESET & BASE --- */
+        /* --- GLOBAL THEME AND RESET --- */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: 'Segoe UI', 'Arial', sans-serif;
         }
 
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        /* --- CONTAINER --- */
+        /* --- MAIN CONTAINER --- */
         .main-container {
-            max-width: 1300px;
-            margin: 0 auto;
+            width: 100%;
+            max-width: 1400px;
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 95vh;
         }
 
-        /* --- HEADER --- */
+        /* --- HEADER STYLE --- */
         .app-header {
+            background: linear-gradient(90deg, #2c3e50, #34495e);
+            padding: 18px 35px;
+            color: white;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 30px;
-            background: linear-gradient(90deg, #2c3e50, #4a6278);
-            color: white;
-            border-bottom: 3px solid #3498db;
+            border-bottom: 5px solid #3498db;
+            position: relative;
         }
 
-        .app-header h1 {
-            font-size: 28px;
+        .app-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #3498db, #9b59b6, #2ecc71);
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 15px;
         }
 
-        .app-header h1 i {
+        .header-title i {
             color: #f39c12;
+            font-size: 28px;
         }
 
         .header-controls {
             display: flex;
-            gap: 15px;
+            gap: 12px;
+            align-items: center;
         }
 
-        /* --- BUTTONS --- */
+        /* --- BUTTON STYLES --- */
         .btn {
             padding: 10px 20px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
+            transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            transition: all 0.3s ease;
             font-size: 14px;
         }
 
-        .btn-primary {
-            background: #2980b9;
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-admin {
+            background: linear-gradient(to right, #f39c12, #e67e22);
             color: white;
         }
 
-        .btn-primary:hover {
-            background: #1f6391;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(41, 128, 185, 0.3);
-        }
-
-        .btn-danger {
-            background: #e74c3c;
+        .btn-logout {
+            background: linear-gradient(to right, #e74c3c, #c0392b);
             color: white;
-        }
-
-        .btn-danger:hover {
-            background: #c0392b;
-            transform: translateY(-2px);
         }
 
         .btn-download {
-            background: #27ae60;
+            background: linear-gradient(to right, #27ae60, #219653);
             color: white;
-            font-size: 16px;
-            padding: 12px 30px;
-            margin-top: 20px;
             width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            margin-top: 25px;
         }
 
-        .btn-download:hover {
-            background: #219653;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
-        }
-
-        /* --- MAIN LAYOUT --- */
+        /* --- MAIN CONTENT LAYOUT --- */
         .content-wrapper {
             display: flex;
-            min-height: 750px;
+            flex: 1;
+            overflow: hidden;
         }
 
-        /* --- FORM SECTION --- */
-        .form-container {
+        /* Left Panel: Input Form */
+        .input-panel {
             flex: 1;
-            padding: 25px;
+            min-width: 400px;
             background: #f8f9fa;
+            padding: 30px;
             border-right: 1px solid #dee2e6;
             overflow-y: auto;
+            max-height: calc(95vh - 80px);
         }
 
-        .form-container h2 {
-            color: #2c3e50;
+        /* Right Panel: Preview */
+        .preview-panel {
+            flex: 1.6;
+            min-width: 500px;
+            background: #555;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            overflow-y: auto;
+            max-height: calc(95vh - 80px);
+        }
+
+        /* --- SECTION BOX DESIGN --- */
+        .section-box {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             margin-bottom: 25px;
+            border-left: 5px solid #3498db;
+            transition: transform 0.3s ease;
+        }
+
+        .section-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-box h3 {
+            font-size: 16px;
+            color: #2c3e50;
+            margin-bottom: 15px;
             padding-bottom: 10px;
-            border-bottom: 2px solid #3498db;
+            border-bottom: 1px solid #eee;
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .input-section {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-            border-left: 4px solid #3498db;
+        /* Input Group Design */
+        .input-group {
+            margin-bottom: 20px;
         }
 
-        .input-section h3 {
-            color: #2c3e50;
-            margin-bottom: 15px;
+        .row {
             display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 16px;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .col {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #34495e;
+            margin-bottom: 6px;
         }
 
         input[type="text"],
         input[type="number"],
         input[type="date"] {
             width: 100%;
-            padding: 11px 15px;
-            margin-bottom: 15px;
-            border: 1px solid #bdc3c7;
-            border-radius: 5px;
+            padding: 12px 15px;
+            border: 1.5px solid #ced4da;
+            border-radius: 8px;
             font-size: 14px;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
+            background: #fdfdfd;
         }
 
         input[type="text"]:focus,
@@ -169,143 +215,160 @@
             outline: none;
             border-color: #3498db;
             box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-        }
-
-        .input-row {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .input-row > div {
-            flex: 1;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 6px;
-            color: #34495e;
-            font-weight: 500;
-            font-size: 13px;
-        }
-
-        .calculation-box {
-            background: #e8f4fc;
-            padding: 12px;
-            border-radius: 5px;
-            margin-top: 10px;
-            border: 1px dashed #3498db;
-            font-size: 13px;
-            text-align: right;
-        }
-
-        /* --- PREVIEW SECTION --- */
-        .preview-container {
-            flex: 1.2;
-            padding: 30px;
-            background: #555;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            overflow-y: auto;
-        }
-
-        /* --- EXACT PAYSLIP DESIGN --- */
-        #payslip-box {
-            width: 700px;
             background: white;
+        }
+
+        /* Calculation Box */
+        .calc-box {
+            background: linear-gradient(135deg, #e8f4fc, #f0f8ff);
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px dashed #3498db;
+            text-align: right;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        /* --- PAYSLIP DESIGN (EXACT REPLICA) --- */
+        #payslip-paper {
+            width: 750px;
+            background: white;
+            padding: 25px 30px;
             position: relative;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
             font-family: Arial, Helvetica, sans-serif;
             color: #000;
-            box-sizing: border-box;
-            padding: 10px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            border: 1px solid #ddd;
         }
 
-        /* EXACT WATERMARK */
+        /* Dynamic Company Header */
+        .company-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #000;
+            display: none;
+        }
+
+        .company-header.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .company-name {
+            font-size: 28px;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: #2c3e50;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .company-details {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.4;
+        }
+
+        /* U-MAN WATERMARK - Fixed Position */
         .watermark {
             position: absolute;
-            top: 55%;
+            top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) rotate(-35deg);
-            font-size: 110px;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 120px;
             font-weight: 900;
-            color: rgba(100, 80, 180, 0.10);
+            color: rgba(100, 80, 180, 0.15);
             z-index: 0;
             pointer-events: none;
-            letter-spacing: 6px;
-            text-transform: uppercase;
+            letter-spacing: 8px;
             white-space: nowrap;
-            font-family: Arial, sans-serif;
+            text-transform: uppercase;
+            font-family: Arial, Helvetica, sans-serif;
+            opacity: 0.9;
         }
 
-        /* EXACT TABLE */
-        table.exact-table {
+        /* Exact Table Design */
+        .slip-table {
             width: 100%;
             border-collapse: collapse;
             z-index: 2;
             position: relative;
-            background: transparent;
+            margin-top: 10px;
             table-layout: fixed;
         }
 
-        table.exact-table th, 
-        table.exact-table td {
+        .slip-table th,
+        .slip-table td {
             border: 1px solid #000;
-            padding: 5px 8px;
-            font-size: 12.5px;
+            padding: 7px 10px;
+            font-size: 13px;
             vertical-align: middle;
             line-height: 1.3;
         }
 
-        .header-title { 
-            font-weight: bold; 
-            text-align: center; 
-            font-size: 15px; 
-            padding: 8px !important;
-            background-color: #f0f0f0;
+        .main-header {
+            font-weight: bold;
+            text-align: center;
+            font-size: 16px;
+            padding: 10px !important;
+            background-color: #f5f5f5;
         }
-        
-        .section-header { 
-            background: #e8e8e8; 
-            font-weight: bold; 
+
+        .sub-header {
+            background: #eaeaea;
+            font-weight: bold;
             font-size: 12px;
             text-transform: uppercase;
         }
-        
-        .text-right { text-align: right; }
-        .text-center { text-align: center; }
-        .text-bold { font-weight: bold; }
-        
-        /* EXACT BLUE TEXT FOR DEDUCTIONS */
-        .blue-text { 
-            color: #2e74b5; 
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-bold {
+            font-weight: bold;
+        }
+
+        /* Blue Text for Deductions */
+        .blue-text {
+            color: #2e74b5;
             font-weight: 600;
             font-family: Arial, Helvetica, sans-serif;
         }
-        
-        /* NET PAY ROW */
-        .net-row {
-            background: #f0f8ff !important;
-            font-size: 15px !important;
-            font-weight: bold !important;
-            padding: 10px !important;
+
+        /* Net Pay Row */
+        .net-pay-row {
+            font-size: 17px;
+            font-weight: bold;
+            text-align: center;
+            padding: 12px !important;
+            background: #f8f9fa;
+            border-top: 2px solid #000;
         }
-        
-        /* FOOTER NOTE */
+
+        /* Footer Note */
         .footer-note {
             text-align: center;
-            margin-top: 25px;
+            margin-top: 30px;
             font-size: 11px;
             font-style: italic;
             color: #666;
             border-top: 1px dashed #aaa;
-            padding-top: 10px;
+            padding-top: 12px;
         }
 
         /* --- LOADING OVERLAY --- */
         .loading-overlay {
-            display: none;
             position: fixed;
             top: 0;
             left: 0;
@@ -313,242 +376,325 @@
             height: 100%;
             background: rgba(0, 0, 0, 0.85);
             z-index: 9999;
+            display: none;
             justify-content: center;
             align-items: center;
             color: white;
-            font-size: 20px;
         }
 
         .loading-overlay.active {
             display: flex;
+            animation: fadeIn 0.3s ease;
         }
 
-        /* --- RESPONSIVE --- */
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* --- RESPONSIVE DESIGN --- */
         @media (max-width: 1200px) {
             .content-wrapper {
                 flex-direction: column;
+                height: auto;
             }
             
-            .form-container, 
-            .preview-container {
+            .input-panel,
+            .preview-panel {
                 width: 100%;
+                min-width: unset;
+                max-height: none;
             }
             
-            #payslip-box {
+            #payslip-paper {
                 width: 100%;
-                max-width: 700px;
+                max-width: 750px;
             }
             
+            .main-container {
+                height: auto;
+            }
+            
+            .watermark {
+                font-size: 90px;
+            }
+        }
+
+        @media (max-width: 768px) {
             .app-header {
                 flex-direction: column;
                 gap: 15px;
                 text-align: center;
+                padding: 15px 20px;
             }
             
             .header-controls {
                 width: 100%;
                 justify-content: center;
             }
-        }
-
-        @media (max-width: 768px) {
-            #payslip-box {
-                padding: 5px;
+            
+            .row {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            #payslip-paper {
+                padding: 15px;
             }
             
             .watermark {
                 font-size: 70px;
             }
-            
-            .input-row {
-                flex-direction: column;
-                gap: 10px;
-            }
+        }
+
+        /* --- MESSAGE BOX --- */
+        .message-box {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            padding: 18px 25px;
+            border-radius: 10px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            animation: slideInRight 0.5s ease, fadeOut 0.5s ease 3.5s;
+            animation-fill-mode: forwards;
+            max-width: 350px;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; visibility: hidden; }
+        }
+
+        .message-success {
+            background: linear-gradient(to right, #27ae60, #219653);
+            color: white;
+            border-left: 5px solid #1e8449;
+        }
+
+        .message-error {
+            background: linear-gradient(to right, #e74c3c, #c0392b);
+            color: white;
+            border-left: 5px solid #922b21;
         }
     </style>
 </head>
 <body>
 
-<!-- लोडिंग ओवरले -->
+<!-- Loading Overlay -->
 <div class="loading-overlay" id="loadingOverlay">
     <div style="text-align: center;">
-        <i class="fas fa-spinner fa-spin fa-3x" style="margin-bottom: 20px;"></i>
-        <h3>पेस्लिप जेनरेट हो रही है...</h3>
-        <p style="margin-top: 10px; font-size: 14px;">कृपया प्रतीक्षा करें</p>
+        <div class="loader"></div>
+        <h3 style="margin-bottom: 10px;">Generating Payslip...</h3>
+        <p>Please wait</p>
     </div>
 </div>
 
 <div class="main-container">
-    <!-- हेडर -->
+    <!-- Header -->
     <div class="app-header">
-        <h1><i class="fas fa-file-invoice"></i> पेस्लिप जेनरेटर - Uda-Mandi</h1>
+        <div class="header-title">
+            <i class="fas fa-file-invoice-dollar"></i>
+            <span>Payslip Generator | Smart Payroll System</span>
+        </div>
+        
         <div class="header-controls">
-            <button class="btn btn-primary admin-controls" onclick="window.location.href='admin.html'">
-                <i class="fas fa-tachometer-alt"></i> डैशबोर्ड
+            <button class="btn btn-admin" onclick="window.location.href='admin.html'">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
             </button>
-            <button class="btn btn-danger" onclick="logout()">
-                <i class="fas fa-sign-out-alt"></i> लॉगआउट
+            <button class="btn btn-logout" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Logout
             </button>
         </div>
     </div>
-    
-    <!-- मुख्य सामग्री -->
+
+    <!-- Main Content -->
     <div class="content-wrapper">
-        <!-- फॉर्म सेक्शन -->
-        <div class="form-container">
-            <h2><i class="fas fa-edit"></i> पेस्लिप विवरण दर्ज करें</h2>
-            
-            <!-- कर्मचारी विवरण -->
-            <div class="input-section">
-                <h3><i class="fas fa-user-tie"></i> कर्मचारी विवरण</h3>
-                <input type="text" id="i-month" value="अक्टूबर, 2025" placeholder="माह और वर्ष" oninput="updatePayslip()">
-                
-                <div class="input-row">
-                    <div>
-                        <label>कर्मचारी कोड</label>
-                        <input type="text" id="i-code" value="6138" placeholder="कर्मचारी कोड" oninput="updatePayslip()">
-                    </div>
-                    <div>
-                        <label>पीएफ नंबर</label>
-                        <input type="text" id="i-pfno" placeholder="पीएफ नंबर" oninput="updatePayslip()">
-                    </div>
+        <!-- Left Panel: Input Form -->
+        <div class="input-panel">
+            <!-- Company Header Section -->
+            <div class="section-box" style="border-left-color: #9b59b6;">
+                <h3><i class="fas fa-building"></i> Company Details (Optional)</h3>
+                <div class="input-group">
+                    <label>Company Name</label>
+                    <input type="text" id="i-comp-name" placeholder="Example: U-MAN PRIVATE LIMITED" oninput="updatePayslip()">
                 </div>
-                
-                <div class="input-row">
-                    <div>
-                        <label>कर्मचारी का नाम</label>
-                        <input type="text" id="i-name" value="शिवश्री कुमार" placeholder="कर्मचारी का नाम" oninput="updatePayslip()">
-                    </div>
-                    <div>
-                        <label>पिता का नाम</label>
-                        <input type="text" id="i-fname" value="संतोष कुमार" placeholder="पिता का नाम" oninput="updatePayslip()">
-                    </div>
+                <div class="input-group">
+                    <label>Address / Subtitle</label>
+                    <input type="text" id="i-comp-details" placeholder="Example: Rajkot, Gujarat - 360001" oninput="updatePayslip()">
                 </div>
-                
-                <label>कार्यग्रहण तिथि (D.O.J.)</label>
-                <input type="date" id="i-doj" value="2025-05-15" oninput="updatePayslip()">
+                <p style="font-size: 12px; color: #7f8c8d; margin-top: 10px;">
+                    <i class="fas fa-info-circle"></i> Leave empty to hide header from payslip
+                </p>
             </div>
 
-            <!-- उपस्थिति और परिवर्तन -->
-            <div class="input-section" style="border-left-color: #9b59b6;">
-                <h3><i class="fas fa-calendar-alt"></i> उपस्थिति एवं परिवर्तन</h3>
-                <div class="input-row">
-                    <div>
-                        <label>कार्य दिवस</label>
-                        <input type="number" id="i-wday" value="23" placeholder="कार्य दिवस" oninput="updatePayslip()">
+            <!-- Employee Details -->
+            <div class="section-box" style="border-left-color: #3498db;">
+                <h3><i class="fas fa-user-tie"></i> Employee Details</h3>
+                <div class="row">
+                    <div class="col">
+                        <label>Month, Year</label>
+                        <input type="text" id="i-month" value="October, 2025" oninput="updatePayslip()">
                     </div>
-                    <div>
-                        <label>उपस्थिति दिवस</label>
-                        <input type="number" id="i-pday" value="16" placeholder="उपस्थिति दिवस" oninput="updatePayslip()">
-                    </div>
-                </div>
-                
-                <div class="input-row">
-                    <div>
-                        <label>परिवर्तन घंटे</label>
-                        <input type="number" id="i-var-hrs" value="72.4" placeholder="परिवर्तन घंटे" step="0.1" oninput="updatePayslip()">
-                    </div>
-                    <div>
-                        <label>दर (प्रति घंटा)</label>
-                        <input type="number" id="i-var-rate" value="105" placeholder="दर प्रति घंटा" oninput="updatePayslip()">
+                    <div class="col">
+                        <label>Employee Code</label>
+                        <input type="text" id="i-code" value="6138" oninput="updatePayslip()">
                     </div>
                 </div>
-                
-                <div class="calculation-box">
-                    गणना: <span id="lbl-calc-var">7,602.00</span> रुपये
-                    <br>
-                    <small>(परिवर्तन घंटे × दर)</small>
-                </div>
-            </div>
-
-            <!-- वित्तीय विवरण -->
-            <div class="input-section" style="border-left-color: #27ae60;">
-                <h3><i class="fas fa-rupee-sign"></i> वित्तीय विवरण</h3>
-                
-                <div class="input-row">
-                    <div>
-                        <label>मूल वेतन (संरचना)</label>
-                        <input type="number" id="i-bas-str" value="23541" placeholder="संरचना" oninput="updatePayslip()">
+                <div class="row">
+                    <div class="col">
+                        <label>Employee Name</label>
+                        <input type="text" id="i-name" value="Shivshree Kumar" oninput="updatePayslip()">
                     </div>
-                    <div>
-                        <label>मूल वेतन (देय)</label>
-                        <input type="number" id="i-bas-pay" value="16376.35" placeholder="देय" oninput="updatePayslip()">
+                    <div class="col">
+                        <label>Father's Name</label>
+                        <input type="text" id="i-fname" value="Santosh Kumar" oninput="updatePayslip()">
                     </div>
                 </div>
-                
-                <div class="input-row">
-                    <div>
-                        <label>भोजन भत्ता</label>
-                        <input type="number" id="i-food" value="3000" placeholder="भोजन भत्ता" oninput="updatePayslip()">
+                <div class="row">
+                    <div class="col">
+                        <label>PF Number (Optional)</label>
+                        <input type="text" id="i-pfno" placeholder="Enter PF Number" oninput="updatePayslip()">
                     </div>
-                    <div>
-                        <label>बस शुल्क (कटौती)</label>
-                        <input type="number" id="i-bus" value="750" placeholder="बस शुल्क" oninput="updatePayslip()">
-                    </div>
-                </div>
-                
-                <div class="input-row">
-                    <div>
-                        <label>पीएफ कटौती</label>
-                        <input type="number" id="i-pf" value="1965.16" placeholder="पीएफ कटौती" oninput="updatePayslip()">
-                    </div>
-                    <div>
-                        <label>ईएसआई कटौती</label>
-                        <input type="number" id="i-esi" value="0.00" placeholder="ईएसआई कटौती" oninput="updatePayslip()">
+                    <div class="col">
+                        <label>Date of Joining</label>
+                        <input type="date" id="i-doj" value="2025-05-15" oninput="updatePayslip()">
                     </div>
                 </div>
             </div>
 
-            <!-- डाउनलोड बटन -->
+            <!-- Attendance & Variable -->
+            <div class="section-box" style="border-left-color: #e74c3c;">
+                <h3><i class="fas fa-calendar-check"></i> Attendance & Variable</h3>
+                <div class="row">
+                    <div class="col">
+                        <label>Working Days</label>
+                        <input type="number" id="i-wday" value="23" min="0" max="31" oninput="updatePayslip()">
+                    </div>
+                    <div class="col">
+                        <label>Present Days</label>
+                        <input type="number" id="i-pday" value="16" min="0" max="31" oninput="updatePayslip()">
+                    </div>
+                </div>
+                <div class="row" style="background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px dashed #ddd;">
+                    <div class="col">
+                        <label>Variable Hours</label>
+                        <input type="number" id="i-var-hrs" value="72.4" step="0.1" oninput="updatePayslip()">
+                    </div>
+                    <div class="col">
+                        <label>Rate (Per Hour)</label>
+                        <input type="number" id="i-var-rate" value="105" oninput="updatePayslip()">
+                    </div>
+                </div>
+                <div class="calc-box">
+                    Variable Amount: <strong id="calc-var-amt">7,602.00</strong> Rupees
+                </div>
+            </div>
+
+            <!-- Financial Details -->
+            <div class="section-box" style="border-left-color: #27ae60;">
+                <h3><i class="fas fa-money-check-alt"></i> Financial Details</h3>
+                <div class="row">
+                    <div class="col">
+                        <label>Basic Salary (Structure)</label>
+                        <input type="number" id="i-bs" value="23541" oninput="updatePayslip()">
+                    </div>
+                    <div class="col">
+                        <label>Basic Salary (Payable)</label>
+                        <input type="number" id="i-bp" value="16376.35" oninput="updatePayslip()">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <label>Food Allowance</label>
+                        <input type="number" id="i-food" value="3000" oninput="updatePayslip()">
+                    </div>
+                    <div class="col">
+                        <label>Bus Fee</label>
+                        <input type="number" id="i-bus" value="750" oninput="updatePayslip()">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <label>PF Deduction</label>
+                        <input type="number" id="i-pf" value="1965.16" oninput="updatePayslip()">
+                    </div>
+                    <div class="col">
+                        <label>ESI Deduction</label>
+                        <input type="number" id="i-esi" value="0.00" oninput="updatePayslip()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Download Button -->
             <button class="btn btn-download" onclick="downloadPayslip()">
-                <i class="fas fa-download"></i> पेस्लिप डाउनलोड करें (PNG)
+                <i class="fas fa-download"></i> Download Payslip (PNG)
             </button>
             
             <div style="margin-top: 15px; font-size: 13px; color: #7f8c8d; text-align: center;">
-                <i class="fas fa-info-circle"></i> उच्च गुणवत्ता वाली PNG फाइल डाउनलोड होगी
+                <i class="fas fa-info-circle"></i> High-quality PNG file will be downloaded
             </div>
         </div>
 
-        <!-- प्रीव्यू सेक्शन -->
-        <div class="preview-container">
-            <div id="payslip-box">
-                <!-- वॉटरमार्क -->
-                <div class="watermark">Uda-Mandi</div>
+        <!-- Right Panel: Preview -->
+        <div class="preview-panel">
+            <div id="payslip-paper">
+                <!-- FIXED U-MAN WATERMARK -->
+                <div class="watermark">U-MAN</div>
 
-                <!-- पेस्लिप टेबल -->
-                <table class="exact-table">
-                    <tr>
-                        <th colspan="4" class="header-title">PAY SLIP (<span id="p-month">अक्टूबर, 2025</span>)</th>
-                    </tr>
+                <!-- Dynamic Company Header -->
+                <div class="company-header" id="comp-header-box">
+                    <div class="company-name" id="p-comp-name">COMPANY NAME</div>
+                    <div class="company-details" id="p-comp-details">Address Line 1</div>
+                </div>
+
+                <!-- Payslip Table -->
+                <table class="slip-table">
+                    <tr><th colspan="4" class="main-header">PAY SLIP (<span id="p-month">October, 2025</span>)</th></tr>
                     
                     <tr>
                         <td colspan="2">Emp Code: <span id="p-code">6138</span></td>
                         <td colspan="2">PF. No.: <span id="p-pfno"></span></td>
                     </tr>
-                    
                     <tr>
-                        <td colspan="2">Emp Name: <span id="p-name">शिवश्री कुमार</span></td>
+                        <td colspan="2">Emp Name: <span id="p-name">Shivshree Kumar</span></td>
                         <td colspan="2">E.S.I. No.:</td>
                     </tr>
-                    
                     <tr>
-                        <td colspan="2">F/H. Name: <span id="p-fname">संतोष कुमार</span></td>
+                        <td colspan="2">F/H. Name: <span id="p-fname">Santosh Kumar</span></td>
                         <td colspan="2">D.O.J.: <span id="p-doj">2025-05-15</span></td>
                     </tr>
 
-                    <tr class="section-header">
+                    <tr class="sub-header">
                         <td>Working Day</td>
                         <td>Present Day</td>
                         <td colspan="2">Monthly Variable</td>
                     </tr>
-
                     <tr>
                         <td class="text-center"><span id="p-wday">23</span></td>
                         <td class="text-center"><span id="p-pday">16</span></td>
                         <td colspan="2" class="text-center"><span id="p-var-hrs">72.4</span> Hr.</td>
                     </tr>
 
-                    <tr class="section-header">
+                    <tr class="sub-header">
                         <td>EARNINGS</td>
                         <td>STRUCTURE</td>
                         <td>PAYABLE</td>
@@ -557,40 +703,34 @@
 
                     <tr>
                         <td>Basic</td>
-                        <td class="text-right"><span id="p-bas-str">23,541.00</span></td>
-                        <td class="text-right"><span id="p-bas-pay">16,376.35</span></td>
+                        <td class="text-right"><span id="p-bs">23,541.00</span></td>
+                        <td class="text-right"><span id="p-bp">16,376.35</span></td>
                         <td><span class="text-bold">PF:</span> <span id="p-pf" class="blue-text">1,965.16</span></td>
                     </tr>
-
                     <tr>
                         <td>Monthly V.Allowance</td>
                         <td class="text-right"></td>
-                        <td class="text-right"><span id="p-mv-pay">7,602.00</span></td>
+                        <td class="text-right"><span id="p-mv">7,602.00</span></td>
                         <td><span class="text-bold">ESI:</span> <span id="p-esi" class="blue-text">0.00</span></td>
                     </tr>
-
                     <tr>
                         <td>Food Allowance</td>
                         <td class="text-right"></td>
                         <td class="text-right"><span id="p-food">3,000.0</span></td>
                         <td><span class="text-bold">Bus:</span> <span id="p-bus" class="blue-text">750</span></td>
                     </tr>
-
                     <tr>
                         <td class="text-bold">Total Rs.</td>
                         <td></td>
                         <td class="text-right text-bold"><span id="p-tot-earn">26,978.35</span></td>
                         <td class="text-right text-bold"><span id="p-tot-ded">2,715.16</span></td>
                     </tr>
-
-                    <tr class="net-row">
-                        <th colspan="4" class="text-center">
-                            Net Payable: Rs. <span id="p-net">24,263.19</span>
-                        </th>
+                    <tr>
+                        <th colspan="4" class="net-pay-row">Net Payable: Rs. <span id="p-net">24,263.19</span></th>
                     </tr>
                 </table>
-
-                <!-- फुटर नोट -->
+                
+                <!-- Footer Note -->
                 <div class="footer-note">
                     "This is a Computer generated statement and does not require authentication"
                 </div>
@@ -600,22 +740,36 @@
 </div>
 
 <script>
-    // --- प्रमाणीकरण जांच ---
+    // --- CONSTANTS AND VARIABLES ---
+    const ADMIN_EMAIL = "shivshreek@gmail.com";
+    const ADMIN_PASSWORD = "Shiv@2004.";
+
+    // --- AUTHENTICATION CHECK ---
     document.addEventListener('DOMContentLoaded', function() {
         const role = localStorage.getItem('role');
-        const currentUser = localStorage.getItem('currentUser');
         
         if (role === 'admin') {
-            document.querySelector('.admin-controls').style.display = 'inline-flex';
+            document.querySelector('.btn-admin').style.display = 'inline-flex';
         } else if (!role) {
             window.location.href = 'index.html';
         }
         
-        // प्रारंभिक अपडेट
+        // Initial Update
         updatePayslip();
+        
+        // Set current month as default
+        const now = new Date();
+        const monthNames = ["January", "February", "March", "April", "May", "June",
+                          "July", "August", "September", "October", "November", "December"];
+        const currentMonth = monthNames[now.getMonth()] + ", " + now.getFullYear();
+        
+        if (!document.getElementById('i-month').value) {
+            document.getElementById('i-month').value = currentMonth;
+            updatePayslip();
+        }
     });
 
-    // --- संख्या स्वरूपण सहायक ---
+    // --- NUMBER FORMATTING HELPER ---
     function formatIndianCurrency(num, decimals = 2) {
         if (isNaN(num)) num = 0;
         return num.toLocaleString('en-IN', {
@@ -624,9 +778,24 @@
         });
     }
 
-    // --- मुख्य अपडेट फ़ंक्शन ---
+    // --- MAIN UPDATE FUNCTION ---
     function updatePayslip() {
-        // 1. टेक्स्ट फील्ड अपडेट
+        // 1. COMPANY HEADER LOGIC (Smart Hide/Show)
+        const companyName = document.getElementById('i-comp-name').value.trim();
+        const companyDetails = document.getElementById('i-comp-details').value.trim();
+        const headerBox = document.getElementById('comp-header-box');
+        
+        if (companyName === "") {
+            // Hide company header if name is empty
+            headerBox.classList.remove('active');
+        } else {
+            // Show company header
+            headerBox.classList.add('active');
+            document.getElementById('p-comp-name').textContent = companyName;
+            document.getElementById('p-comp-details').textContent = companyDetails;
+        }
+
+        // 2. TEXT FIELDS UPDATE
         const textFields = [
             { input: 'i-month', output: 'p-month' },
             { input: 'i-code', output: 'p-code' },
@@ -647,52 +816,52 @@
             }
         });
         
-        // 2. गणना
-        // परिवर्तन गणना
+        // 3. CALCULATIONS
+        // Variable Calculation
         const varHours = parseFloat(document.getElementById('i-var-hrs').value) || 0;
         const varRate = parseFloat(document.getElementById('i-var-rate').value) || 0;
         const mvValue = varHours * varRate;
-        document.getElementById('lbl-calc-var').textContent = formatIndianCurrency(mvValue);
+        document.getElementById('calc-var-amt').textContent = formatIndianCurrency(mvValue);
         
-        // आय गणना
-        const basicStruct = parseFloat(document.getElementById('i-bas-str').value) || 0;
-        const basicPayable = parseFloat(document.getElementById('i-bas-pay').value) || 0;
+        // Earnings Calculation
+        const basicStruct = parseFloat(document.getElementById('i-bs').value) || 0;
+        const basicPayable = parseFloat(document.getElementById('i-bp').value) || 0;
         const foodAllowance = parseFloat(document.getElementById('i-food').value) || 0;
         
-        // कटौती गणना
+        // Deductions Calculation
         const pfDeduction = parseFloat(document.getElementById('i-pf').value) || 0;
         const esiDeduction = parseFloat(document.getElementById('i-esi').value) || 0;
-        const busDeduction = parseFloat(document.getElementById('i-bus').value) || 0;
+        const busFee = parseFloat(document.getElementById('i-bus').value) || 0;
         
-        // कुल गणना
+        // Totals Calculation
         const totalEarnings = basicPayable + mvValue + foodAllowance;
-        const totalDeductions = pfDeduction + esiDeduction + busDeduction;
+        const totalDeductions = pfDeduction + esiDeduction + busFee;
         const netPayable = totalEarnings - totalDeductions;
         
-        // 3. टेबल अपडेट
-        document.getElementById('p-bas-str').textContent = formatIndianCurrency(basicStruct);
-        document.getElementById('p-bas-pay').textContent = formatIndianCurrency(basicPayable);
-        document.getElementById('p-mv-pay').textContent = formatIndianCurrency(mvValue);
+        // 4. TABLE UPDATE
+        document.getElementById('p-bs').textContent = formatIndianCurrency(basicStruct);
+        document.getElementById('p-bp').textContent = formatIndianCurrency(basicPayable);
+        document.getElementById('p-mv').textContent = formatIndianCurrency(mvValue);
         document.getElementById('p-food').textContent = formatIndianCurrency(foodAllowance, 1);
         
         document.getElementById('p-pf').textContent = formatIndianCurrency(pfDeduction);
         document.getElementById('p-esi').textContent = formatIndianCurrency(esiDeduction);
-        document.getElementById('p-bus').textContent = busDeduction; // बस शुल्क में दशमलव नहीं
+        document.getElementById('p-bus').textContent = busFee; // Bus fee usually without decimals
         
         document.getElementById('p-tot-earn').textContent = formatIndianCurrency(totalEarnings);
         document.getElementById('p-tot-ded').textContent = formatIndianCurrency(totalDeductions);
         document.getElementById('p-net').textContent = formatIndianCurrency(netPayable);
     }
 
-    // --- डाउनलोड फ़ंक्शन ---
+    // --- DOWNLOAD FUNCTION ---
     function downloadPayslip() {
-        const payslipElement = document.getElementById("payslip-box");
+        const payslipElement = document.getElementById("payslip-paper");
         const loadingOverlay = document.getElementById("loadingOverlay");
         
-        // लोडिंग दिखाएं
+        // Show loading overlay
         loadingOverlay.classList.add('active');
         
-        // उच्च गुणवत्ता वाली छवि बनाएं
+        // Generate high-quality image
         html2canvas(payslipElement, { 
             scale: 4,
             backgroundColor: '#FFFFFF',
@@ -710,84 +879,73 @@
             link.href = canvas.toDataURL("image/png", 1.0);
             link.click();
             
-            // लोडिंग छिपाएं
+            // Hide loading overlay
             loadingOverlay.classList.remove('active');
             
-            // सफलता संदेश
-            showNotification('पेस्लिप सफलतापूर्वक डाउनलोड हो गई!', 'success');
+            // Show success message
+            showMessage('Payslip downloaded successfully!', 'success');
         }).catch(error => {
-            console.error('त्रुटि:', error);
+            console.error('Error:', error);
             loadingOverlay.classList.remove('active');
-            showNotification('डाउनलोड विफल। कृपया पुनः प्रयास करें।', 'error');
+            showMessage('Download failed. Please try again.', 'error');
         });
     }
 
-    // --- लॉगआउट फ़ंक्शन ---
+    // --- LOGOUT FUNCTION ---
     function logout() {
-        if (confirm('क्या आप लॉगआउट करना चाहते हैं?')) {
+        if (confirm('Are you sure you want to logout?')) {
             localStorage.removeItem('role');
             localStorage.removeItem('currentUser');
-            localStorage.removeItem('token');
+            localStorage.removeItem('auth_token');
             window.location.href = 'index.html';
         }
     }
 
-    // --- सूचना प्रदर्शित करें ---
-    function showNotification(message, type) {
-        const notification = document.createElement('div');
-        notification.style.cssText = `
-            position: fixed;
-            top: 30px;
-            right: 30px;
-            padding: 15px 25px;
-            background: ${type === 'success' ? '#27ae60' : '#e74c3c'};
-            color: white;
-            border-radius: 8px;
-            z-index: 10000;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            min-width: 300px;
-            animation: slideIn 0.3s ease-out;
-        `;
+    // --- SHOW MESSAGE ---
+    function showMessage(message, type) {
+        // Remove existing message
+        const existingMessage = document.querySelector('.message-box');
+        if (existingMessage) existingMessage.remove();
         
-        const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
-        notification.innerHTML = `
+        // Create new message
+        const messageBox = document.createElement('div');
+        messageBox.className = `message-box message-${type}`;
+        
+        const icon = type === 'success' ? 'fa-check-circle' : 'fa-times-circle';
+        
+        messageBox.innerHTML = `
             <i class="fas ${icon} fa-lg"></i>
-            <div>
-                <strong>${type === 'success' ? 'सफलता!' : 'त्रुटि!'}</strong><br>
-                <span style="font-size: 14px;">${message}</span>
+            <div style="flex: 1;">
+                <strong>${type === 'success' ? 'Success!' : 'Error!'}</strong><br>
+                <span style="font-size: 13px;">${message}</span>
             </div>
         `;
         
-        document.body.appendChild(notification);
+        document.body.appendChild(messageBox);
         
-        // स्वचालित रूप से हटाएं
+        // Remove after 4 seconds
         setTimeout(() => {
-            notification.style.animation = 'slideOut 0.3s ease-in';
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    document.body.removeChild(notification);
-                }
-            }, 300);
+            if (messageBox.parentNode) {
+                messageBox.remove();
+            }
         }, 4000);
     }
 
-    // एनिमेशन स्टाइल जोड़ें
-    const styleSheet = document.createElement('style');
-    styleSheet.textContent = `
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+    // Keyboard Shortcuts
+    document.addEventListener('keydown', function(event) {
+        // Ctrl+S to update
+        if (event.ctrlKey && event.key === 's') {
+            event.preventDefault();
+            updatePayslip();
+            showMessage('Payslip updated!', 'success');
         }
-        @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
+        
+        // Ctrl+D to download
+        if (event.ctrlKey && event.key === 'd') {
+            event.preventDefault();
+            downloadPayslip();
         }
-    `;
-    document.head.appendChild(styleSheet);
+    });
 </script>
 
 </body>
