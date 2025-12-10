@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2>Admin Panel</h2>
+        <button class="btn-danger" style="width:auto;" onclick="logout()">Logout</button>
+    </div>
+    <hr>
+
+    <div style="background: #fff3cd; padding: 15px; border: 1px solid #ffeeba; border-radius: 5px;">
+        <h3>🔔 Live Login Requests</h3>
+        <div id="request-area">
+            <p>No pending requests...</p>
+        </div>
+    </div>
+    <br>
+
+    <h3>System Users</h3>
+    <ul id="user-list"></ul>
+    
+    <div style="display:flex; gap:10px;">
+        <input type="text" id="new-user" placeholder="New User Name">
+        <button class="btn-login" style="width:auto;" onclick="addUser()">Create User</button>
+    </div>
+
+    <hr>
+    <button class="btn-secondary" onclick="window.location.href='user.html'">Open Payslip Generator (Self)</button>
+</div>
+
+<script>
+    // Security Check
+    if (localStorage.getItem('role') !== 'admin') window.location.href = 'index.html';
+
+    // 1. LIVE REQUEST CHECKER (Checks every 2 seconds)
+    setInterval(() => {
+        const req = JSON.parse(localStorage.getItem('login_request'));
+        const area = document.getElementById('request-area');
+
+        if (req && req.status === 'pending') {
+            area.innerHTML = `
+                <div class="approval-item">
+                    <span>
+                        <strong>User:</strong> ${req.user} <br>
+                        <span class="otp-display">OTP: ${req.otp}</span>
+                    </span>
+                    <div>
+                        <button class="btn-approve" onclick="approveLogin()">✅ Approve</button>
+                        <button class="btn-danger" style="font-size:12px; padding:5px;" onclick="rejectLogin()">❌ Reject</button>
+                    </div>
+                </div>
+            `;
+        } else {
+            area.innerHTML = `<p style="color:gray;">No pending requests...</p>`;
+        }
+    }, 1000);
+
+    function approveLogin() {
+        const req = JSON.parse(localStorage.getItem('login_request'));
+        if(req) {
+            req.status = 'approved';
+            localStorage.setItem('login_request', JSON.stringify(req));
+            alert(`User ${req.user} Logged in successfully!`);
+        }
+    }
+
+    function rejectLogin() {
+        localStorage.removeItem('login_request');
+    }
+
+    // --- User Management Logic (Same as before) ---
+    let users = JSON.parse(localStorage.getItem('users_db')) || ['Shivshree Kumar', 'Amit Singh'];
+    function renderUsers() {
+        const list = document.getElementById('user-list');
+        list.innerHTML = '';
+        users.forEach((u, i) => {
+            list.innerHTML += `<li>${u} <button style="color:red; background:none; border:none; cursor:pointer;" onclick="delUser(${i})">[x]</button></li>`;
+        });
+    }
+    function addUser() {
+        const name = document.getElementById('new-user').value;
+        if(name) { users.push(name); localStorage.setItem('users_db', JSON.stringify(users)); renderUsers(); document.getElementById('new-user').value=''; }
+    }
+    function delUser(i) { users.splice(i,1); localStorage.setItem('users_db', JSON.stringify(users)); renderUsers(); }
+    function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+    
+    renderUsers();
+</script>
+
+</body>
+</html>
