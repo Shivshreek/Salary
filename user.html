@@ -3,75 +3,284 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Dashboard</title>
+    <title>Payslip Generator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* --- PAYSLIP EXACT DESIGN CSS --- */
+        .payslip-container {
+            width: 750px; /* A4 Width approx */
+            background: white;
+            position: relative;
+            font-family: Arial, Helvetica, sans-serif;
+            color: black;
+            overflow: hidden; /* To keep watermark inside */
+            padding-bottom: 20px;
+        }
+
+        /* Watermark Design */
+        .watermark {
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 110px;
+            font-weight: 900;
+            color: rgba(96, 76, 168, 0.15); /* Purple tint like image */
+            z-index: 0;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        /* Table Styling */
+        table.slip-table {
+            width: 100%;
+            border-collapse: collapse;
+            z-index: 2;
+            position: relative;
+            background: transparent;
+        }
+
+        table.slip-table th, table.slip-table td {
+            border: 1px solid black;
+            padding: 5px 8px;
+            font-size: 13px;
+            vertical-align: middle;
+        }
+
+        /* Header Styles */
+        .main-header { font-weight: bold; text-align: center; font-size: 15px; }
+        .sub-header { background: #f0f0f0; font-weight: bold; text-align: left; }
+        
+        /* Specific Alignments */
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .text-bold { font-weight: bold; }
+        
+        /* Blue Text for Deductions */
+        .blue-val { color: #2e74b5; font-weight: 500; }
+        
+        /* Inputs Panel Styling */
+        .input-group { margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
+        .input-group h4 { margin: 5px 0; color: #444; }
+        .small-input { width: 45% !important; display: inline-block; }
+
+        /* Admin Button Hidden by Default */
+        .admin-controls { display: none; }
+    </style>
 </head>
 <body>
 
-<div class="container" style="max-width: 1000px;">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h2>Payslip Dashboard</h2>
+<div class="container" style="max-width: 1100px;">
+    <div class="header-flex">
+        <h2>Payslip Generator</h2>
         <div>
-             <span id="welcome-msg" style="font-weight:bold; margin-right:10px;"></span>
-             <button class="btn-danger" style="width:auto;" onclick="logout()">Logout</button>
+            <button class="btn-action admin-controls" onclick="window.location.href='admin.html'">⬅ Back to Dashboard</button>
+            <button class="btn-danger" style="width:auto;" onclick="logout()">Logout</button>
         </div>
     </div>
-    <hr>
     
     <div class="split-view">
+        
         <div class="form-section">
-            <h3>Enter Data</h3>
-            <label>Emp Name</label><input type="text" id="i-name" oninput="upd()">
-            <label>Emp Code</label><input type="text" id="i-code" value="6138" oninput="upd()">
-            <label>Basic Pay</label><input type="number" id="i-basic" value="16376" oninput="upd()">
-            <label>Allowances</label><input type="number" id="i-allow" value="7602" oninput="upd()">
-            <label>Deductions (PF)</label><input type="number" id="i-deduct" value="1965" oninput="upd()">
-            <button class="btn-login" onclick="downloadPng()">Download Payslip</button>
+            <h3 style="margin-top:0;">Enter Details</h3>
+            
+            <div class="input-group">
+                <input type="text" id="i-month" value="October, 2025" placeholder="Month Year" oninput="upd()">
+                <input type="text" id="i-code" value="6138" placeholder="Emp Code" class="small-input" oninput="upd()">
+                <input type="text" id="i-pfno" placeholder="PF No." class="small-input" oninput="upd()">
+                <input type="text" id="i-name" value="Shivshree Kumar" placeholder="Name" oninput="upd()">
+                <input type="text" id="i-fname" value="Santosh Kumar" placeholder="Father Name" oninput="upd()">
+                <input type="date" id="i-doj" value="2025-05-15" class="small-input" oninput="upd()">
+            </div>
+
+            <div class="input-group">
+                <h4>Attendance</h4>
+                <input type="number" id="i-wday" value="23" placeholder="Working Day" class="small-input" oninput="upd()">
+                <input type="number" id="i-pday" value="16" placeholder="Present Day" class="small-input" oninput="upd()">
+                <input type="text" id="i-var" value="72.4 Hr." placeholder="Monthly Var" oninput="upd()">
+            </div>
+
+            <div class="input-group">
+                <h4>Earnings (Structure vs Payable)</h4>
+                <label style="font-size:12px;">Basic:</label>
+                <input type="number" id="i-basic-str" value="23541" placeholder="Struct" class="small-input" oninput="upd()">
+                <input type="number" id="i-basic-pay" value="16376.35" placeholder="Payable" class="small-input" oninput="upd()">
+                
+                <label style="font-size:12px;">Monthly V.Allow:</label>
+                <input type="number" id="i-mv-pay" value="7602" placeholder="Payable Only" class="small-input" style="float:right;" oninput="upd()">
+                <br style="clear:both; margin-bottom:5px;">
+
+                <label style="font-size:12px;">Food Allow:</label>
+                <input type="number" id="i-food-pay" value="3000" placeholder="Payable Only" class="small-input" style="float:right;" oninput="upd()">
+            </div>
+
+            <div class="input-group">
+                <h4>Deductions</h4>
+                <label>PF Amount:</label> <input type="number" id="i-pf" value="1965.16" oninput="upd()">
+                <label>ESI Amount:</label> <input type="number" id="i-esi" value="0.00" oninput="upd()">
+                <label>Bus Fee:</label> <input type="number" id="i-bus" value="750" oninput="upd()">
+            </div>
+
+            <button class="btn-login" onclick="downloadPayslip()">⬇ Download PNG</button>
         </div>
 
-        <div class="preview-section">
-            <div id="payslip-box" style="border:2px solid black; padding:10px;">
-                <h3 style="text-align:center; border-bottom:1px solid black;">PAY SLIP</h3>
-                <p><strong>Name:</strong> <span id="p-name"></span></p>
-                <p><strong>Code:</strong> <span id="p-code"></span></p>
-                <table style="width:100%; border-collapse:collapse; border:1px solid black;">
-                    <tr><th>Earnings</th><th>Amount</th></tr>
-                    <tr><td>Basic</td><td id="p-basic"></td></tr>
-                    <tr><td>Allowances</td><td id="p-allow"></td></tr>
-                    <tr style="border-top:2px solid black;"><th>Net Pay</th><th id="p-net"></th></tr>
+        <div class="preview-section" style="background: #555; padding: 20px; overflow:auto;">
+            <div id="payslip-box" class="payslip-container">
+                
+                <div class="watermark">Uda-Mandi</div>
+
+                <table class="slip-table">
+                    <tr>
+                        <th colspan="4" class="main-header">PAY SLIP (<span id="p-month">October, 2025</span>)</th>
+                    </tr>
+                    
+                    <tr>
+                        <td colspan="2">Emp Code: <span id="p-code">6138</span></td>
+                        <td colspan="2">PF. No.: <span id="p-pfno"></span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td colspan="2">Emp Name: <span id="p-name">Shivshree Kumar</span></td>
+                        <td colspan="2">E.S.I. No.:</td>
+                    </tr>
+                    
+                    <tr>
+                        <td colspan="2">F/H. Name: <span id="p-fname">Santosh Kumar</span></td>
+                        <td colspan="2">D.O.J.: <span id="p-doj">2025-05-15</span></td>
+                    </tr>
+
+                    <tr>
+                        <td>Working Day</td>
+                        <td>Present Day</td>
+                        <td colspan="2">Monthly Variable</td>
+                    </tr>
+
+                    <tr>
+                        <td><span id="p-wday">23</span></td>
+                        <td><span id="p-pday">16</span></td>
+                        <td colspan="2"><span id="p-var">72.4 Hr.</span></td>
+                    </tr>
+
+                    <tr style="background: #eee;">
+                        <td>EARNINGS</td>
+                        <td>STRUCTURE</td>
+                        <td>PAYABLE</td>
+                        <td>DEDUCTIONS</td>
+                    </tr>
+
+                    <tr>
+                        <td>Basic</td>
+                        <td class="text-right"><span id="p-basic-str">23,541.00</span></td>
+                        <td class="text-right"><span id="p-basic-pay">16,376.35</span></td>
+                        <td><strong>PF:</strong> <span id="p-pf" class="blue-val">1,965.16</span></td>
+                    </tr>
+
+                    <tr>
+                        <td>Monthly V.Allowance</td>
+                        <td class="text-right"></td> <td class="text-right"><span id="p-mv-pay">7,602.00</span></td>
+                        <td><strong>ESI:</strong> <span id="p-esi" class="blue-val">0.00</span></td>
+                    </tr>
+
+                    <tr>
+                        <td>Food Allowance</td>
+                        <td class="text-right"></td> <td class="text-right"><span id="p-food-pay">3,000.0</span></td>
+                        <td><strong>Bus:</strong> <span id="p-bus" class="blue-val">750</span></td>
+                    </tr>
+
+                    <tr>
+                        <td>Total Rs.</td>
+                        <td></td>
+                        <td class="text-right"><span id="p-total-earn">26,978.35</span></td>
+                        <td><span id="p-total-deduct">2,715.16</span></td>
+                    </tr>
+
+                    <tr>
+                        <th colspan="4" class="text-center" style="font-size: 16px; padding: 10px;">
+                            Net Payable: Rs. <span id="p-net-pay">24,263.19</span>
+                        </th>
+                    </tr>
                 </table>
+
+                <div style="text-align: center; margin-top: 20px; font-size: 11px; font-style: italic;">
+                    "This is a Computer generated statement and does not require authentication"
+                </div>
+
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Setup
-    const currentUser = localStorage.getItem('currentUser') || 'Admin Mode';
-    document.getElementById('welcome-msg').innerText = "Welcome, " + currentUser;
-    document.getElementById('i-name').value = currentUser === 'Admin Mode' ? 'Shivshree Kumar' : currentUser;
+    // --- AUTH LOGIC ---
+    const role = localStorage.getItem('role');
+    const currentUser = localStorage.getItem('currentUser') || 'User';
 
-    function upd() {
-        const basic = Number(document.getElementById('i-basic').value);
-        const allow = Number(document.getElementById('i-allow').value);
-        const deduct = Number(document.getElementById('i-deduct').value);
-        
-        document.getElementById('p-name').innerText = document.getElementById('i-name').value;
-        document.getElementById('p-code').innerText = document.getElementById('i-code').value;
-        document.getElementById('p-basic').innerText = basic;
-        document.getElementById('p-allow').innerText = allow;
-        document.getElementById('p-net').innerText = (basic + allow - deduct).toFixed(2);
+    if (role === 'admin') {
+        document.querySelector('.admin-controls').style.display = 'block';
+    } else if (!role) {
+        window.location.href = 'index.html';
     }
-    
-    function downloadPng() {
-        html2canvas(document.getElementById('payslip-box')).then(canvas => {
-            const link = document.createElement('a'); link.download = 'slip.png'; link.href = canvas.toDataURL(); link.click();
+
+    // --- CALCULATION & UPDATE LOGIC ---
+    function upd() {
+        // 1. TEXT FIELDS UPDATE
+        const ids = ['i-month', 'i-code', 'i-pfno', 'i-name', 'i-fname', 'i-doj', 'i-wday', 'i-pday', 'i-var'];
+        const targets = ['p-month', 'p-code', 'p-pfno', 'p-name', 'p-fname', 'p-doj', 'p-wday', 'p-pday', 'p-var'];
+        
+        ids.forEach((id, index) => {
+            document.getElementById(targets[index]).innerText = document.getElementById(id).value;
+        });
+
+        // 2. FINANCIAL CALCULATION
+        // Get Values
+        let basicStr = parseFloat(document.getElementById('i-basic-str').value) || 0;
+        let basicPay = parseFloat(document.getElementById('i-basic-pay').value) || 0;
+        let mvPay = parseFloat(document.getElementById('i-mv-pay').value) || 0;
+        let foodPay = parseFloat(document.getElementById('i-food-pay').value) || 0;
+        
+        let pf = parseFloat(document.getElementById('i-pf').value) || 0;
+        let esi = parseFloat(document.getElementById('i-esi').value) || 0;
+        let bus = parseFloat(document.getElementById('i-bus').value) || 0;
+
+        // Calculate Totals
+        let totalEarn = basicPay + mvPay + foodPay;
+        let totalDeduct = pf + esi + bus;
+        let netPay = totalEarn - totalDeduct;
+
+        // Update DOM with formatting (commas)
+        document.getElementById('p-basic-str').innerText = basicStr.toLocaleString('en-IN', {minimumFractionDigits: 2});
+        document.getElementById('p-basic-pay').innerText = basicPay.toLocaleString('en-IN', {minimumFractionDigits: 2});
+        document.getElementById('p-mv-pay').innerText = mvPay.toLocaleString('en-IN', {minimumFractionDigits: 2});
+        document.getElementById('p-food-pay').innerText = foodPay.toLocaleString('en-IN', {minimumFractionDigits: 1});
+
+        document.getElementById('p-pf').innerText = pf.toLocaleString('en-IN', {minimumFractionDigits: 2});
+        document.getElementById('p-esi').innerText = esi.toFixed(2);
+        document.getElementById('p-bus').innerText = bus;
+
+        document.getElementById('p-total-earn').innerText = totalEarn.toLocaleString('en-IN', {minimumFractionDigits: 2});
+        document.getElementById('p-total-deduct').innerText = totalDeduct.toLocaleString('en-IN', {minimumFractionDigits: 2});
+        
+        // Net Pay Bold Update
+        document.getElementById('p-net-pay').innerText = netPay.toLocaleString('en-IN', {minimumFractionDigits: 2});
+    }
+
+    // --- DOWNLOAD FUNCTION ---
+    function downloadPayslip() {
+        const element = document.getElementById("payslip-box");
+        
+        html2canvas(element, { scale: 3 }).then(canvas => {
+            const link = document.createElement('a');
+            const name = document.getElementById('i-name').value;
+            link.download = `Payslip_${name}.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
         });
     }
 
-    function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+    // Run on load
     upd();
 </script>
+
 </body>
 </html>
