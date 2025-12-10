@@ -336,6 +336,7 @@
             font-family: Arial, Helvetica, sans-serif;
             color: #000;
             border: 1px solid #ddd;
+            overflow: hidden;
         }
 
         /* Dynamic Company Header */
@@ -372,22 +373,33 @@
             line-height: 1.4;
         }
 
-        /* U-MAN WATERMARK - Fixed Position */
+        /* U-MAN WATERMARK - HORIZONTAL POSITION */
         .watermark {
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) rotate(-30deg);
-            font-size: 120px;
+            transform: translate(-50%, -50%);
+            font-size: 140px;
             font-weight: 900;
-            color: rgba(100, 80, 180, 0.15);
+            color: rgba(100, 80, 180, 0.10);
             z-index: 0;
             pointer-events: none;
-            letter-spacing: 8px;
+            letter-spacing: 20px;
             white-space: nowrap;
             text-transform: uppercase;
             font-family: Arial, Helvetica, sans-serif;
-            opacity: 0.9;
+            opacity: 0.8;
+        }
+
+        /* Watermark Text Effect */
+        .watermark::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
         }
 
         /* Exact Table Design */
@@ -523,7 +535,8 @@
             }
             
             .watermark {
-                font-size: 90px;
+                font-size: 100px;
+                letter-spacing: 15px;
             }
         }
 
@@ -551,6 +564,7 @@
             
             .watermark {
                 font-size: 70px;
+                letter-spacing: 10px;
             }
         }
 
@@ -591,6 +605,14 @@
             background: linear-gradient(to right, #e74c3c, #c0392b);
             color: white;
             border-left: 5px solid #922b21;
+        }
+
+        /* Source Indicators */
+        .source-indicator {
+            font-size: 11px;
+            color: #666;
+            margin-top: 3px;
+            font-style: italic;
         }
     </style>
 </head>
@@ -643,17 +665,18 @@
                 </p>
             </div>
 
-            <!-- 12% Basic Toggle -->
+            <!-- 12% Basic Payable Toggle -->
             <div class="section-box" style="border-left-color: #e74c3c;">
                 <h3><i class="fas fa-percentage"></i> PF Calculation Settings</h3>
                 <div class="toggle-container">
                     <div>
-                        <div class="toggle-label">Consider 12% of Basic for PF</div>
+                        <div class="toggle-label">Calculate PF as 12% of Basic Payable</div>
                         <div id="pfCalcInfo" class="pf-info-box">
-                            <strong><i class="fas fa-calculator"></i> Calculation:</strong><br>
-                            PF = 12% of Basic (Structure)<br>
-                            Current Basic: <span id="currentBasic">23,541</span><br>
-                            12% PF Amount: <span id="calculatedPF">2,824.92</span>
+                            <strong><i class="fas fa-calculator"></i> Calculation (From Basic Payable):</strong><br>
+                            PF = 12% of Basic (Payable)<br>
+                            Current Basic Payable: <span id="currentBasicPayable">16,376.35</span><br>
+                            12% PF Amount: <span id="calculatedPF">1,965.16</span>
+                            <div class="source-indicator">*PF calculated from Basic Payable, not Structure</div>
                         </div>
                     </div>
                     <div style="display: flex; align-items: center;">
@@ -665,7 +688,7 @@
                     </div>
                 </div>
                 <p style="font-size: 12px; color: #7f8c8d; margin-top: 10px;">
-                    <i class="fas fa-info-circle"></i> When ON, PF will be calculated as 12% of Basic Salary (Structure)
+                    <i class="fas fa-info-circle"></i> When ON, PF will be calculated as 12% of Basic Salary (Payable)
                 </p>
             </div>
 
@@ -739,10 +762,12 @@
                     <div class="col">
                         <label>Basic Salary (Structure)</label>
                         <input type="number" id="i-bs" value="23541" oninput="updatePayslip()">
+                        <div class="source-indicator">For reference only</div>
                     </div>
                     <div class="col">
                         <label>Basic Salary (Payable)</label>
                         <input type="number" id="i-bp" value="16376.35" oninput="updatePayslip()">
+                        <div class="source-indicator">*12% PF calculated from this</div>
                     </div>
                 </div>
                 <div class="row">
@@ -759,6 +784,7 @@
                     <div class="col">
                         <label>PF Deduction</label>
                         <input type="number" id="i-pf" value="1965.16" oninput="updatePayslip()">
+                        <div class="source-indicator">Auto-calculated when toggle is ON</div>
                     </div>
                     <div class="col">
                         <label>ESI Deduction</label>
@@ -780,7 +806,7 @@
         <!-- Right Panel: Preview -->
         <div class="preview-panel">
             <div id="payslip-paper">
-                <!-- FIXED U-MAN WATERMARK -->
+                <!-- HORIZONTAL U-MAN WATERMARK -->
                 <div class="watermark">U-MAN</div>
 
                 <!-- Dynamic Company Header -->
@@ -971,20 +997,20 @@
         const basicPayable = parseFloat(document.getElementById('i-bp').value) || 0;
         const foodAllowance = parseFloat(document.getElementById('i-food').value) || 0;
         
-        // Deductions Calculation with 12% PF Logic
+        // Deductions Calculation with 12% PF Logic FROM BASIC PAYABLE
         let pfDeduction = parseFloat(document.getElementById('i-pf').value) || 0;
         const esiDeduction = parseFloat(document.getElementById('i-esi').value) || 0;
         const busFee = parseFloat(document.getElementById('i-bus').value) || 0;
         
-        // Update PF info box
-        document.getElementById('currentBasic').textContent = formatIndianCurrency(basicStruct, 0);
-        const calculatedPF = basicStruct * 0.12;
+        // Update PF info box (using Basic Payable)
+        document.getElementById('currentBasicPayable').textContent = formatIndianCurrency(basicPayable);
+        const calculatedPF = basicPayable * 0.12;
         document.getElementById('calculatedPF').textContent = formatIndianCurrency(calculatedPF);
         
-        // Apply 12% PF calculation if toggle is ON
+        // Apply 12% PF calculation FROM BASIC PAYABLE if toggle is ON
         if (isPF12Enabled) {
-            pfDeduction = calculatedPF;
-            document.getElementById('i-pf').value = calculatedPF.toFixed(2);
+            pfDeduction = Math.round(calculatedPF * 100) / 100; // Round to 2 decimals
+            document.getElementById('i-pf').value = pfDeduction.toFixed(2);
         }
         
         // Totals Calculation
@@ -1008,7 +1034,7 @@
         
         // Show notification if PF was auto-calculated
         if (isPF12Enabled) {
-            showMessage(`PF auto-calculated as 12% of Basic: ${formatIndianCurrency(pfDeduction)}`, 'success');
+            showMessage(`PF calculated as 12% of Basic Payable (${formatIndianCurrency(basicPayable)}) = ${formatIndianCurrency(pfDeduction)}`, 'success');
         }
     }
 
@@ -1032,7 +1058,7 @@
             const link = document.createElement('a');
             const employeeName = document.getElementById('i-name').value || 'Employee';
             const month = document.getElementById('i-month').value || 'Month';
-            const pfMode = isPF12Enabled ? '_12PF' : '';
+            const pfMode = isPF12Enabled ? '_12PF_Payable' : '';
             const fileName = `Payslip_${employeeName.replace(/\s+/g, '_')}_${month.replace(/\s+/g, '_')}${pfMode}.png`;
             
             link.download = fileName;
