@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container" style="max-width: 1000px;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2>Payslip Dashboard</h2>
+        <div>
+             <span id="welcome-msg" style="font-weight:bold; margin-right:10px;"></span>
+             <button class="btn-danger" style="width:auto;" onclick="logout()">Logout</button>
+        </div>
+    </div>
+    <hr>
+    
+    <div class="split-view">
+        <div class="form-section">
+            <h3>Enter Data</h3>
+            <label>Emp Name</label><input type="text" id="i-name" oninput="upd()">
+            <label>Emp Code</label><input type="text" id="i-code" value="6138" oninput="upd()">
+            <label>Basic Pay</label><input type="number" id="i-basic" value="16376" oninput="upd()">
+            <label>Allowances</label><input type="number" id="i-allow" value="7602" oninput="upd()">
+            <label>Deductions (PF)</label><input type="number" id="i-deduct" value="1965" oninput="upd()">
+            <button class="btn-login" onclick="downloadPng()">Download Payslip</button>
+        </div>
+
+        <div class="preview-section">
+            <div id="payslip-box" style="border:2px solid black; padding:10px;">
+                <h3 style="text-align:center; border-bottom:1px solid black;">PAY SLIP</h3>
+                <p><strong>Name:</strong> <span id="p-name"></span></p>
+                <p><strong>Code:</strong> <span id="p-code"></span></p>
+                <table style="width:100%; border-collapse:collapse; border:1px solid black;">
+                    <tr><th>Earnings</th><th>Amount</th></tr>
+                    <tr><td>Basic</td><td id="p-basic"></td></tr>
+                    <tr><td>Allowances</td><td id="p-allow"></td></tr>
+                    <tr style="border-top:2px solid black;"><th>Net Pay</th><th id="p-net"></th></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Setup
+    const currentUser = localStorage.getItem('currentUser') || 'Admin Mode';
+    document.getElementById('welcome-msg').innerText = "Welcome, " + currentUser;
+    document.getElementById('i-name').value = currentUser === 'Admin Mode' ? 'Shivshree Kumar' : currentUser;
+
+    function upd() {
+        const basic = Number(document.getElementById('i-basic').value);
+        const allow = Number(document.getElementById('i-allow').value);
+        const deduct = Number(document.getElementById('i-deduct').value);
+        
+        document.getElementById('p-name').innerText = document.getElementById('i-name').value;
+        document.getElementById('p-code').innerText = document.getElementById('i-code').value;
+        document.getElementById('p-basic').innerText = basic;
+        document.getElementById('p-allow').innerText = allow;
+        document.getElementById('p-net').innerText = (basic + allow - deduct).toFixed(2);
+    }
+    
+    function downloadPng() {
+        html2canvas(document.getElementById('payslip-box')).then(canvas => {
+            const link = document.createElement('a'); link.download = 'slip.png'; link.href = canvas.toDataURL(); link.click();
+        });
+    }
+
+    function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+    upd();
+</script>
+</body>
+</html>
