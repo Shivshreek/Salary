@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payslip Generator | Smart Payroll System</title>
+    <title>Smart Payslip Generator | Professional Payroll System</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -16,7 +16,7 @@
         }
 
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
             min-height: 100vh;
             padding: 20px;
             display: flex;
@@ -116,6 +116,15 @@
             margin-top: 25px;
         }
 
+        .btn-calculate {
+            background: linear-gradient(to right, #3498db, #2980b9);
+            color: white;
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            margin-top: 15px;
+        }
+
         /* --- MAIN CONTENT LAYOUT --- */
         .content-wrapper {
             display: flex;
@@ -138,13 +147,31 @@
         .preview-panel {
             flex: 1.6;
             min-width: 500px;
-            background: #555;
+            background: #f5f5f5;
             padding: 40px;
             display: flex;
             justify-content: center;
             align-items: flex-start;
             overflow-y: auto;
             max-height: calc(95vh - 80px);
+            position: relative;
+        }
+
+        /* GSPL Background Pattern */
+        .gspl-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(45deg, rgba(128, 0, 0, 0.03) 25%, transparent 25%),
+                linear-gradient(-45deg, rgba(128, 0, 0, 0.03) 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, rgba(128, 0, 0, 0.03) 75%),
+                linear-gradient(-45deg, transparent 75%, rgba(128, 0, 0, 0.03) 75%);
+            background-size: 40px 40px;
+            background-position: 0 0, 0 20px, 20px -20px, -20px 0px;
+            z-index: 0;
         }
 
         /* --- SECTION BOX DESIGN --- */
@@ -267,7 +294,8 @@
 
         input[type="text"],
         input[type="number"],
-        input[type="date"] {
+        input[type="date"],
+        select {
             width: 100%;
             padding: 12px 15px;
             border: 1.5px solid #ced4da;
@@ -279,7 +307,8 @@
 
         input[type="text"]:focus,
         input[type="number"]:focus,
-        input[type="date"]:focus {
+        input[type="date"]:focus,
+        select:focus {
             outline: none;
             border-color: #3498db;
             box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
@@ -405,6 +434,7 @@
             color: #000;
             border: 1px solid #ddd;
             overflow: hidden;
+            z-index: 1;
         }
 
         /* EXACT COMPANY HEADER - Top Section */
@@ -430,7 +460,7 @@
             font-size: 28px;
             font-weight: 900;
             text-transform: uppercase;
-            color: #404040; /* SOLID LIGHT GRAY - NO OPACITY */
+            color: #404040;
             letter-spacing: 1.5px;
             margin-bottom: 8px;
             text-shadow: 1px 1px 1px rgba(0,0,0,0.1);
@@ -456,37 +486,33 @@
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%) rotate(-45deg);
             font-size: 140px;
             font-weight: 900;
             z-index: 0;
             pointer-events: none;
-            letter-spacing: 20px;
+            letter-spacing: 25px;
             white-space: nowrap;
             text-transform: uppercase;
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: 'Arial Black', 'Arial', sans-serif;
+            opacity: 0.12;
+            animation: watermarkFloat 20s ease-in-out infinite alternate;
         }
 
-        /* U-MAN Watermark Style (Default) */
+        @keyframes watermarkFloat {
+            0% { opacity: 0.08; transform: translate(-50%, -50%) rotate(-45deg) translateY(0px); }
+            50% { opacity: 0.12; }
+            100% { opacity: 0.08; transform: translate(-50%, -50%) rotate(-45deg) translateY(-10px); }
+        }
+
+        /* U-MAN Watermark Style */
         .watermark.udamandi {
-            color: #d8d6e0; /* Light purple for Udamandi */
+            color: rgba(180, 160, 220, 0.12);
         }
 
-        /* GSPL Watermark Style (Maroon for Gautam Solar) */
+        /* GSPL Watermark Style */
         .watermark.gautam {
-            color: #800000; /* MAROON COLOR for GSPL */
-            letter-spacing: 25px; /* More spacing for GSPL */
-        }
-
-        /* Watermark Text Effect */
-        .watermark::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
+            color: rgba(180, 0, 0, 0.12);
         }
 
         /* Exact Table Design */
@@ -623,11 +649,7 @@
             
             .watermark {
                 font-size: 100px;
-                letter-spacing: 15px;
-            }
-            
-            .watermark.gautam {
-                letter-spacing: 18px;
+                letter-spacing: 20px;
             }
             
             .company-selector {
@@ -659,11 +681,7 @@
             
             .watermark {
                 font-size: 70px;
-                letter-spacing: 10px;
-            }
-            
-            .watermark.gautam {
-                letter-spacing: 12px;
+                letter-spacing: 15px;
             }
             
             .company-name-header {
@@ -717,6 +735,36 @@
             margin-top: 3px;
             font-style: italic;
         }
+
+        /* Auto-calculated fields */
+        .auto-calculated {
+            background-color: #f0f8ff !important;
+            border-color: #b3d9ff !important;
+            color: #0066cc !important;
+            font-weight: 600;
+        }
+
+        /* Formula Display */
+        .formula-display {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            margin-top: 10px;
+            font-size: 12px;
+            font-family: monospace;
+        }
+
+        .formula-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .formula-equation {
+            color: #e74c3c;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -735,7 +783,7 @@
     <div class="app-header">
         <div class="header-title">
             <i class="fas fa-file-invoice-dollar"></i>
-            <span>Payslip Generator | Smart Payroll System</span>
+            <span>Smart Payslip Generator | Professional Payroll System</span>
         </div>
         
         <div class="header-controls">
@@ -764,7 +812,7 @@
                     <div class="company-option" onclick="selectCompany('gautam')">
                         <i class="fas fa-solar-panel"></i>
                         <div class="company-name-select">Gautam Solar Private Limited</div>
-                        <div class="company-hint">Watermark: GSPL (Maroon Color)</div>
+                        <div class="company-hint">Watermark: GSPL (Maroon Pattern)</div>
                     </div>
                 </div>
                 
@@ -777,18 +825,18 @@
                 </div>
                 
                 <p style="font-size: 12px; color: #7f8c8d; margin-top: 10px;">
-                    <i class="fas fa-info-circle"></i> Watermark changes automatically based on selected company
+                    <i class="fas fa-info-circle"></i> GSPL के लिए मैरून पैटर्न बैकग्राउंड दिखेगा
                 </p>
             </div>
 
-            <!-- 12% Basic Payable Toggle -->
+            <!-- PF Calculation Settings -->
             <div class="section-box" style="border-left-color: #e74c3c;">
                 <h3><i class="fas fa-percentage"></i> PF Calculation Settings</h3>
                 <div class="toggle-container">
                     <div>
                         <div class="toggle-label">Calculate PF as 12% of Basic Payable</div>
                         <div id="pfCalcInfo" class="pf-info-box">
-                            <strong><i class="fas fa-calculator"></i> Calculation (From Basic Payable):</strong><br>
+                            <strong><i class="fas fa-calculator"></i> PF Calculation Formula:</strong><br>
                             PF = 12% of Basic (Payable)<br>
                             Current Basic Payable: <span id="currentBasicPayable">16,376.35</span><br>
                             12% PF Amount: <span id="calculatedPF">1,965.16</span>
@@ -803,9 +851,15 @@
                         </label>
                     </div>
                 </div>
-                <p style="font-size: 12px; color: #7f8c8d; margin-top: 10px;">
-                    <i class="fas fa-info-circle"></i> When ON, PF will be calculated as 12% of Basic Salary (Payable)
-                </p>
+                
+                <!-- Formula Display -->
+                <div class="formula-display">
+                    <div class="formula-title">Calculation Formulas:</div>
+                    <div>1. Basic Payable = (Basic Structure ÷ Working Days) × Present Days</div>
+                    <div>2. Variable Allowance = Variable Hours × Rate per Hour</div>
+                    <div>3. PF Deduction = Basic Payable × 12% (when toggle ON)</div>
+                    <div>4. Net Payable = Total Earnings - Total Deductions</div>
+                </div>
             </div>
 
             <!-- Employee Details -->
@@ -849,21 +903,23 @@
                 <div class="row">
                     <div class="col">
                         <label>Working Days</label>
-                        <input type="number" id="i-wday" value="23" min="0" max="31" oninput="calculatePayable()">
+                        <input type="number" id="i-wday" value="23" min="0" max="31" oninput="calculateAll()">
+                        <div class="source-indicator">Total working days in month</div>
                     </div>
                     <div class="col">
                         <label>Present Days</label>
-                        <input type="number" id="i-pday" value="16" min="0" max="31" oninput="calculatePayable()">
+                        <input type="number" id="i-pday" value="16" min="0" max="31" oninput="calculateAll()">
+                        <div class="source-indicator">Employee's present days</div>
                     </div>
                 </div>
                 <div class="row" style="background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px dashed #ddd;">
                     <div class="col">
                         <label>Variable Hours</label>
-                        <input type="number" id="i-var-hrs" value="72.4" step="0.1" oninput="updatePayslip()">
+                        <input type="number" id="i-var-hrs" value="72.4" step="0.1" oninput="calculateVariable()">
                     </div>
                     <div class="col">
                         <label>Rate (Per Hour)</label>
-                        <input type="number" id="i-var-rate" value="105" oninput="updatePayslip()">
+                        <input type="number" id="i-var-rate" value="105" oninput="calculateVariable()">
                     </div>
                 </div>
                 <div class="calc-box">
@@ -877,55 +933,69 @@
                 <div class="row">
                     <div class="col">
                         <label>Basic Salary (Structure)</label>
-                        <input type="number" id="i-bs" value="23541" oninput="calculatePayable()">
-                        <div class="source-indicator">Enter Basic Salary (Structure)</div>
+                        <input type="number" id="i-bs" value="23541" oninput="calculateBasicPayable()">
+                        <div class="source-indicator">Enter Basic Structure Salary</div>
                     </div>
                     <div class="col">
                         <label>Basic Salary (Payable)</label>
-                        <input type="number" id="i-bp" value="16376.35" readonly style="background-color: #f0f0f0;">
-                        <div class="source-indicator">Auto-calculated from Basic Structure</div>
+                        <input type="number" id="i-bp" value="16376.35" class="auto-calculated" readonly>
+                        <div class="source-indicator">Auto-calculated from structure</div>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col">
                         <label>Food Allowance</label>
                         <input type="number" id="i-food" value="3000" oninput="updatePayslip()">
+                        <div class="source-indicator">Monthly food allowance</div>
                     </div>
                     <div class="col">
                         <label>Bus Fee</label>
                         <input type="number" id="i-bus" value="750" oninput="updatePayslip()">
+                        <div class="source-indicator">Monthly transportation charge</div>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col">
                         <label>PF Deduction</label>
-                        <input type="number" id="i-pf" value="1965.16" readonly style="background-color: #f0f0f0;">
-                        <div class="source-indicator">Auto-calculated when toggle is ON</div>
+                        <input type="number" id="i-pf" value="1965.16" class="auto-calculated" readonly>
+                        <div class="source-indicator">Auto-calculated when PF toggle ON</div>
                     </div>
                     <div class="col">
                         <label>ESI Deduction</label>
                         <input type="number" id="i-esi" value="0.00" oninput="updatePayslip()">
+                        <div class="source-indicator">ESI deduction (if applicable)</div>
                     </div>
+                </div>
+                
+                <div class="calc-box">
+                    Net Payable: <strong id="calc-net-pay">24,263.19</strong> Rupees
                 </div>
             </div>
 
-            <!-- Download Button -->
+            <!-- Action Buttons -->
+            <button class="btn btn-calculate" onclick="calculateAll()">
+                <i class="fas fa-calculator"></i> Calculate All
+            </button>
+            
             <button class="btn btn-download" onclick="downloadPayslip()">
                 <i class="fas fa-download"></i> Download Payslip (PNG)
             </button>
             
             <div style="margin-top: 15px; font-size: 13px; color: #7f8c8d; text-align: center;">
-                <i class="fas fa-info-circle"></i> High-quality PNG file will be downloaded
+                <i class="fas fa-info-circle"></i> All calculations are automatic. Just enter Basic Structure and Present Days.
             </div>
         </div>
 
         <!-- Right Panel: Preview -->
         <div class="preview-panel">
+            <!-- GSPL Background Pattern -->
+            <div class="gspl-background" id="gsplBackground" style="display: none;"></div>
+            
             <div id="payslip-paper">
-                <!-- DYNAMIC WATERMARK - Changes based on company -->
+                <!-- DYNAMIC WATERMARK -->
                 <div class="watermark udamandi" id="dynamicWatermark">U-MAN</div>
 
-                <!-- EXACT COMPANY HEADER - Top Section -->
+                <!-- EXACT COMPANY HEADER -->
                 <div class="company-header" id="comp-header-box">
                     <div class="company-name-header" id="p-comp-name">COMPANY NAME</div>
                     <div class="company-details-header" id="p-comp-details">Company Address Details</div>
@@ -1040,19 +1110,19 @@
             window.location.href = 'index.html';
         }
         
-        // Initial Update
-        updatePayslip();
-        
         // Set current month as default
         const now = new Date();
         const monthNames = ["January", "February", "March", "April", "May", "June",
                           "July", "August", "September", "October", "November", "December"];
         const currentMonth = monthNames[now.getMonth()] + ", " + now.getFullYear();
         
-        if (!document.getElementById('i-month').value) {
-            document.getElementById('i-month').value = currentMonth;
-            updatePayslip();
-        }
+        document.getElementById('i-month').value = currentMonth;
+        
+        // Default select Udamandi
+        selectCompany('udamandi');
+        
+        // Calculate initial values
+        calculateAll();
     });
 
     // --- COMPANY SELECTION ---
@@ -1063,7 +1133,8 @@
         });
         
         // Add selected class to clicked option
-        event.currentTarget.classList.add('selected');
+        const target = event ? event.currentTarget : document.querySelector('.company-option:first-child');
+        target.classList.add('selected');
         
         // Set selected company
         selectedCompany = companyType;
@@ -1073,11 +1144,19 @@
         const name = document.getElementById('previewName');
         const address = document.getElementById('previewAddress');
         const watermarkPreview = document.getElementById('previewWatermark');
+        const gsplBackground = document.getElementById('gsplBackground');
         
         name.textContent = companyData[companyType].name;
         address.textContent = companyData[companyType].address;
         watermarkPreview.textContent = companyData[companyType].watermark.text;
         preview.style.display = 'block';
+        
+        // Show/hide GSPL background
+        if (companyType === 'gautam') {
+            gsplBackground.style.display = 'block';
+        } else {
+            gsplBackground.style.display = 'none';
+        }
         
         // Update watermark on payslip
         updateWatermark();
@@ -1086,7 +1165,9 @@
         updatePayslip();
         
         // Show notification
-        showMessage(`Company set to: ${companyData[companyType].name}`, 'success');
+        if (event) {
+            showMessage(`Company set to: ${companyData[companyType].name}`, 'success');
+        }
     }
 
     // --- UPDATE WATERMARK ---
@@ -1127,17 +1208,21 @@
             status.textContent = "ON";
             status.className = "toggle-status on";
             pfInfoBox.classList.add('active');
+            showMessage("PF calculation enabled: 12% of Basic Payable", 'success');
         } else {
             status.textContent = "OFF";
             status.className = "toggle-status off";
             pfInfoBox.classList.remove('active');
+            showMessage("PF calculation disabled", 'success');
         }
         
+        // Recalculate PF
+        calculatePF();
         updatePayslip();
     }
 
     // --- CALCULATE BASIC PAYABLE ---
-    function calculatePayable() {
+    function calculateBasicPayable() {
         const basicStruct = parseFloat(document.getElementById('i-bs').value) || 0;
         const workingDays = parseFloat(document.getElementById('i-wday').value) || 0;
         const presentDays = parseFloat(document.getElementById('i-pday').value) || 0;
@@ -1153,17 +1238,81 @@
         // Update Basic Payable field
         document.getElementById('i-bp').value = basicPayable.toFixed(2);
         
-        // Calculate PF if toggle is ON
-        if (isPF12Enabled) {
-            const pfDeduction = Math.round(basicPayable * 0.12 * 100) / 100;
-            document.getElementById('i-pf').value = pfDeduction.toFixed(2);
+        // Update PF info
+        document.getElementById('currentBasicPayable').textContent = formatIndianCurrency(basicPayable);
+        
+        return basicPayable;
+    }
+
+    // --- CALCULATE VARIABLE ALLOWANCE ---
+    function calculateVariable() {
+        const varHours = parseFloat(document.getElementById('i-var-hrs').value) || 0;
+        const varRate = parseFloat(document.getElementById('i-var-rate').value) || 0;
+        const mvValue = varHours * varRate;
+        
+        // Update display
+        document.getElementById('calc-var-amt').textContent = formatIndianCurrency(mvValue);
+        
+        return mvValue;
+    }
+
+    // --- CALCULATE PF DEDUCTION ---
+    function calculatePF() {
+        const basicPayable = parseFloat(document.getElementById('i-bp').value) || 0;
+        let pfDeduction = 0;
+        
+        if (isPF12Enabled && basicPayable > 0) {
+            pfDeduction = Math.round(basicPayable * 0.12 * 100) / 100;
+            document.getElementById('calculatedPF').textContent = formatIndianCurrency(pfDeduction);
         }
         
-        // Update the payslip
+        // Update PF field
+        document.getElementById('i-pf').value = pfDeduction.toFixed(2);
+        
+        return pfDeduction;
+    }
+
+    // --- CALCULATE NET PAYABLE ---
+    function calculateNetPayable() {
+        const basicPayable = parseFloat(document.getElementById('i-bp').value) || 0;
+        const mvValue = calculateVariable();
+        const foodAllowance = parseFloat(document.getElementById('i-food').value) || 0;
+        const pfDeduction = parseFloat(document.getElementById('i-pf').value) || 0;
+        const esiDeduction = parseFloat(document.getElementById('i-esi').value) || 0;
+        const busFee = parseFloat(document.getElementById('i-bus').value) || 0;
+        
+        // Totals Calculation
+        const totalEarnings = basicPayable + mvValue + foodAllowance;
+        const totalDeductions = pfDeduction + esiDeduction + busFee;
+        const netPayable = totalEarnings - totalDeductions;
+        
+        // Update net pay display
+        document.getElementById('calc-net-pay').textContent = formatIndianCurrency(netPayable);
+        
+        return {totalEarnings, totalDeductions, netPayable};
+    }
+
+    // --- CALCULATE ALL ---
+    function calculateAll() {
+        // Calculate Basic Payable
+        calculateBasicPayable();
+        
+        // Calculate Variable
+        calculateVariable();
+        
+        // Calculate PF
+        calculatePF();
+        
+        // Calculate Net Payable
+        const totals = calculateNetPayable();
+        
+        // Update payslip
         updatePayslip();
         
-        // Show calculation message
-        showMessage(`Basic Payable calculated: ${basicStruct} / ${workingDays} × ${presentDays} = ${basicPayable.toFixed(2)}`, 'success');
+        // Show success message
+        showMessage("All calculations updated successfully!", 'success');
+        
+        return totals;
     }
 
     // --- NUMBER FORMATTING HELPER ---
@@ -1214,40 +1363,21 @@
             }
         });
         
-        // 4. CALCULATIONS
-        // Variable Calculation
-        const varHours = parseFloat(document.getElementById('i-var-hrs').value) || 0;
-        const varRate = parseFloat(document.getElementById('i-var-rate').value) || 0;
-        const mvValue = varHours * varRate;
-        document.getElementById('calc-var-amt').textContent = formatIndianCurrency(mvValue);
-        
-        // Earnings Calculation
+        // 4. GET CURRENT VALUES
         const basicStruct = parseFloat(document.getElementById('i-bs').value) || 0;
         const basicPayable = parseFloat(document.getElementById('i-bp').value) || 0;
+        const mvValue = calculateVariable();
         const foodAllowance = parseFloat(document.getElementById('i-food').value) || 0;
-        
-        // Deductions Calculation with 12% PF Logic FROM BASIC PAYABLE
-        let pfDeduction = parseFloat(document.getElementById('i-pf').value) || 0;
+        const pfDeduction = parseFloat(document.getElementById('i-pf').value) || 0;
         const esiDeduction = parseFloat(document.getElementById('i-esi').value) || 0;
         const busFee = parseFloat(document.getElementById('i-bus').value) || 0;
         
-        // Update PF info box (using Basic Payable)
-        document.getElementById('currentBasicPayable').textContent = formatIndianCurrency(basicPayable);
-        const calculatedPF = basicPayable * 0.12;
-        document.getElementById('calculatedPF').textContent = formatIndianCurrency(calculatedPF);
-        
-        // Apply 12% PF calculation FROM BASIC PAYABLE if toggle is ON
-        if (isPF12Enabled) {
-            pfDeduction = Math.round(calculatedPF * 100) / 100; // Round to 2 decimals
-            document.getElementById('i-pf').value = pfDeduction.toFixed(2);
-        }
-        
-        // Totals Calculation
+        // 5. CALCULATE TOTALS
         const totalEarnings = basicPayable + mvValue + foodAllowance;
         const totalDeductions = pfDeduction + esiDeduction + busFee;
         const netPayable = totalEarnings - totalDeductions;
         
-        // 5. TABLE UPDATE
+        // 6. TABLE UPDATE
         document.getElementById('p-bs').textContent = formatIndianCurrency(basicStruct);
         document.getElementById('p-bp').textContent = formatIndianCurrency(basicPayable);
         document.getElementById('p-mv').textContent = formatIndianCurrency(mvValue);
@@ -1255,16 +1385,11 @@
         
         document.getElementById('p-pf').textContent = formatIndianCurrency(pfDeduction);
         document.getElementById('p-esi').textContent = formatIndianCurrency(esiDeduction);
-        document.getElementById('p-bus').textContent = busFee; // Bus fee usually without decimals
+        document.getElementById('p-bus').textContent = busFee;
         
         document.getElementById('p-tot-earn').textContent = formatIndianCurrency(totalEarnings);
         document.getElementById('p-tot-ded').textContent = formatIndianCurrency(totalDeductions);
         document.getElementById('p-net').textContent = formatIndianCurrency(netPayable);
-        
-        // Show notification if PF was auto-calculated
-        if (isPF12Enabled) {
-            showMessage(`PF calculated as 12% of Basic Payable (${formatIndianCurrency(basicPayable)}) = ${formatIndianCurrency(pfDeduction)}`, 'success');
-        }
     }
 
     // --- DOWNLOAD FUNCTION ---
@@ -1356,8 +1481,7 @@
         // Ctrl+S to update
         if (event.ctrlKey && event.key === 's') {
             event.preventDefault();
-            updatePayslip();
-            showMessage('Payslip updated!', 'success');
+            calculateAll();
         }
         
         // Ctrl+D to download
@@ -1372,10 +1496,10 @@
             document.getElementById('pf12Toggle').click();
         }
         
-        // Ctrl+C to calculate payable
+        // Ctrl+C to calculate
         if (event.ctrlKey && event.key === 'c') {
             event.preventDefault();
-            calculatePayable();
+            calculateAll();
         }
         
         // 1 for Udamandi, 2 for Gautam
