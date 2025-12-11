@@ -849,11 +849,11 @@
                 <div class="row">
                     <div class="col">
                         <label>Working Days</label>
-                        <input type="number" id="i-wday" value="23" min="0" max="31" oninput="updatePayslip()">
+                        <input type="number" id="i-wday" value="23" min="0" max="31" oninput="calculatePayable()">
                     </div>
                     <div class="col">
                         <label>Present Days</label>
-                        <input type="number" id="i-pday" value="16" min="0" max="31" oninput="updatePayslip()">
+                        <input type="number" id="i-pday" value="16" min="0" max="31" oninput="calculatePayable()">
                     </div>
                 </div>
                 <div class="row" style="background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px dashed #ddd;">
@@ -877,13 +877,13 @@
                 <div class="row">
                     <div class="col">
                         <label>Basic Salary (Structure)</label>
-                        <input type="number" id="i-bs" value="23541" oninput="updatePayslip()">
-                        <div class="source-indicator">For reference only</div>
+                        <input type="number" id="i-bs" value="23541" oninput="calculatePayable()">
+                        <div class="source-indicator">Enter Basic Salary (Structure)</div>
                     </div>
                     <div class="col">
                         <label>Basic Salary (Payable)</label>
-                        <input type="number" id="i-bp" value="16376.35" oninput="updatePayslip()">
-                        <div class="source-indicator">*12% PF calculated from this</div>
+                        <input type="number" id="i-bp" value="16376.35" readonly style="background-color: #f0f0f0;">
+                        <div class="source-indicator">Auto-calculated from Basic Structure</div>
                     </div>
                 </div>
                 <div class="row">
@@ -899,7 +899,7 @@
                 <div class="row">
                     <div class="col">
                         <label>PF Deduction</label>
-                        <input type="number" id="i-pf" value="1965.16" oninput="updatePayslip()">
+                        <input type="number" id="i-pf" value="1965.16" readonly style="background-color: #f0f0f0;">
                         <div class="source-indicator">Auto-calculated when toggle is ON</div>
                     </div>
                     <div class="col">
@@ -1136,6 +1136,36 @@
         updatePayslip();
     }
 
+    // --- CALCULATE BASIC PAYABLE ---
+    function calculatePayable() {
+        const basicStruct = parseFloat(document.getElementById('i-bs').value) || 0;
+        const workingDays = parseFloat(document.getElementById('i-wday').value) || 0;
+        const presentDays = parseFloat(document.getElementById('i-pday').value) || 0;
+        
+        // Calculate Basic Payable: (Basic Structure / Working Days) * Present Days
+        let basicPayable = 0;
+        if (workingDays > 0 && presentDays > 0) {
+            basicPayable = (basicStruct / workingDays) * presentDays;
+            // Round to 2 decimal places
+            basicPayable = Math.round(basicPayable * 100) / 100;
+        }
+        
+        // Update Basic Payable field
+        document.getElementById('i-bp').value = basicPayable.toFixed(2);
+        
+        // Calculate PF if toggle is ON
+        if (isPF12Enabled) {
+            const pfDeduction = Math.round(basicPayable * 0.12 * 100) / 100;
+            document.getElementById('i-pf').value = pfDeduction.toFixed(2);
+        }
+        
+        // Update the payslip
+        updatePayslip();
+        
+        // Show calculation message
+        showMessage(`Basic Payable calculated: ${basicStruct} / ${workingDays} × ${presentDays} = ${basicPayable.toFixed(2)}`, 'success');
+    }
+
     // --- NUMBER FORMATTING HELPER ---
     function formatIndianCurrency(num, decimals = 2) {
         if (isNaN(num)) num = 0;
@@ -1340,6 +1370,12 @@
         if (event.ctrlKey && event.key === 'p') {
             event.preventDefault();
             document.getElementById('pf12Toggle').click();
+        }
+        
+        // Ctrl+C to calculate payable
+        if (event.ctrlKey && event.key === 'c') {
+            event.preventDefault();
+            calculatePayable();
         }
         
         // 1 for Udamandi, 2 for Gautam
