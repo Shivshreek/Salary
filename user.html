@@ -8,422 +8,80 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* --- GLOBAL THEME AND RESET --- */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', 'Arial', sans-serif;
-        }
-
-        body {
-            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
-            min-height: 100vh;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', 'Arial', sans-serif; }
+        body { background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); min-height: 100vh; padding: 20px; display: flex; justify-content: center; align-items: center; }
 
         /* --- MAIN CONTAINER --- */
-        .main-container {
-            width: 100%;
-            max-width: 1400px;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            height: 95vh;
-        }
+        .main-container { width: 100%; max-width: 1400px; background: white; border-radius: 15px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35); overflow: hidden; display: flex; flex-direction: column; height: 95vh; }
 
         /* --- HEADER STYLE --- */
-        .app-header {
-            background: linear-gradient(90deg, #2c3e50, #34495e);
-            padding: 18px 35px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 5px solid #3498db;
-            position: relative;
-        }
-
-        .app-header::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: linear-gradient(90deg, #3498db, #9b59b6, #2ecc71);
-        }
-
-        .header-title {
-            font-size: 24px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .header-title i {
-            color: #f39c12;
-            font-size: 28px;
-        }
-
-        .header-controls {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
+        .app-header { background: linear-gradient(90deg, #2c3e50, #34495e); padding: 18px 35px; color: white; display: flex; justify-content: space-between; align-items: center; border-bottom: 5px solid #3498db; position: relative; }
+        .app-header::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, #3498db, #9b59b6, #2ecc71); }
+        .header-title { font-size: 24px; font-weight: 700; display: flex; align-items: center; gap: 15px; }
+        .header-title i { color: #f39c12; font-size: 28px; }
+        .header-controls { display: flex; gap: 12px; align-items: center; }
 
         /* --- BUTTON STYLES --- */
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-        }
-
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .btn-admin {
-            background: linear-gradient(to right, #f39c12, #e67e22);
-            color: white;
-        }
-
-        .btn-logout {
-            background: linear-gradient(to right, #e74c3c, #c0392b);
-            color: white;
-        }
-
-        .btn-download {
-            background: linear-gradient(to right, #27ae60, #219653);
-            color: white;
-            width: 100%;
-            padding: 15px;
-            font-size: 16px;
-            margin-top: 25px;
-        }
-
-        .btn-calculate {
-            background: linear-gradient(to right, #3498db, #2980b9);
-            color: white;
-            width: 100%;
-            padding: 15px;
-            font-size: 16px;
-            margin-top: 15px;
-        }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); }
+        .btn-admin { background: linear-gradient(to right, #f39c12, #e67e22); color: white; }
+        .btn-logout { background: linear-gradient(to right, #e74c3c, #c0392b); color: white; }
+        .btn-download { background: linear-gradient(to right, #27ae60, #219653); color: white; width: 100%; padding: 15px; font-size: 16px; margin-top: 25px; }
+        .btn-calculate { background: linear-gradient(to right, #3498db, #2980b9); color: white; width: 100%; padding: 15px; font-size: 16px; margin-top: 15px; }
 
         /* --- MAIN CONTENT LAYOUT --- */
-        .content-wrapper {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
-
-        /* Left Panel: Input Form */
-        .input-panel {
-            flex: 1;
-            min-width: 400px;
-            background: #f8f9fa;
-            padding: 30px;
-            border-right: 1px solid #dee2e6;
-            overflow-y: auto;
-            max-height: calc(95vh - 80px);
-        }
-
-        /* Right Panel: Preview */
-        .preview-panel {
-            flex: 1.6;
-            min-width: 500px;
-            background: #f5f5f5;
-            padding: 40px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            overflow-y: auto;
-            max-height: calc(95vh - 80px);
-            position: relative;
-        }
+        .content-wrapper { display: flex; flex: 1; overflow: hidden; }
+        .input-panel { flex: 1; min-width: 400px; background: #f8f9fa; padding: 30px; border-right: 1px solid #dee2e6; overflow-y: auto; max-height: calc(95vh - 80px); }
+        .preview-panel { flex: 1.6; min-width: 500px; background: #f5f5f5; padding: 40px; display: flex; justify-content: center; align-items: flex-start; overflow-y: auto; max-height: calc(95vh - 80px); position: relative; }
 
         /* GSPL Background Pattern */
-        .gspl-background {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                linear-gradient(45deg, rgba(128, 0, 0, 0.03) 25%, transparent 25%),
-                linear-gradient(-45deg, rgba(128, 0, 0, 0.03) 25%, transparent 25%),
-                linear-gradient(45deg, transparent 75%, rgba(128, 0, 0, 0.03) 75%),
-                linear-gradient(-45deg, transparent 75%, rgba(128, 0, 0, 0.03) 75%);
-            background-size: 40px 40px;
-            background-position: 0 0, 0 20px, 20px -20px, -20px 0px;
-            z-index: 0;
-        }
+        .gspl-background { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(45deg, rgba(128, 0, 0, 0.03) 25%, transparent 25%), linear-gradient(-45deg, rgba(128, 0, 0, 0.03) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, rgba(128, 0, 0, 0.03) 75%), linear-gradient(-45deg, transparent 75%, rgba(128, 0, 0, 0.03) 75%); background-size: 40px 40px; background-position: 0 0, 0 20px, 20px -20px, -20px 0px; z-index: 0; }
 
         /* --- SECTION BOX DESIGN --- */
-        .section-box {
-            background: white;
-            padding: 22px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            margin-bottom: 25px;
-            border-left: 5px solid #3498db;
-            transition: transform 0.3s ease;
-        }
-
-        .section-box:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        }
-
-        .section-box h3 {
-            font-size: 16px;
-            color: #2c3e50;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        .section-box { background: white; padding: 22px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); margin-bottom: 25px; border-left: 5px solid #3498db; transition: transform 0.3s ease; }
+        .section-box:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); }
+        .section-box h3 { font-size: 16px; color: #2c3e50; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 10px; }
 
         /* Company Selection */
-        .company-selector {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
+        .company-selector { display: flex; gap: 15px; margin-bottom: 20px; }
+        .company-option { flex: 1; padding: 15px; border: 2px solid #e9ecef; border-radius: 8px; background: white; cursor: pointer; transition: all 0.3s ease; text-align: center; }
+        .company-option:hover { border-color: #3498db; background: #f8f9fa; }
+        .company-option.selected { border-color: #27ae60; background: #d4edda; box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1); }
+        .company-option i { font-size: 24px; margin-bottom: 10px; color: #3498db; }
+        .company-name-select { font-weight: 600; color: #2c3e50; margin-bottom: 5px; }
+        .company-hint { font-size: 11px; color: #7f8c8d; margin-top: 5px; }
+        .company-preview { background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db; margin-top: 15px; font-size: 13px; }
+        .company-preview-name { font-weight: 600; color: #2c3e50; margin-bottom: 5px; }
+        .company-preview-address { color: #666; line-height: 1.4; }
 
-        .company-option {
-            flex: 1;
-            padding: 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
+        /* Inputs */
+        .row { display: flex; gap: 15px; margin-bottom: 15px; }
+        .col { flex: 1; }
+        label { display: block; font-size: 13px; font-weight: 600; color: #34495e; margin-bottom: 6px; }
+        input[type="text"], input[type="number"], input[type="date"], select { width: 100%; padding: 12px 15px; border: 1.5px solid #ced4da; border-radius: 8px; font-size: 14px; transition: all 0.3s ease; background: #fdfdfd; }
+        input[type="text"]:focus, input[type="number"]:focus, input[type="date"]:focus, select:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2); background: white; }
 
-        .company-option:hover {
-            border-color: #3498db;
-            background: #f8f9fa;
-        }
+        /* Toggle */
+        .toggle-container { display: flex; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #e9ecef; }
+        .toggle-label { font-size: 14px; font-weight: 600; color: #2c3e50; }
+        .toggle-switch { position: relative; display: inline-block; width: 60px; height: 30px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .toggle-slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .toggle-slider { background-color: #27ae60; }
+        input:checked + .toggle-slider:before { transform: translateX(30px); }
+        .toggle-status { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 4px; margin-left: 10px; }
+        .toggle-status.on { background: #d4edda; color: #155724; }
+        .toggle-status.off { background: #f8d7da; color: #721c24; }
+        
+        /* Calc Box */
+        .calc-box { background: linear-gradient(135deg, #e8f4fc, #f0f8ff); padding: 12px 15px; border-radius: 8px; border: 1px dashed #3498db; text-align: right; font-size: 13px; margin-top: 10px; }
+        .pf-info-box { background: linear-gradient(135deg, #fff3cd, #ffeaa7); padding: 12px 15px; border-radius: 8px; border: 1px solid #f39c12; font-size: 12px; margin-top: 10px; display: none; }
+        .pf-info-box.active { display: block; animation: fadeIn 0.5s ease; }
+        .auto-calculated { background-color: #f0f8ff !important; border-color: #b3d9ff !important; color: #0066cc !important; font-weight: 600; }
+        .source-indicator { font-size: 11px; color: #666; margin-top: 3px; font-style: italic; }
 
-        .company-option.selected {
-            border-color: #27ae60;
-            background: #d4edda;
-            box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
-        }
-
-        .company-option i {
-            font-size: 24px;
-            margin-bottom: 10px;
-            color: #3498db;
-        }
-
-        .company-name-select {
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 5px;
-        }
-
-        .company-hint {
-            font-size: 11px;
-            color: #7f8c8d;
-            margin-top: 5px;
-        }
-
-        /* Company Details Display */
-        .company-preview {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #3498db;
-            margin-top: 15px;
-            font-size: 13px;
-        }
-
-        .company-preview-name {
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 5px;
-        }
-
-        .company-preview-address {
-            color: #666;
-            line-height: 1.4;
-        }
-
-        /* Input Group Design */
-        .input-group {
-            margin-bottom: 20px;
-        }
-
-        .row {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .col {
-            flex: 1;
-        }
-
-        label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            color: #34495e;
-            margin-bottom: 6px;
-        }
-
-        input[type="text"],
-        input[type="number"],
-        input[type="date"],
-        select {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1.5px solid #ced4da;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            background: #fdfdfd;
-        }
-
-        input[type="text"]:focus,
-        input[type="number"]:focus,
-        input[type="date"]:focus,
-        select:focus {
-            outline: none;
-            border-color: #3498db;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-            background: white;
-        }
-
-        /* Toggle Switch for 12% Basic */
-        .toggle-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            border: 1px solid #e9ecef;
-        }
-
-        .toggle-label {
-            font-size: 14px;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 30px;
-        }
-
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
-        }
-
-        .toggle-slider:before {
-            position: absolute;
-            content: "";
-            height: 22px;
-            width: 22px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked + .toggle-slider {
-            background-color: #27ae60;
-        }
-
-        input:checked + .toggle-slider:before {
-            transform: translateX(30px);
-        }
-
-        .toggle-status {
-            font-size: 12px;
-            font-weight: 600;
-            padding: 4px 10px;
-            border-radius: 4px;
-            margin-left: 10px;
-        }
-
-        .toggle-status.on {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .toggle-status.off {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        /* Calculation Box */
-        .calc-box {
-            background: linear-gradient(135deg, #e8f4fc, #f0f8ff);
-            padding: 12px 15px;
-            border-radius: 8px;
-            border: 1px dashed #3498db;
-            text-align: right;
-            font-size: 13px;
-            margin-top: 10px;
-        }
-
-        /* PF Calculation Info */
-        .pf-info-box {
-            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
-            padding: 12px 15px;
-            border-radius: 8px;
-            border: 1px solid #f39c12;
-            font-size: 12px;
-            margin-top: 10px;
-            display: none;
-        }
-
-        .pf-info-box.active {
-            display: block;
-            animation: fadeIn 0.5s ease;
-        }
-
-        /* --- PAYSLIP DESIGN (EXACT REPLICA) --- */
+        /* --- PAYSLIP DESIGN (FIXED FOR WATERMARK) --- */
         #payslip-paper {
             width: 750px;
             background: white;
@@ -435,360 +93,80 @@
             border: 1px solid #ddd;
             overflow: hidden;
             z-index: 1;
-            text-rendering: optimizeLegibility; /* Sharper text */
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
 
-        /* EXACT COMPANY HEADER - Top Section */
-        .company-header {
-            text-align: center;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #000;
-            display: none;
-            position: relative;
-            z-index: 2;
-        }
-
-        .company-header.active {
-            display: block;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .company-name-header {
-            font-size: 28px;
-            font-weight: 900;
-            text-transform: uppercase;
-            color: #404040;
-            letter-spacing: 1.5px;
-            margin-bottom: 8px;
-            text-shadow: 1px 1px 1px rgba(0,0,0,0.1);
-            font-family: 'Arial Black', 'Arial', sans-serif;
-        }
-
-        .company-details-header {
-            font-size: 13px;
-            color: #666;
-            line-height: 1.5;
-            letter-spacing: 0.5px;
-        }
-
-        .header-separator {
-            height: 2px;
-            background: #000;
-            margin-top: 15px;
-            width: 100%;
-        }
-
-        /* DYNAMIC WATERMARK - FIXED FOR TABLE BACKGROUND */
+        /* WATERMARK - FIXED VISIBILITY */
         .watermark {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 140px;
+            font-size: 130px;
             font-weight: 900;
-            z-index: 0;
+            z-index: 0; /* Behind content */
             pointer-events: none;
             letter-spacing: 25px;
             white-space: nowrap;
             text-transform: uppercase;
             font-family: 'Arial Black', 'Arial', sans-serif;
-            opacity: 0.12;
-            animation: watermarkFloat 20s ease-in-out infinite alternate;
+            /* No global opacity to ensure color class opacity works */
+            opacity: 1; 
+            animation: watermarkFloat 10s ease-in-out infinite alternate;
+        }
+
+        /* U-MAN Watermark - DEEP PURPLE/BLUE */
+        .watermark.udamandi {
+            color: rgba(75, 0, 130, 0.15); /* Solid RGB with 0.15 Alpha */
+        }
+
+        /* GSPL Watermark - DEEP RED */
+        .watermark.gautam {
+            color: rgba(180, 0, 0, 0.15); /* Solid RGB with 0.15 Alpha */
         }
 
         @keyframes watermarkFloat {
-            0% { opacity: 0.08; transform: translate(-50%, -50%) rotate(-45deg) translateY(0px); }
-            50% { opacity: 0.12; }
-            100% { opacity: 0.08; transform: translate(-50%, -50%) rotate(-45deg) translateY(-10px); }
+            0% { transform: translate(-50%, -50%) rotate(-45deg) translateY(0px); }
+            100% { transform: translate(-50%, -50%) rotate(-45deg) translateY(-20px); }
         }
 
-        /* --- COLOR CORRECTION HERE --- */
-        
-        /* U-MAN Watermark Style - Improved professional purple/blue */
-        .watermark.udamandi {
-            color: rgba(80, 50, 160, 0.18); /* Richer, clearer purple */
+        /* TABLE - TRANSPARENT BACKGROUNDS */
+        .slip-table { width: 100%; border-collapse: collapse; position: relative; z-index: 2; margin-top: 10px; table-layout: fixed; background: transparent !important; }
+        .slip-table th, .slip-table td { 
+            border: 1px solid #000; padding: 7px 10px; font-size: 13px; vertical-align: middle; line-height: 1.3; 
+            background: transparent !important; /* CRITICAL FOR WATERMARK */
+            position: relative; z-index: 2;
         }
 
-        /* GSPL Watermark Style - Improved professional deep red */
-        .watermark.gautam {
-            color: rgba(160, 0, 0, 0.18); /* Richer, clearer red */
-        }
+        /* Table Headers - Semi-transparent to let watermark subtle through but maintain readibility */
+        .main-header { font-weight: bold; text-align: center; font-size: 16px; padding: 10px !important; background-color: rgba(245, 245, 245, 0.85) !important; position: relative; z-index: 2; }
+        .sub-header { background: rgba(234, 234, 234, 0.85) !important; font-weight: bold; font-size: 12px; text-transform: uppercase; position: relative; z-index: 2; }
+        .net-pay-row { font-size: 17px; font-weight: bold; text-align: center; padding: 12px !important; background: rgba(248, 249, 250, 0.85) !important; border-top: 2px solid #000; position: relative; z-index: 2; }
 
-        /* --- END COLOR CORRECTION --- */
+        .company-header { text-align: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #000; display: none; position: relative; z-index: 2; }
+        .company-header.active { display: block; animation: fadeIn 0.5s ease; }
+        .company-name-header { font-size: 28px; font-weight: 900; text-transform: uppercase; color: #404040; margin-bottom: 8px; font-family: 'Arial Black', 'Arial', sans-serif; }
+        .company-details-header { font-size: 13px; color: #666; }
+        .header-separator { height: 2px; background: #000; margin-top: 15px; width: 100%; }
 
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .text-bold { font-weight: bold; }
+        .blue-text { color: #2e74b5; font-weight: 600; }
+        .footer-note { text-align: center; margin-top: 30px; font-size: 11px; font-style: italic; color: #666; border-top: 1px dashed #aaa; padding-top: 12px; position: relative; z-index: 2; }
 
-        /* Exact Table Design - FIXED FOR WATERMARK VISIBILITY */
-        .slip-table {
-            width: 100%;
-            border-collapse: collapse;
-            position: relative;
-            z-index: 2;
-            margin-top: 10px;
-            table-layout: fixed;
-            background-color: transparent !important;
-        }
+        /* Loader & Message */
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 9999; display: none; justify-content: center; align-items: center; color: white; }
+        .loading-overlay.active { display: flex; animation: fadeIn 0.3s ease; }
+        .loader { width: 60px; height: 60px; border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .message-box { position: fixed; top: 30px; right: 30px; padding: 18px 25px; border-radius: 10px; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); z-index: 1000; display: flex; align-items: center; gap: 15px; animation: slideInRight 0.5s ease, fadeOut 0.5s ease 3.5s; animation-fill-mode: forwards; max-width: 350px; }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; visibility: hidden; } }
+        .message-success { background: linear-gradient(to right, #27ae60, #219653); color: white; border-left: 5px solid #1e8449; }
+        .message-error { background: linear-gradient(to right, #e74c3c, #c0392b); color: white; border-left: 5px solid #922b21; }
 
-        /* Make table cells transparent for watermark */
-        .slip-table th,
-        .slip-table td {
-            border: 1px solid #000;
-            padding: 7px 10px;
-            font-size: 13px;
-            vertical-align: middle;
-            line-height: 1.3;
-            background-color: transparent !important;
-            position: relative;
-            z-index: 2;
-        }
-
-        /* Table headers with slight background */
-        .main-header {
-            font-weight: bold;
-            text-align: center;
-            font-size: 16px;
-            padding: 10px !important;
-            background-color: rgba(245, 245, 245, 0.9) !important;
-            position: relative;
-            z-index: 2;
-        }
-
-        .sub-header {
-            background: rgba(234, 234, 234, 0.9) !important;
-            font-weight: bold;
-            font-size: 12px;
-            text-transform: uppercase;
-            position: relative;
-            z-index: 2;
-        }
-
-        .text-right {
-            text-align: right;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        .text-bold {
-            font-weight: bold;
-        }
-
-        /* Blue Text for Deductions */
-        .blue-text {
-            color: #2e74b5;
-            font-weight: 600;
-            font-family: Arial, Helvetica, sans-serif;
-        }
-
-        /* Net Pay Row */
-        .net-pay-row {
-            font-size: 17px;
-            font-weight: bold;
-            text-align: center;
-            padding: 12px !important;
-            background: rgba(248, 249, 250, 0.9) !important;
-            border-top: 2px solid #000;
-            position: relative;
-            z-index: 2;
-        }
-
-        /* Footer Note */
-        .footer-note {
-            text-align: center;
-            margin-top: 30px;
-            font-size: 11px;
-            font-style: italic;
-            color: #666;
-            border-top: 1px dashed #aaa;
-            padding-top: 12px;
-            position: relative;
-            z-index: 2;
-        }
-
-        /* --- LOADING OVERLAY --- */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            z-index: 9999;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            color: white;
-        }
-
-        .loading-overlay.active {
-            display: flex;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .loader {
-            width: 60px;
-            height: 60px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* --- RESPONSIVE DESIGN --- */
-        @media (max-width: 1200px) {
-            .content-wrapper {
-                flex-direction: column;
-                height: auto;
-            }
-            
-            .input-panel,
-            .preview-panel {
-                width: 100%;
-                min-width: unset;
-                max-height: none;
-            }
-            
-            #payslip-paper {
-                width: 100%;
-                max-width: 750px;
-            }
-            
-            .main-container {
-                height: auto;
-            }
-            
-            .watermark {
-                font-size: 100px;
-                letter-spacing: 20px;
-            }
-            
-            .company-selector {
-                flex-direction: column;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .app-header {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-                padding: 15px 20px;
-            }
-            
-            .header-controls {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .row {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            #payslip-paper {
-                padding: 15px;
-            }
-            
-            .watermark {
-                font-size: 70px;
-                letter-spacing: 15px;
-            }
-            
-            .company-name-header {
-                font-size: 22px;
-            }
-        }
-
-        /* --- MESSAGE BOX --- */
-        .message-box {
-            position: fixed;
-            top: 30px;
-            right: 30px;
-            padding: 18px 25px;
-            border-radius: 10px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            animation: slideInRight 0.5s ease, fadeOut 0.5s ease 3.5s;
-            animation-fill-mode: forwards;
-            max-width: 350px;
-        }
-
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; visibility: hidden; }
-        }
-
-        .message-success {
-            background: linear-gradient(to right, #27ae60, #219653);
-            color: white;
-            border-left: 5px solid #1e8449;
-        }
-
-        .message-error {
-            background: linear-gradient(to right, #e74c3c, #c0392b);
-            color: white;
-            border-left: 5px solid #922b21;
-        }
-
-        /* Source Indicators */
-        .source-indicator {
-            font-size: 11px;
-            color: #666;
-            margin-top: 3px;
-            font-style: italic;
-        }
-
-        /* Auto-calculated fields */
-        .auto-calculated {
-            background-color: #f0f8ff !important;
-            border-color: #b3d9ff !important;
-            color: #0066cc !important;
-            font-weight: 600;
-        }
-
-        /* Formula Display */
-        .formula-display {
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #dee2e6;
-            margin-top: 10px;
-            font-size: 12px;
-            font-family: monospace;
-        }
-
-        .formula-title {
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 5px;
-        }
-
-        .formula-equation {
-            color: #e74c3c;
-            font-weight: bold;
-        }
+        /* Responsive */
+        @media (max-width: 1200px) { .content-wrapper { flex-direction: column; height: auto; } .input-panel, .preview-panel { width: 100%; min-width: unset; max-height: none; } #payslip-paper { width: 100%; max-width: 750px; } .main-container { height: auto; } .watermark { font-size: 100px; letter-spacing: 20px; } .company-selector { flex-direction: column; } }
     </style>
 </head>
 <body>
@@ -826,12 +204,12 @@
                     <div class="company-option" id="companyOptionUdamandi" onclick="selectCompany('udamandi')">
                         <i class="fas fa-industry"></i>
                         <div class="company-name-select">Udamandi Services Private Limited</div>
-                        <div class="company-hint">Watermark: U-MAN (Light Purple)</div>
+                        <div class="company-hint">Watermark: U-MAN (Blue/Purple)</div>
                     </div>
                     <div class="company-option" id="companyOptionGautam" onclick="selectCompany('gautam')">
                         <i class="fas fa-solar-panel"></i>
                         <div class="company-name-select">Gautam Solar Private Limited</div>
-                        <div class="company-hint">Watermark: GSPL (Maroon Pattern)</div>
+                        <div class="company-hint">Watermark: GSPL (Red Pattern)</div>
                     </div>
                 </div>
                 
@@ -842,10 +220,6 @@
                         <i class="fas fa-water"></i> Watermark: <strong id="previewWatermark"></strong>
                     </div>
                 </div>
-                
-                <p style="font-size: 12px; color: #7f8c8d; margin-top: 10px;">
-                    <i class="fas fa-info-circle"></i> GSPL के लिए मैरून पैटर्न बैकग्राउंड दिखेगा
-                </p>
             </div>
 
             <div class="section-box" style="border-left-color: #e74c3c;">
@@ -854,11 +228,10 @@
                     <div>
                         <div class="toggle-label">Calculate PF as 12% of Basic Payable</div>
                         <div id="pfCalcInfo" class="pf-info-box">
-                            <strong><i class="fas fa-calculator"></i> PF Calculation Formula:</strong><br>
+                            <strong><i class="fas fa-calculator"></i> PF Formula:</strong><br>
                             PF = 12% of Basic (Payable)<br>
                             Current Basic Payable: <span id="currentBasicPayable">16,376.35</span><br>
                             12% PF Amount: <span id="calculatedPF">1,965.16</span>
-                            <div class="source-indicator">*PF calculated from Basic Payable, not Structure</div>
                         </div>
                     </div>
                     <div style="display: flex; align-items: center;">
@@ -868,14 +241,6 @@
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
-                </div>
-                
-                <div class="formula-display">
-                    <div class="formula-title">Calculation Formulas:</div>
-                    <div>1. Basic Payable = (Basic Structure ÷ Working Days) × Present Days</div>
-                    <div>2. Variable Allowance = Variable Hours × Rate per Hour</div>
-                    <div>3. PF Deduction = Basic Payable × 12% (when toggle ON)</div>
-                    <div>4. Net Payable = Total Earnings - Total Deductions</div>
                 </div>
             </div>
 
@@ -903,7 +268,7 @@
                 </div>
                 <div class="row">
                     <div class="col">
-                        <label>PF Number (Optional)</label>
+                        <label>PF Number</label>
                         <input type="text" id="i-pfno" placeholder="Enter PF Number" oninput="updatePayslip()">
                     </div>
                     <div class="col">
@@ -913,74 +278,58 @@
                 </div>
             </div>
 
-            <div class="section-box" style="border-left-color: #e74c3c;">
-                <h3><i class="fas fa-calendar-check"></i> Attendance & Variable</h3>
+            <div class="section-box" style="border-left-color: #27ae60;">
+                <h3><i class="fas fa-calculator"></i> Attendance & Financials</h3>
                 <div class="row">
                     <div class="col">
                         <label>Working Days</label>
-                        <input type="number" id="i-wday" value="23" min="0" max="31" oninput="calculateAll()">
-                        <div class="source-indicator">Total working days in month</div>
+                        <input type="number" id="i-wday" value="23" oninput="calculateAll()">
                     </div>
                     <div class="col">
                         <label>Present Days</label>
-                        <input type="number" id="i-pday" value="16" min="0" max="31" oninput="calculateAll()">
-                        <div class="source-indicator">Employee's present days</div>
+                        <input type="number" id="i-pday" value="16" oninput="calculateAll()">
                     </div>
                 </div>
-                <div class="row" style="background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px dashed #ddd;">
+                <div class="row">
                     <div class="col">
-                        <label>Variable Hours</label>
+                        <label>Var Hours</label>
                         <input type="number" id="i-var-hrs" value="72.4" step="0.1" oninput="calculateVariable()">
                     </div>
                     <div class="col">
-                        <label>Rate (Per Hour)</label>
+                        <label>Rate/Hr</label>
                         <input type="number" id="i-var-rate" value="105" oninput="calculateVariable()">
                     </div>
                 </div>
-                <div class="calc-box">
-                    Variable Amount: <strong id="calc-var-amt">7,602.00</strong> Rupees
-                </div>
-            </div>
-
-            <div class="section-box" style="border-left-color: #27ae60;">
-                <h3><i class="fas fa-money-check-alt"></i> Financial Details</h3>
                 <div class="row">
                     <div class="col">
-                        <label>Basic Salary (Structure)</label>
+                        <label>Basic Structure</label>
                         <input type="number" id="i-bs" value="23541" oninput="calculateBasicPayable()">
-                        <div class="source-indicator">Enter Basic Structure Salary</div>
                     </div>
                     <div class="col">
-                        <label>Basic Salary (Payable)</label>
+                        <label>Basic Payable</label>
                         <input type="number" id="i-bp" value="16376.35" class="auto-calculated" readonly>
-                        <div class="source-indicator">Auto-calculated from structure</div>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col">
-                        <label>Food Allowance</label>
+                        <label>Food Allow.</label>
                         <input type="number" id="i-food" value="3000" oninput="updatePayslip()">
-                        <div class="source-indicator">Monthly food allowance</div>
                     </div>
                     <div class="col">
                         <label>Bus Fee</label>
                         <input type="number" id="i-bus" value="750" oninput="updatePayslip()">
-                        <div class="source-indicator">Monthly transportation charge</div>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col">
                         <label>PF Deduction</label>
                         <input type="number" id="i-pf" value="1965.16" class="auto-calculated" readonly>
-                        <div class="source-indicator">Auto-calculated when PF toggle ON</div>
                     </div>
                     <div class="col">
                         <label>ESI Deduction</label>
                         <input type="number" id="i-esi" value="0.00" oninput="updatePayslip()">
-                        <div class="source-indicator">ESI deduction (if applicable)</div>
                     </div>
                 </div>
-                
                 <div class="calc-box">
                     Net Payable: <strong id="calc-net-pay">24,263.19</strong> Rupees
                 </div>
@@ -989,14 +338,9 @@
             <button class="btn btn-calculate" onclick="calculateAll()">
                 <i class="fas fa-calculator"></i> Calculate All
             </button>
-            
             <button class="btn btn-download" onclick="downloadPayslip()">
-                <i class="fas fa-download"></i> Download Payslip (PNG)
+                <i class="fas fa-download"></i> Download Payslip
             </button>
-            
-            <div style="margin-top: 15px; font-size: 13px; color: #7f8c8d; text-align: center;">
-                <i class="fas fa-info-circle"></i> All calculations are automatic. Just enter Basic Structure and Present Days.
-            </div>
         </div>
 
         <div class="preview-panel">
@@ -1083,470 +427,192 @@
 </div>
 
 <script>
-    // --- CONSTANTS AND VARIABLES ---
+    // --- VARIABLES ---
     let isPF12Enabled = false;
     let selectedCompany = null;
 
-    // Company Data with Watermark Info
     const companyData = {
         'udamandi': {
             name: 'UDAMANDI SERVICES PRIVATE LIMITED',
             address: 'Unit 317 Road/Street: Bye-Pass Road, Mathura Road Faridabad, Sector 37, Faridabad, Haryana, PIN Code: 121003',
-            watermark: {
-                text: 'U-MAN',
-                colorClass: 'udamandi'
-            }
+            watermark: { text: 'U-MAN', colorClass: 'udamandi' }
         },
         'gautam': {
             name: 'GAUTAM SOLAR PRIVATE LIMITED',
             address: '7 KM Milestone, Tosham Road, Bhiwani, Haryana, INDIA',
-            watermark: {
-                text: 'GSPL',
-                colorClass: 'gautam'
-            }
+            watermark: { text: 'GSPL', colorClass: 'gautam' }
         }
     };
 
-    // --- AUTHENTICATION CHECK ---
+    // --- INIT ---
     document.addEventListener('DOMContentLoaded', function() {
         const role = localStorage.getItem('role');
+        if (role === 'admin') document.querySelector('.btn-admin').style.display = 'inline-flex';
         
-        if (role === 'admin') {
-            document.querySelector('.btn-admin').style.display = 'inline-flex';
-        } else if (!role) {
-            // window.location.href = 'index.html'; // Commented out for standalone testing
-        }
-        
-        // Set current month as default
         const now = new Date();
-        const monthNames = ["January", "February", "March", "April", "May", "June",
-                            "July", "August", "September", "October", "November", "December"];
-        const currentMonth = monthNames[now.getMonth()] + ", " + now.getFullYear();
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        document.getElementById('i-month').value = monthNames[now.getMonth()] + ", " + now.getFullYear();
         
-        document.getElementById('i-month').value = currentMonth;
-        
-        // Default select Udamandi
         selectCompany('udamandi');
-        
-        // Calculate initial values
         calculateAll();
-        
-        // Add event listener for keyboard shortcuts
-        document.addEventListener('keydown', handleKeyboardShortcuts);
     });
 
-    // --- KEYBOARD SHORTCUT HANDLER ---
-    function handleKeyboardShortcuts(event) {
-        // Check if focus is in an input field
-        const activeElement = document.activeElement;
-        const isInputFocused = activeElement.tagName === 'INPUT' || 
-                               activeElement.tagName === 'TEXTAREA' || 
-                               activeElement.tagName === 'SELECT';
-        
-        // Only process shortcuts if not in input field (except for 1,2 keys)
-        if (!isInputFocused) {
-            // Ctrl+S to update
-            if (event.ctrlKey && event.key === 's') {
-                event.preventDefault();
-                calculateAll();
-            }
-            
-            // Ctrl+D to download
-            if (event.ctrlKey && event.key === 'd') {
-                event.preventDefault();
-                downloadPayslip();
-            }
-            
-            // Ctrl+P to toggle PF calculation
-            if (event.ctrlKey && event.key === 'p') {
-                event.preventDefault();
-                document.getElementById('pf12Toggle').click();
-            }
-            
-            // Ctrl+C to calculate
-            if (event.ctrlKey && event.key === 'c') {
-                event.preventDefault();
-                calculateAll();
-            }
-        }
-        
-        // 1 for Udamandi, 2 for Gautam - work even in input fields
-        if (event.key === '1') {
-            event.preventDefault();
-            selectCompany('udamandi');
-        }
-        
-        if (event.key === '2') {
-            event.preventDefault();
-            selectCompany('gautam');
-        }
-    }
-
-    // --- COMPANY SELECTION ---
+    // --- FUNCTIONS ---
     function selectCompany(companyType) {
-        // Remove selected class from all options
-        document.querySelectorAll('.company-option').forEach(option => {
-            option.classList.remove('selected');
-        });
+        document.querySelectorAll('.company-option').forEach(o => o.classList.remove('selected'));
+        if(companyType === 'udamandi') document.getElementById('companyOptionUdamandi').classList.add('selected');
+        else document.getElementById('companyOptionGautam').classList.add('selected');
         
-        // Add selected class to clicked option
-        if (companyType === 'udamandi') {
-            document.getElementById('companyOptionUdamandi').classList.add('selected');
-        } else if (companyType === 'gautam') {
-            document.getElementById('companyOptionGautam').classList.add('selected');
-        }
-        
-        // Set selected company
         selectedCompany = companyType;
         
-        // Show preview
-        const preview = document.getElementById('companyPreview');
         const name = document.getElementById('previewName');
         const address = document.getElementById('previewAddress');
-        const watermarkPreview = document.getElementById('previewWatermark');
-        const gsplBackground = document.getElementById('gsplBackground');
+        const wmPrev = document.getElementById('previewWatermark');
+        const gsplBg = document.getElementById('gsplBackground');
         
         name.textContent = companyData[companyType].name;
         address.textContent = companyData[companyType].address;
-        watermarkPreview.textContent = companyData[companyType].watermark.text;
-        preview.style.display = 'block';
+        wmPrev.textContent = companyData[companyType].watermark.text;
+        document.getElementById('companyPreview').style.display = 'block';
         
-        // Show/hide GSPL background
-        if (companyType === 'gautam') {
-            gsplBackground.style.display = 'block';
-        } else {
-            gsplBackground.style.display = 'none';
-        }
+        gsplBg.style.display = (companyType === 'gautam') ? 'block' : 'none';
         
-        // Update watermark on payslip
         updateWatermark();
-        
-        // Update payslip
         updatePayslip();
-        
-        // Show notification
         showMessage(`Company set to: ${companyData[companyType].name}`, 'success');
     }
 
-    // --- UPDATE WATERMARK ---
     function updateWatermark() {
-        const watermarkElement = document.getElementById('dynamicWatermark');
-        
+        const wm = document.getElementById('dynamicWatermark');
         if (selectedCompany) {
-            const watermarkData = companyData[selectedCompany].watermark;
-            
-            // Update watermark text
-            watermarkElement.textContent = watermarkData.text;
-            
-            // Remove all color classes
-            watermarkElement.classList.remove('udamandi', 'gautam');
-            
-            // Add appropriate color class
-            watermarkElement.classList.add(watermarkData.colorClass);
-            
-            // Show watermark
-            watermarkElement.style.display = 'block';
-        } else {
-            // Default watermark if no company selected
-            watermarkElement.textContent = 'U-MAN';
-            watermarkElement.classList.remove('gautam');
-            watermarkElement.classList.add('udamandi');
+            const data = companyData[selectedCompany].watermark;
+            wm.textContent = data.text;
+            wm.className = `watermark ${data.colorClass}`;
+            wm.style.display = 'block';
         }
     }
 
-    // --- TOGGLE PF CALCULATION ---
     function togglePFCalculation() {
         const toggle = document.getElementById('pf12Toggle');
-        const status = document.getElementById('toggleStatus');
-        const pfInfoBox = document.getElementById('pfCalcInfo');
-        
         isPF12Enabled = toggle.checked;
+        document.getElementById('toggleStatus').textContent = isPF12Enabled ? "ON" : "OFF";
+        document.getElementById('toggleStatus').className = isPF12Enabled ? "toggle-status on" : "toggle-status off";
+        document.getElementById('pfCalcInfo').style.display = isPF12Enabled ? 'block' : 'none';
         
-        if (isPF12Enabled) {
-            status.textContent = "ON";
-            status.className = "toggle-status on";
-            pfInfoBox.classList.add('active');
-            showMessage("PF calculation enabled: 12% of Basic Payable", 'success');
-        } else {
-            status.textContent = "OFF";
-            status.className = "toggle-status off";
-            pfInfoBox.classList.remove('active');
-            showMessage("PF calculation disabled", 'success');
-        }
-        
-        // Recalculate PF
-        calculatePF();
-        updatePayslip();
+        calculateAll();
     }
 
-    // --- CALCULATE BASIC PAYABLE ---
-    function calculateBasicPayable() {
-        const basicStruct = parseFloat(document.getElementById('i-bs').value) || 0;
-        const workingDays = parseFloat(document.getElementById('i-wday').value) || 0;
-        const presentDays = parseFloat(document.getElementById('i-pday').value) || 0;
-        
-        // Calculate Basic Payable: (Basic Structure / Working Days) * Present Days
-        let basicPayable = 0;
-        if (workingDays > 0 && presentDays > 0) {
-            basicPayable = (basicStruct / workingDays) * presentDays;
-            // Round to 2 decimal places
-            basicPayable = Math.round(basicPayable * 100) / 100;
-        }
-        
-        // Update Basic Payable field
-        document.getElementById('i-bp').value = basicPayable.toFixed(2);
-        
-        // Update PF info
-        document.getElementById('currentBasicPayable').textContent = formatIndianCurrency(basicPayable);
-        
-        return basicPayable;
-    }
-
-    // --- CALCULATE VARIABLE ALLOWANCE ---
-    function calculateVariable() {
-        const varHours = parseFloat(document.getElementById('i-var-hrs').value) || 0;
-        const varRate = parseFloat(document.getElementById('i-var-rate').value) || 0;
-        const mvValue = varHours * varRate;
-        
-        // Update display
-        document.getElementById('calc-var-amt').textContent = formatIndianCurrency(mvValue);
-        
-        return mvValue;
-    }
-
-    // --- CALCULATE PF DEDUCTION ---
-    function calculatePF() {
-        const basicPayable = parseFloat(document.getElementById('i-bp').value) || 0;
-        let pfDeduction = 0;
-        
-        if (isPF12Enabled && basicPayable > 0) {
-            pfDeduction = Math.round(basicPayable * 0.12 * 100) / 100;
-            document.getElementById('calculatedPF').textContent = formatIndianCurrency(pfDeduction);
-        }
-        
-        // Update PF field
-        document.getElementById('i-pf').value = pfDeduction.toFixed(2);
-        
-        return pfDeduction;
-    }
-
-    // --- CALCULATE NET PAYABLE ---
-    function calculateNetPayable() {
-        const basicPayable = parseFloat(document.getElementById('i-bp').value) || 0;
-        const mvValue = calculateVariable();
-        const foodAllowance = parseFloat(document.getElementById('i-food').value) || 0;
-        const pfDeduction = parseFloat(document.getElementById('i-pf').value) || 0;
-        const esiDeduction = parseFloat(document.getElementById('i-esi').value) || 0;
-        const busFee = parseFloat(document.getElementById('i-bus').value) || 0;
-        
-        // Totals Calculation
-        const totalEarnings = basicPayable + mvValue + foodAllowance;
-        const totalDeductions = pfDeduction + esiDeduction + busFee;
-        const netPayable = totalEarnings - totalDeductions;
-        
-        // Update net pay display
-        document.getElementById('calc-net-pay').textContent = formatIndianCurrency(netPayable);
-        
-        return {totalEarnings, totalDeductions, netPayable};
-    }
-
-    // --- CALCULATE ALL ---
     function calculateAll() {
-        // Calculate Basic Payable
-        calculateBasicPayable();
+        // Inputs
+        const bs = parseFloat(document.getElementById('i-bs').value) || 0;
+        const wday = parseFloat(document.getElementById('i-wday').value) || 0;
+        const pday = parseFloat(document.getElementById('i-pday').value) || 0;
+        const vHrs = parseFloat(document.getElementById('i-var-hrs').value) || 0;
+        const vRate = parseFloat(document.getElementById('i-var-rate').value) || 0;
+        const food = parseFloat(document.getElementById('i-food').value) || 0;
+        const bus = parseFloat(document.getElementById('i-bus').value) || 0;
+        const esi = parseFloat(document.getElementById('i-esi').value) || 0;
+
+        // Calcs
+        let bp = 0;
+        if(wday > 0) bp = (bs / wday) * pday;
         
-        // Calculate Variable
-        calculateVariable();
+        let pf = 0;
+        if(isPF12Enabled) pf = bp * 0.12;
+        else pf = parseFloat(document.getElementById('i-pf').value) || 0;
+
+        const vAmt = vHrs * vRate;
+        const totalEarn = bp + vAmt + food;
+        const totalDed = pf + esi + bus;
+        const net = totalEarn - totalDed;
+
+        // Update UI
+        document.getElementById('i-bp').value = bp.toFixed(2);
+        if(isPF12Enabled) document.getElementById('i-pf').value = pf.toFixed(2);
         
-        // Calculate PF
-        calculatePF();
-        
-        // Calculate Net Payable
-        const totals = calculateNetPayable();
-        
-        // Update payslip
+        document.getElementById('calc-var-amt').textContent = formatIn(vAmt);
+        document.getElementById('calc-net-pay').textContent = formatIn(net);
+        document.getElementById('currentBasicPayable').textContent = formatIn(bp);
+        document.getElementById('calculatedPF').textContent = formatIn(bp * 0.12);
+
         updatePayslip();
-        
-        // Show success message
-        showMessage("All calculations updated successfully!", 'success');
-        
-        return totals;
     }
 
-    // --- NUMBER FORMATTING HELPER ---
-    function formatIndianCurrency(num, decimals = 2) {
-        if (isNaN(num)) num = 0;
-        return num.toLocaleString('en-IN', {
-            minimumFractionDigits: decimals,
-            maximumFractionDigits: decimals
-        });
-    }
-
-    // --- MAIN UPDATE FUNCTION ---
     function updatePayslip() {
-        // 1. COMPANY HEADER LOGIC
+        // Header
         const headerBox = document.getElementById('comp-header-box');
-        
-        if (selectedCompany) {
-            // Show company header
+        if(selectedCompany) {
             headerBox.classList.add('active');
             document.getElementById('p-comp-name').textContent = companyData[selectedCompany].name;
             document.getElementById('p-comp-details').textContent = companyData[selectedCompany].address;
-        } else {
-            // Hide company header if no company selected
-            headerBox.classList.remove('active');
         }
 
-        // 2. UPDATE WATERMARK
-        updateWatermark();
-
-        // 3. TEXT FIELDS UPDATE
-        const textFields = [
-            { input: 'i-month', output: 'p-month' },
-            { input: 'i-code', output: 'p-code' },
-            { input: 'i-pfno', output: 'p-pfno' },
-            { input: 'i-name', output: 'p-name' },
-            { input: 'i-fname', output: 'p-fname' },
-            { input: 'i-doj', output: 'p-doj' },
-            { input: 'i-wday', output: 'p-wday' },
-            { input: 'i-pday', output: 'p-pday' },
-            { input: 'i-var-hrs', output: 'p-var-hrs' }
-        ];
-        
-        textFields.forEach(field => {
-            const inputEl = document.getElementById(field.input);
-            const outputEl = document.getElementById(field.output);
-            if (inputEl && outputEl) {
-                outputEl.textContent = inputEl.value;
-            }
+        // Text Copy
+        const ids = ['month','code','name','fname','pfno','doj','wday','pday','var-hrs'];
+        ids.forEach(id => {
+            const val = document.getElementById('i-'+id).value;
+            document.getElementById('p-'+id).textContent = val;
         });
-        
-        // 4. GET CURRENT VALUES
-        const basicStruct = parseFloat(document.getElementById('i-bs').value) || 0;
-        const basicPayable = parseFloat(document.getElementById('i-bp').value) || 0;
-        const mvValue = calculateVariable();
-        const foodAllowance = parseFloat(document.getElementById('i-food').value) || 0;
-        const pfDeduction = parseFloat(document.getElementById('i-pf').value) || 0;
-        const esiDeduction = parseFloat(document.getElementById('i-esi').value) || 0;
-        const busFee = parseFloat(document.getElementById('i-bus').value) || 0;
-        
-        // 5. CALCULATE TOTALS
-        const totalEarnings = basicPayable + mvValue + foodAllowance;
-        const totalDeductions = pfDeduction + esiDeduction + busFee;
-        const netPayable = totalEarnings - totalDeductions;
-        
-        // 6. TABLE UPDATE
-        document.getElementById('p-bs').textContent = formatIndianCurrency(basicStruct);
-        document.getElementById('p-bp').textContent = formatIndianCurrency(basicPayable);
-        document.getElementById('p-mv').textContent = formatIndianCurrency(mvValue);
-        document.getElementById('p-food').textContent = formatIndianCurrency(foodAllowance, 1);
-        
-        document.getElementById('p-pf').textContent = formatIndianCurrency(pfDeduction);
-        document.getElementById('p-esi').textContent = formatIndianCurrency(esiDeduction);
-        document.getElementById('p-bus').textContent = busFee;
-        
-        document.getElementById('p-tot-earn').textContent = formatIndianCurrency(totalEarnings);
-        document.getElementById('p-tot-ded').textContent = formatIndianCurrency(totalDeductions);
-        document.getElementById('p-net').textContent = formatIndianCurrency(netPayable);
+
+        // Numbers Copy
+        const map = {
+            'bs': 'i-bs', 'bp': 'i-bp', 'food': 'i-food', 
+            'pf': 'i-pf', 'esi': 'i-esi', 'bus': 'i-bus'
+        };
+        for(const [pid, iid] of Object.entries(map)) {
+            const val = parseFloat(document.getElementById(iid).value) || 0;
+            document.getElementById('p-'+pid).textContent = formatIn(val);
+        }
+
+        // Calculated
+        const vHrs = parseFloat(document.getElementById('i-var-hrs').value) || 0;
+        const vRate = parseFloat(document.getElementById('i-var-rate').value) || 0;
+        document.getElementById('p-mv').textContent = formatIn(vHrs * vRate);
+
+        const bp = parseFloat(document.getElementById('i-bp').value) || 0;
+        const pf = parseFloat(document.getElementById('i-pf').value) || 0;
+        const esi = parseFloat(document.getElementById('i-esi').value) || 0;
+        const bus = parseFloat(document.getElementById('i-bus').value) || 0;
+        const food = parseFloat(document.getElementById('i-food').value) || 0;
+        const vAmt = vHrs * vRate;
+
+        document.getElementById('p-tot-earn').textContent = formatIn(bp + vAmt + food);
+        document.getElementById('p-tot-ded').textContent = formatIn(pf + esi + bus);
+        document.getElementById('p-net').textContent = formatIn((bp + vAmt + food) - (pf + esi + bus));
     }
 
-    // --- DOWNLOAD FUNCTION ---
+    function formatIn(n) {
+        return n.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
+
     function downloadPayslip() {
-        if (!selectedCompany) {
-            showMessage('Please select a company first!', 'error');
-            return;
-        }
-        
-        const payslipElement = document.getElementById("payslip-paper");
-        const loadingOverlay = document.getElementById("loadingOverlay");
-        
-        // Show loading overlay
-        loadingOverlay.classList.add('active');
-        
-        // Generate high-quality image
-        html2canvas(payslipElement, { 
-            scale: 5, // Increased from 4 to 5 for better quality
-            backgroundColor: '#FFFFFF',
-            useCORS: true,
-            logging: false,
-            allowTaint: true,
-            imageTimeout: 0,
-            onclone: function(clonedDoc) {
-                // Ensure watermark is visible in cloned document
-                const clonedWatermark = clonedDoc.getElementById('dynamicWatermark');
-                if (clonedWatermark) {
-                    clonedWatermark.style.display = 'block';
-                }
-            }
-        }).then(canvas => {
+        const paper = document.getElementById('payslip-paper');
+        const overlay = document.getElementById('loadingOverlay');
+        overlay.classList.add('active');
+
+        html2canvas(paper, { scale: 3, useCORS: true }).then(canvas => {
             const link = document.createElement('a');
-            const employeeName = document.getElementById('i-name').value || 'Employee';
-            const month = document.getElementById('i-month').value || 'Month';
-            const pfMode = isPF12Enabled ? '_12PF_Payable' : '';
-            const fileName = `Payslip_${employeeName.replace(/\s+/g, '_')}_${month.replace(/\s+/g, '_')}_${selectedCompany.toUpperCase()}${pfMode}.png`;
-            
-            link.download = fileName;
-            link.href = canvas.toDataURL("image/png", 1.0);
+            const name = document.getElementById('i-name').value;
+            const month = document.getElementById('i-month').value;
+            link.download = `Payslip_${name}_${month}.png`;
+            link.href = canvas.toDataURL("image/png");
             link.click();
-            
-            // Hide loading overlay
-            loadingOverlay.classList.remove('active');
-            
-            // Show success message
-            showMessage('Payslip downloaded successfully!', 'success');
-        }).catch(error => {
-            console.error('Error:', error);
-            loadingOverlay.classList.remove('active');
-            showMessage('Download failed. Please try again.', 'error');
+            overlay.classList.remove('active');
+            showMessage('Downloaded!', 'success');
         });
     }
 
-    // --- LOGOUT FUNCTION ---
+    function showMessage(msg, type) {
+        const box = document.createElement('div');
+        box.className = `message-box message-${type}`;
+        box.innerHTML = `<i class="fas fa-info-circle"></i><div>${msg}</div>`;
+        document.body.appendChild(box);
+        setTimeout(() => box.remove(), 3000);
+    }
+
     function logout() {
-        if (confirm('Are you sure you want to logout?')) {
-            localStorage.removeItem('role');
-            localStorage.removeItem('currentUser');
-            localStorage.removeItem('auth_token');
-            window.location.href = 'index.html';
-        }
+        if(confirm("Logout?")) window.location.href = 'index.html';
     }
-
-    // --- SHOW MESSAGE ---
-    function showMessage(message, type) {
-        // Remove existing message
-        const existingMessage = document.querySelector('.message-box');
-        if (existingMessage) existingMessage.remove();
-        
-        // Create new message
-        const messageBox = document.createElement('div');
-        messageBox.className = `message-box message-${type}`;
-        
-        const icon = type === 'success' ? 'fa-check-circle' : 'fa-times-circle';
-        
-        messageBox.innerHTML = `
-            <i class="fas ${icon} fa-lg"></i>
-            <div style="flex: 1;">
-                <strong>${type === 'success' ? 'Success!' : 'Error!'}</strong><br>
-                <span style="font-size: 13px;">${message}</span>
-            </div>
-        `;
-        
-        document.body.appendChild(messageBox);
-        
-        // Auto remove after 4 seconds
-        setTimeout(() => {
-            if (messageBox.parentNode) {
-                messageBox.remove();
-            }
-        }, 4000);
-    }
-
-    // Remove old keyboard event listener
-    document.removeEventListener('keydown', handleKeyboardShortcuts);
-    
-    // Add new keyboard event listener
-    document.addEventListener('keydown', handleKeyboardShortcuts);
 </script>
-
 </body>
 </html>
