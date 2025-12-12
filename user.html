@@ -3,756 +3,393 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uda-Mandi Enterprise Payroll</title>
+    <title>Uda-Mandi Payroll System</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* --- 1. THEME VARIABLES --- */
-        :root {
-            --primary: #1e3c72;
-            --secondary: #2a5298;
-            --accent: #f39c12;
-            --success: #27ae60;
-            --danger: #e74c3c;
-            --bg-body: #f4f7f6;
-            --text-main: #2c3e50;
-            --border: #e0e0e0;
-        }
-
-        /* --- 2. GLOBAL RESET --- */
-        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+        /* --- 1. GLOBAL SETTINGS --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: var(--bg-body);
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh; padding: 20px; display: flex; justify-content: center; align-items: center;
         }
 
-        /* --- 3. LAYOUT --- */
+        /* --- 2. LAYOUT --- */
+        .main-container {
+            width: 100%; max-width: 1400px; background: white; border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); overflow: hidden; display: flex; flex-direction: column; height: 95vh;
+        }
+
         .app-header {
-            height: 60px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white;
-            display: flex; justify-content: space-between; align-items: center; padding: 0 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 100;
+            height: 65px; background: #fff; padding: 0 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f0f0f0;
         }
-        .header-title { font-size: 20px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
-        
-        .workspace { display: flex; flex: 1; overflow: hidden; }
+        .header-title { font-size: 22px; font-weight: 800; color: #1e3c72; display: flex; align-items: center; gap: 10px; }
+        .content-wrapper { display: flex; flex: 1; overflow: hidden; }
 
-        /* SIDEBAR (Inputs) */
-        .sidebar {
-            width: 420px; background: white; border-right: 1px solid var(--border);
-            display: flex; flex-direction: column; overflow-y: auto; padding: 20px;
+        /* --- 3. INPUT PANEL --- */
+        .input-panel {
+            flex: 1; min-width: 400px; background: #f4f7f6; padding: 25px; border-right: 1px solid #e0e0e0;
+            overflow-y: auto; max-height: calc(95vh - 65px);
         }
 
-        /* PREVIEW AREA */
-        .preview-area {
-            flex: 1; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; justify-content: center; align-items: flex-start;
-            overflow-y: auto; padding: 40px; position: relative;
+        .section-box {
+            background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 15px; border-left: 5px solid #1e3c72;
         }
+        .section-box h3 { font-size: 14px; margin-bottom: 10px; font-weight: 700; color: #444; border-bottom: 1px solid #eee; padding-bottom: 5px; }
 
-        /* --- 4. COMPONENTS --- */
-        .section-card {
-            border: 1px solid var(--border); border-radius: 10px; margin-bottom: 20px; overflow: hidden; background: #fff;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-        .card-header {
-            background: linear-gradient(90deg, #f8f9fa, #e9ecef); padding: 12px 15px; font-weight: bold; border-bottom: 1px solid var(--border);
-            color: var(--primary); font-size: 14px; display: flex; align-items: center; gap: 8px;
-        }
-        .card-body { padding: 18px; }
-
-        .form-row { display: flex; gap: 12px; margin-bottom: 12px; }
+        /* Inputs */
+        .row { display: flex; gap: 10px; margin-bottom: 10px; }
         .col { flex: 1; }
-        label { display: block; font-size: 11px; font-weight: bold; color: #555; margin-bottom: 4px; text-transform: uppercase; }
+        label { display: block; font-size: 11px; font-weight: 700; color: #555; margin-bottom: 4px; text-transform: uppercase; }
+        
         input { 
-            width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; 
-            transition: all 0.3s;
+            width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; font-weight: 600;
         }
-        input:focus { border-color: var(--secondary); box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1); }
-        input[readonly] { background-color: #f8f9fa; cursor: not-allowed; color: #666; }
+        input:focus { border-color: #1e3c72; outline: none; background: #fff; }
+        
+        /* Edit Mode Styles */
+        input:not([readonly]) { background-color: #fff; border: 1px solid #aaa; }
+        input[readonly] { background-color: #e9ecef; color: #666; cursor: not-allowed; border: 1px solid #ddd; }
 
-        /* Company Selector */
-        .company-tiles { display: flex; gap: 12px; margin-bottom: 10px; }
+        /* Company Select */
+        .company-tiles { display: flex; gap: 10px; }
         .tile {
-            flex: 1; border: 2px solid #eee; border-radius: 8px; padding: 12px; text-align: center; cursor: pointer; 
-            transition: all 0.3s; font-size: 13px; background: white;
+            flex: 1; padding: 12px; border: 2px solid #eee; border-radius: 8px; text-align: center; cursor: pointer; background: #fff; transition: 0.2s;
         }
-        .tile:hover { border-color: var(--secondary); background: #f0f4ff; transform: translateY(-2px); }
-        .tile.active { border-color: var(--success); background: #e7f7ef; color: var(--success); font-weight: bold; box-shadow: 0 4px 12px rgba(39, 174, 96, 0.1); }
-        .tile i { font-size: 18px; margin-bottom: 5px; display: block; color: var(--secondary); }
+        .tile.active { border-color: #27ae60; background: #eafff0; color: #006400; font-weight: bold; }
 
-        /* Toggle Switch */
-        .switch-wrapper { 
-            display: flex; justify-content: space-between; align-items: center; padding: 10px; 
-            background: #f9f9f9; border-radius: 8px; border: 1px solid #eee; margin-bottom: 10px;
-        }
-        .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { 
-            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; 
-            background-color: #ccc; border-radius: 34px; transition: .4s; 
-        }
-        .slider:before { 
-            position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; 
-            background-color: white; border-radius: 50%; transition: .4s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        input:checked + .slider { background-color: var(--success); }
-        input:checked + .slider:before { transform: translateX(22px); }
+        /* Toggle */
+        .toggle-wrapper { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 8px; border: 1px solid #ddd; border-radius: 6px; }
+        .toggle-switch { position: relative; width: 40px; height: 20px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #27ae60; }
+        input:checked + .slider:before { transform: translateX(20px); }
 
         /* Buttons */
-        .btn { 
-            padding: 12px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; 
-            display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s; font-size: 14px;
-        }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        .btn-success { background: linear-gradient(90deg, var(--success), #1e8449); width: 100%; margin-top: 10px; }
-        .btn-danger { background: linear-gradient(90deg, var(--danger), #c0392b); font-size: 13px; padding: 8px 14px; }
-        .btn-admin { background: linear-gradient(90deg, var(--accent), #d35400); display: none; }
-        .btn-calc { background: linear-gradient(90deg, var(--secondary), var(--primary)); margin-bottom: 10px; }
+        .btn { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; }
+        .btn-download { background: #27ae60; width: 100%; font-size: 16px; margin-top: 15px; padding: 14px; }
+        .btn-logout { background: #c0392b; margin-left: 10px; }
+        .btn-admin { background: #f39c12; display: none; }
 
-        /* Notification Toast */
-        .toast {
-            position: fixed; top: 80px; right: 20px; z-index: 1000; padding: 12px 16px; border-radius: 8px;
-            background: white; box-shadow: 0 4px 20px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 10px;
-            transform: translateX(120%); transition: transform 0.3s; border-left: 4px solid var(--success);
+        /* --- 4. PREVIEW PANEL --- */
+        .preview-panel {
+            flex: 1.6; min-width: 500px; background: #555; padding: 40px;
+            display: flex; justify-content: center; align-items: flex-start;
+            overflow-y: auto; max-height: calc(95vh - 65px);
         }
-        .toast.show { transform: translateX(0); }
-        .toast.error { border-left-color: var(--danger); }
 
-        /* --- 5. PAYSLIP PAPER DESIGN --- */
+        /* --- 5. PAYSLIP PAPER --- */
         #payslip-paper {
-            width: 794px; /* A4 Width */
+            width: 794px; /* A4 */
             background: white;
             padding: 40px 50px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
             position: relative;
-            color: black;
             font-family: Arial, Helvetica, sans-serif;
+            color: #000;
             z-index: 1;
-            border-radius: 4px;
         }
 
-        /* HEADER */
-        .paper-header { text-align: center; margin-bottom: 25px; }
-        .ph-title { 
-            font-family: 'Arial Black', Arial, sans-serif; 
-            font-size: 32px; 
+        /* HEADER (Fixed Wrapping) */
+        .company-header { text-align: center; margin-bottom: 25px; display: none; z-index: 5; position: relative; }
+        .company-header.active { display: block; }
+        
+        .comp-name {
+            font-family: 'Arial Black', Arial, sans-serif;
+            font-size: 30px; 
             font-weight: 900; 
-            color: #333; 
-            text-transform: uppercase; 
-            margin-bottom: 8px; 
-            letter-spacing: 1px; 
+            text-transform: uppercase;
+            color: #222; /* Deep Black */
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
         }
-        .ph-sub { 
-            font-size: 13px; 
-            color: #555; 
+        .comp-details { 
+            font-size: 14px; 
+            color: #333; /* Dark Grey */
             font-weight: 600; 
-            max-width: 90%;
+            line-height: 1.6;
             margin: 0 auto;
-            line-height: 1.5;
-        } 
-        .ph-line { border-bottom: 2px solid #999; margin-top: 15px; width: 100%; }
+            white-space: pre-wrap; /* Ensure text wraps */
+            word-wrap: break-word; /* Ensure long addresses wrap */
+            width: 100%;
+        }
+        .header-line { border-bottom: 2px solid #ccc; width: 100%; margin-top: 15px; }
 
         /* WATERMARK */
         .watermark {
-            position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 140px; font-weight: 900; 
-            z-index: 0; pointer-events: none; letter-spacing: 25px; white-space: nowrap;
-            font-family: 'Arial Black', sans-serif; 
-            opacity: 0.08; 
-            text-transform: uppercase;
+            position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 120px; font-weight: 900; z-index: 0; pointer-events: none;
+            letter-spacing: 10px; white-space: nowrap; text-transform: uppercase;
+            font-family: 'Arial Black', sans-serif; opacity: 0.15;
         }
-        .watermark.purple { color: #6a4ca8; }
-        .watermark.red { color: #800000; }
+        .watermark.udamandi { color: #6a4ca8; } 
+        .watermark.gautam { color: #800000; }
+        
+        .gspl-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(#800000 1px, transparent 1px);
+            background-size: 20px 20px; opacity: 0.04; z-index: 0; pointer-events: none; display: none;
+        }
 
         /* TABLE */
-        table.std-table { 
+        table.slip-table {
             width: 100%; border-collapse: collapse; position: relative; z-index: 2; 
-            border: 2px solid black; margin-top: 10px;
+            margin-top: 15px; border: 2px solid #000; background: transparent !important;
         }
-        .std-table th, .std-table td { 
-            border: 1px solid black; padding: 10px 12px; font-size: 13px; 
-            vertical-align: middle; line-height: 1.4; background: transparent; 
+        table.slip-table th, table.slip-table td {
+            border: 1px solid #000; padding: 8px 10px; font-size: 13px; vertical-align: middle; line-height: 1.4;
+            background: transparent;
         }
         
-        .th-main { 
-            background: rgba(255,255,255,0.95); font-weight: bold; text-align: center; 
-            font-size: 17px; padding: 14px !important; border-bottom: 2px solid black; 
-            text-transform: uppercase;
-        }
-        .th-sub { background: #f0f0f0; font-weight: bold; font-size: 12px; text-transform: uppercase; }
+        .th-main { background: rgba(255,255,255,0.95) !important; font-weight: bold; text-align: center; font-size: 16px; padding: 12px !important; border-bottom: 2px solid #000; }
+        .th-sub { background: #f0f0f0 !important; font-weight: bold; font-size: 12px; text-transform: uppercase; }
         
-        .aln-right { text-align: right; }
-        .aln-center { text-align: center; }
-        .f-bold { font-weight: bold; }
-        .c-blue { color: #1a73e8; font-weight: 700; }
+        .align-r { text-align: right; }
+        .align-c { text-align: center; }
+        .bold { font-weight: bold; }
+        .blue { color: #1a73e8; font-weight: 700; }
         
-        .net-pay { 
-            font-size: 19px; font-weight: bold; text-align: center; padding: 18px !important; 
-            background: #f8f9fa; border-top: 2px solid black; 
-        }
-        .footer { 
-            text-align: center; font-size: 11px; font-style: italic; margin-top: 30px; 
-            color: #666; border-top: 1px dashed #ccc; padding-top: 15px;
-        }
+        .net-pay { font-size: 18px; font-weight: bold; text-align: center; padding: 12px !important; background: #fff !important; border-top: 2px solid #000; }
+        .footer { text-align: center; font-size: 11px; font-style: italic; margin-top: 30px; color: #555; }
 
-        /* Background Pattern */
-        .bg-pattern {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: 
-                radial-gradient(circle at 25% 25%, rgba(128,0,0,0.05) 2px, transparent 2px),
-                radial-gradient(circle at 75% 75%, rgba(128,0,0,0.05) 2px, transparent 2px);
-            background-size: 40px 40px; opacity: 0.15; z-index: 0; display: none;
-        }
-
-        /* Loading Overlay */
-        #loader {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999;
-            display: none; flex-direction: column; justify-content: center; align-items: center; color: white;
-        }
-        .spinner { width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid var(--success); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        /* Loader */
+        #loader { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; display: none; justify-content: center; align-items: center; color: white; flex-direction: column; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #fff; border-top: 4px solid #27ae60; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Info Box */
-        .info-box {
-            background: #e8f4fc; border-left: 4px solid var(--secondary); padding: 10px; border-radius: 4px;
-            margin-top: 10px; font-size: 12px; color: #2c3e50;
-        }
-
-        /* --- 6. RESPONSIVE --- */
-        @media (max-width: 1200px) {
-            .sidebar { width: 380px; }
-            #payslip-paper { transform: scale(0.9); }
-        }
-        
-        @media (max-width: 992px) {
-            .workspace { flex-direction: column; }
-            .sidebar { width: 100%; height: 50vh; }
-            .preview-area { height: 50vh; padding: 20px; }
-            #payslip-paper { width: 100%; padding: 30px; }
-        }
     </style>
 </head>
 <body>
 
-<div id="loader">
-    <div class="spinner"></div>
-    <h3>Generating High-Quality PNG...</h3>
-</div>
+<div id="loader"><div class="spinner"></div><h3>Creating PNG...</h3></div>
 
-<div class="toast" id="toast">
-    <i class="fas fa-check-circle"></i>
-    <span id="toast-msg">Operation completed successfully!</span>
-</div>
-
-<div class="app-header">
-    <div class="header-title"><i class="fas fa-file-invoice-dollar"></i> Uda-Mandi Enterprise Payroll System</div>
-    <div style="display:flex; gap:10px;">
-        <button class="btn btn-admin" onclick="location.href='admin.html'">
-            <i class="fas fa-tachometer-alt"></i> Admin Dashboard
-        </button>
-        <button class="btn btn-danger" onclick="logout()">
-            <i class="fas fa-sign-out-alt"></i> Logout
-        </button>
+<div class="main-container">
+    <div class="app-header">
+        <div class="header-title"><i class="fas fa-file-invoice"></i> Uda-Mandi Enterprise</div>
+        <div>
+            <button class="btn btn-admin" onclick="location.href='admin.html'">Admin</button>
+            <button class="btn btn-logout" onclick="logout()">Logout</button>
+        </div>
     </div>
-</div>
 
-<div class="workspace">
-    
-    <div class="sidebar">
-        
-        <div class="section-card">
-            <div class="card-header"><i class="fas fa-building"></i> Company Selection</div>
-            <div class="card-body">
+    <div class="content-wrapper">
+        <div class="input-panel">
+            
+            <div class="section-box" style="border-left-color: #9b59b6;">
+                <h3><i class="fas fa-building"></i> Select Company</h3>
                 <div class="company-tiles">
-                    <div class="tile active" id="tile-udamandi" onclick="setCompany('udamandi')">
-                        <i class="fas fa-city"></i> Udamandi Services
-                    </div>
-                    <div class="tile" id="tile-gautam" onclick="setCompany('gautam')">
-                        <i class="fas fa-solar-panel"></i> Gautam Solar
-                    </div>
-                </div>
-                <div class="info-box">
-                    <i class="fas fa-info-circle"></i> Select company to change watermark and company details.
+                    <div class="tile active" id="tile-udamandi" onclick="setCompany('udamandi')">Uda-Mandi</div>
+                    <div class="tile" id="tile-gautam" onclick="setCompany('gautam')">Gautam Solar</div>
                 </div>
             </div>
-        </div>
 
-        <div class="section-card">
-            <div class="card-header"><i class="fas fa-cogs"></i> PF Calculation Settings</div>
-            <div class="card-body">
-                <div class="switch-wrapper">
-                    <div>
-                        <div style="font-size:13px; font-weight:600;">Auto-Calculate PF (12% of Basic)</div>
-                        <div style="font-size:11px; color:#666;">When enabled, PF is automatically calculated</div>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="pfToggle" onchange="togglePFMode()">
+            <div class="section-box" style="border-left-color: #e74c3c;">
+                <h3><i class="fas fa-calculator"></i> Logic</h3>
+                <div class="toggle-wrapper">
+                    <span style="font-weight:600; font-size:13px;">Auto PF (12%)</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="pfToggle" onchange="togglePF()">
                         <span class="slider"></span>
                     </label>
                 </div>
-                <div id="pf-info" style="margin-top:10px; display:none; background:#f0f9f0; padding:8px; border-radius:6px;">
-                    <i class="fas fa-calculator"></i> <strong>PF Calculation:</strong> Basic Payable × 12% = <span id="pf-calc-value">0.00</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="section-card">
-            <div class="card-header"><i class="fas fa-user-tie"></i> Employee Information</div>
-            <div class="card-body">
-                <div class="form-row">
-                    <div class="col">
-                        <label>Month & Year</label>
-                        <input type="text" id="i-month" value="October, 2025" oninput="updatePreview()">
-                    </div>
-                    <div class="col">
-                        <label>Employee Code</label>
-                        <input type="text" id="i-code" value="6138" oninput="updatePreview()">
-                    </div>
-                </div>
-                <div class="col" style="margin-bottom:12px;">
-                    <label>Full Name</label>
-                    <input type="text" id="i-name" value="Shivshree Kumar" oninput="updatePreview()">
-                </div>
-                <div class="col" style="margin-bottom:12px;">
-                    <label>Father's Name</label>
-                    <input type="text" id="i-fname" value="Santosh Kumar" oninput="updatePreview()">
-                </div>
-                <div class="form-row">
-                    <div class="col">
-                        <label>PF Number (Optional)</label>
-                        <input type="text" id="i-pfno" placeholder="Enter PF Number" oninput="updatePreview()">
-                    </div>
-                    <div class="col">
-                        <label>Date of Joining</label>
-                        <input type="date" id="i-doj" value="2025-05-15" oninput="updatePreview()">
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="section-card">
-            <div class="card-header"><i class="fas fa-calendar-alt"></i> Attendance & Variable Pay</div>
-            <div class="card-body">
-                <div class="form-row">
-                    <div class="col">
-                        <label>Working Days</label>
-                        <input type="number" id="i-wday" value="23" oninput="calculateAll()">
-                    </div>
-                    <div class="col">
-                        <label>Present Days</label>
-                        <input type="number" id="i-pday" value="16" oninput="calculateAll()">
-                    </div>
-                </div>
-                <div style="background:#f8f9fa; padding:12px; border-radius:8px; margin-top:10px; border:1px dashed #dee2e6;">
-                    <div class="form-row">
-                        <div class="col">
-                            <label>Variable Hours</label>
-                            <input type="number" id="i-vhrs" value="72.4" step="0.1" oninput="calculateAll()">
-                        </div>
-                        <div class="col">
-                            <label>Rate per Hour</label>
-                            <input type="number" id="i-vrate" value="105" oninput="calculateAll()">
-                        </div>
-                    </div>
-                    <div style="text-align:right; margin-top:8px; font-size:12px;">
-                        Variable Amount: <strong id="var-amt-display">0.00</strong>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="section-card">
-            <div class="card-header"><i class="fas fa-money-bill-wave"></i> Salary Details</div>
-            <div class="card-body">
-                <div class="form-row">
-                    <div class="col">
-                        <label>Basic Salary (Structure)</label>
-                        <input type="number" id="i-bs" value="23541" oninput="calculateAll()">
-                    </div>
-                    <div class="col">
-                        <label>Basic Salary (Payable)</label>
-                        <input type="number" id="i-bp" value="16376.35" readonly>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="col">
-                        <label>Food Allowance</label>
-                        <input type="number" id="i-food" value="3000" oninput="calculateAll()">
-                    </div>
-                    <div class="col">
-                        <label>Bus Fee</label>
-                        <input type="number" id="i-bus" value="750" oninput="calculateAll()">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="col">
-                        <label>PF Deduction</label>
-                        <input type="number" id="i-pf" value="1965.16" oninput="calculateAll()">
-                    </div>
-                    <div class="col">
-                        <label>ESI Deduction</label>
-                        <input type="number" id="i-esi" value="0.00" oninput="calculateAll()">
-                    </div>
-                </div>
-                <div style="background:#e8f4fc; padding:10px; border-radius:6px; margin-top:10px; text-align:right;">
-                    <strong>Net Payable: <span id="net-display">0.00</span></strong>
-                </div>
-            </div>
-        </div>
-
-        <button class="btn btn-calc" onclick="calculateAll()">
-            <i class="fas fa-calculator"></i> Recalculate All Values
-        </button>
-        
-        <button class="btn btn-success" onclick="downloadPng()">
-            <i class="fas fa-download"></i> Download Payslip as PNG
-        </button>
-        
-        <div style="margin-top:15px; text-align:center; font-size:11px; color:#888;">
-            <i class="fas fa-info-circle"></i> Press F9 for quick download • Ctrl+S to calculate
-        </div>
-    </div>
-
-    <div class="preview-area">
-        <div id="payslip-paper">
-            
-            <div id="bg-pattern" class="bg-pattern"></div>
-            
-            <div id="p-watermark" class="watermark purple">U-MAN</div>
-
-            <div id="comp-header" class="paper-header">
-                <div class="ph-title" id="c-name">UDA-MANDI SERVICES PVT LTD</div>
-                <div class="ph-sub" id="c-addr">Unit 317, Road/Street: Bye-Pass Road, Mathura Road, Sector 37, Faridabad, Haryana - 121003</div>
-                <div class="ph-line"></div>
+                <div id="pf-hint" style="font-size:11px; color:gray; margin-top:5px; display:none;">*PF Locked to 12% of Basic Pay</div>
             </div>
 
-            <table class="std-table">
-                <tr><th colspan="4" class="th-main">PAY SLIP (<span id="p-month">October, 2025</span>)</th></tr>
-                <tr><td colspan="2">Emp Code: <span id="p-code"></span></td><td colspan="2">PF. No.: <span id="p-pfno"></span></td></tr>
-                <tr><td colspan="2">Emp Name: <span id="p-name"></span></td><td colspan="2">E.S.I. No.:</td></tr>
-                <tr><td colspan="2">F/H. Name: <span id="p-fname"></span></td><td colspan="2">D.O.J.: <span id="p-doj"></span></td></tr>
+            <div class="section-box" style="border-left-color: #3498db;">
+                <h3><i class="fas fa-user"></i> Employee</h3>
+                <div class="row"><div class="col"><label>Month</label><input type="text" id="i-month" value="October, 2025" oninput="calc()"></div><div class="col"><label>Code</label><input type="text" id="i-code" value="6138" oninput="calc()"></div></div>
+                <div class="row"><div class="col"><label>Name</label><input type="text" id="i-name" value="Shivshree Kumar" oninput="calc()"></div></div>
+                <div class="row"><div class="col"><label>Father Name</label><input type="text" id="i-fname" value="Santosh Kumar" oninput="calc()"></div></div>
+                <div class="row"><div class="col"><label>PF No.</label><input type="text" id="i-pfno" placeholder="-" oninput="calc()"></div><div class="col"><label>DOJ</label><input type="date" id="i-doj" value="2025-05-15" oninput="calc()"></div></div>
+            </div>
 
-                <tr class="th-sub"><td>Working Day</td><td>Present Day</td><td colspan="2">Monthly Variable</td></tr>
-                <tr><td class="aln-center"><span id="p-wday"></span></td><td class="aln-center"><span id="p-pday"></span></td><td colspan="2" class="aln-center"><span id="p-vhrs"></span> Hr.</td></tr>
+            <div class="section-box" style="border-left-color: #f39c12;">
+                <h3><i class="fas fa-clock"></i> Attendance</h3>
+                <div class="row"><div class="col"><label>Work Days</label><input type="number" id="i-wday" value="23" oninput="calc()"></div><div class="col"><label>Pres Days</label><input type="number" id="i-pday" value="16" oninput="calc()"></div></div>
+                <div class="row" style="background:#f9f9f9; padding:8px; border-radius:5px;"><div class="col"><label>Var Hrs</label><input type="number" id="i-vhrs" value="72.4" oninput="calc()"></div><div class="col"><label>Rate</label><input type="number" id="i-vrate" value="105" oninput="calc()"></div></div>
+            </div>
 
-                <tr class="th-sub"><td>EARNINGS</td><td>STRUCTURE</td><td>PAYABLE</td><td>DEDUCTIONS</td></tr>
+            <div class="section-box" style="border-left-color: #27ae60;">
+                <h3><i class="fas fa-rupee-sign"></i> Salary</h3>
+                <div class="row"><div class="col"><label>Basic (Str)</label><input type="number" id="i-bs" value="23541" oninput="calc()"></div><div class="col"><label>Basic (Pay)</label><input type="number" id="i-bp" value="16376.35" readonly></div></div>
+                <div class="row"><div class="col"><label>Food</label><input type="number" id="i-food" value="3000" oninput="calc()"></div><div class="col"><label>Bus</label><input type="number" id="i-bus" value="750" oninput="calc()"></div></div>
+                <div class="row">
+                    <div class="col"><label>PF Deduct</label><input type="number" id="i-pf" value="1965.16" step="0.01" oninput="calc()"></div>
+                    <div class="col"><label>ESI Deduct</label><input type="number" id="i-esi" value="0.00" oninput="calc()"></div>
+                </div>
+            </div>
+
+            <button class="btn btn-download" onclick="downloadPng()"><i class="fas fa-download"></i> Download Payslip</button>
+        </div>
+
+        <div class="preview-panel">
+            <div id="payslip-paper">
                 
-                <tr>
-                    <td>Basic</td>
-                    <td class="aln-right"><span id="p-bs"></span></td>
-                    <td class="aln-right"><span id="p-bp"></span></td>
-                    <td><span class="f-bold">PF:</span> <span id="p-pf" class="c-blue"></span></td>
-                </tr>
-                <tr>
-                    <td>Monthly V.Allowance</td>
-                    <td class="aln-right"></td>
-                    <td class="aln-right"><span id="p-mv"></span></td>
-                    <td><span class="f-bold">ESI:</span> <span id="p-esi" class="c-blue"></span></td>
-                </tr>
-                <tr>
-                    <td>Food Allowance</td>
-                    <td class="aln-right"></td>
-                    <td class="aln-right"><span id="p-food"></span></td>
-                    <td><span class="f-bold">Bus:</span> <span id="p-bus" class="c-blue"></span></td>
-                </tr>
+                <div class="gspl-bg" id="bg-gspl"></div>
+                <div class="watermark udamandi" id="p-watermark">U-MAN</div>
 
-                <tr>
-                    <td class="f-bold">Total Rs.</td>
-                    <td></td>
-                    <td class="aln-right f-bold"><span id="p-tot-earn"></span></td>
-                    <td class="aln-right f-bold"><span id="p-tot-ded"></span></td>
-                </tr>
+                <div class="company-header active" id="comp-header">
+                    <div class="comp-name" id="c-name">UDA-MANDI SERVICES PVT LTD</div>
+                    <div class="comp-details" id="c-addr">Unit 317, Road/Street: Bye-Pass Road, Mathura Road, Sector 37, Faridabad, Haryana - 121003</div>
+                    <div class="header-line"></div>
+                </div>
 
-                <tr><th colspan="4" class="net-pay">Net Payable: Rs. <span id="p-net"></span></th></tr>
-            </table>
+                <table class="slip-table">
+                    <tr><th colspan="4" class="th-main">PAY SLIP (<span id="p-month">October, 2025</span>)</th></tr>
+                    <tr><td colspan="2">Emp Code: <span id="p-code"></span></td><td colspan="2">PF. No.: <span id="p-pfno"></span></td></tr>
+                    <tr><td colspan="2">Emp Name: <span id="p-name"></span></td><td colspan="2">E.S.I. No.:</td></tr>
+                    <tr><td colspan="2">F/H. Name: <span id="p-fname"></span></td><td colspan="2">D.O.J.: <span id="p-doj"></span></td></tr>
 
-            <div class="footer">"This is a Computer generated statement and does not require authentication"</div>
+                    <tr class="th-sub"><td>WORKING DAY</td><td>PRESENT DAY</td><td colspan="2">MONTHLY VARIABLE</td></tr>
+                    <tr><td class="align-c"><span id="p-wday"></span></td><td class="align-c"><span id="p-pday"></span></td><td colspan="2" class="align-c"><span id="p-vhrs"></span> Hr.</td></tr>
+
+                    <tr class="th-sub"><td>EARNINGS</td><td>STRUCTURE</td><td>PAYABLE</td><td>DEDUCTIONS</td></tr>
+                    <tr><td>Basic</td><td class="align-r"><span id="p-bs"></span></td><td class="align-r"><span id="p-bp"></span></td><td><span class="bold">PF:</span> <span id="p-pf" class="blue"></span></td></tr>
+                    <tr><td>Monthly V.Allowance</td><td class="align-r"></td><td class="align-r"><span id="p-mv"></span></td><td><span class="bold">ESI:</span> <span id="p-esi" class="blue"></span></td></tr>
+                    <tr><td>Food Allowance</td><td class="align-r"></td><td class="align-r"><span id="p-food"></span></td><td><span class="bold">Bus:</span> <span id="p-bus" class="blue"></span></td></tr>
+                    <tr><td class="bold">Total Rs.</td><td></td><td class="align-r bold"><span id="p-tot-earn"></span></td><td class="align-r bold"><span id="p-tot-ded"></span></td></tr>
+                    <tr><th colspan="4" class="net-pay">Net Payable: Rs. <span id="p-net"></span></th></tr>
+                </table>
+
+                <div class="footer">"This is a Computer generated statement and does not require authentication"</div>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    // --- 1. CONFIGURATION ---
+    // --- 1. CONFIG ---
     const companies = {
-        'udamandi': { 
-            name: "UDA-MANDI SERVICES PVT LTD", 
-            addr: "Unit 317, Road/Street: Bye-Pass Road, Mathura Road, Sector 37, Faridabad, Haryana - 121003", 
-            wm: "U-MAN", 
-            cls: "purple", 
-            bg: false 
+        'udamandi': {
+            name: "UDA-MANDI SERVICES PVT LTD",
+            addr: "Unit 317, Road/Street: Bye-Pass Road, Mathura Road, Sector 37, Faridabad, Haryana - 121003",
+            wm: "U-MAN", cls: "purple", bg: false
         },
-        'gautam': { 
-            name: "GAUTAM SOLAR PRIVATE LIMITED", 
-            addr: "7 KM Milestone, Tosham Road, Bhiwani, Haryana, INDIA", 
-            wm: "GSPL", 
-            cls: "red", 
-            bg: true 
+        'gautam': {
+            name: "GAUTAM SOLAR PRIVATE LIMITED",
+            addr: "7 KM Milestone, Tosham Road, Bhiwani, Haryana, INDIA",
+            wm: "GSPL", cls: "red", bg: true
         }
     };
-    
-    let currentCompany = 'udamandi';
-    let autoPF = false;
-    
-    // --- 2. INITIALIZATION ---
+
+    // --- 2. INIT ---
     document.addEventListener("DOMContentLoaded", () => {
-        // Check authentication
         const role = localStorage.getItem('role');
-        if(role === 'admin') {
-            document.querySelector('.btn-admin').style.display = 'inline-flex';
-        } else if(!role) {
-            window.location.href = 'index.html';
-        }
+        if(role === 'admin') document.querySelector('.btn-admin').style.display = 'inline-flex';
+        else if(!role) window.location.href = 'index.html';
         
-        // Set current month as default
-        const now = new Date();
-        const monthNames = ["January", "February", "March", "April", "May", "June",
-                          "July", "August", "September", "October", "November", "December"];
-        document.getElementById('i-month').value = `${monthNames[now.getMonth()]}, ${now.getFullYear()}`;
-        
-        // Initialize company and calculations
         setCompany('udamandi');
-        calculateAll();
-        
-        // Setup keyboard shortcuts
-        setupKeyboardShortcuts();
+        togglePF(); // Sync Toggle state
+        calc(); // Initial Calc
     });
-    
-    // --- 3. COMPANY SELECTION ---
+
     function setCompany(key) {
-        currentCompany = key;
         const c = companies[key];
-        
-        // Update tile selection
-        document.querySelectorAll('.tile').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tile').forEach(t => t.classList.remove('active'));
         document.getElementById(`tile-${key}`).classList.add('active');
-        
-        // Update preview
+
         document.getElementById('c-name').innerText = c.name;
         document.getElementById('c-addr').innerText = c.addr;
         
-        // Update watermark
         const wm = document.getElementById('p-watermark');
         wm.innerText = c.wm;
         wm.className = `watermark ${c.cls}`;
-        
-        // Update background pattern
-        document.getElementById('bg-pattern').style.display = c.bg ? 'block' : 'none';
-        
-        showToast(`Company switched to ${c.name}`);
+        document.getElementById('bg-gspl').style.display = c.bg ? 'block' : 'none';
     }
-    
-    // --- 4. PF TOGGLE LOGIC ---
-    function togglePFMode() {
-        const toggle = document.getElementById('pfToggle');
-        autoPF = toggle.checked;
+
+    // --- 3. PF TOGGLE FIX ---
+    function togglePF() {
+        const isAuto = document.getElementById('pfToggle').checked;
         const pfInput = document.getElementById('i-pf');
-        const pfInfo = document.getElementById('pf-info');
         
-        if (autoPF) {
-            pfInput.setAttribute('readonly', true);
-            pfInput.style.backgroundColor = "#f8f9fa";
-            pfInfo.style.display = 'block';
-            showToast("PF Auto-Calculation Enabled (12% of Basic Payable)");
+        // This is the key fix: .readOnly property
+        pfInput.readOnly = isAuto; 
+        document.getElementById('pf-hint').style.display = isAuto ? 'block' : 'none';
+        
+        if(isAuto) calc(); // Only calc if turned ON
+    }
+
+    // --- 4. CALCULATION ---
+    const fmt = (n) => n.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+    function calc() {
+        // Inputs
+        let bs = parseFloat(document.getElementById('i-bs').value) || 0;
+        let wday = parseFloat(document.getElementById('i-wday').value) || 0;
+        let pday = parseFloat(document.getElementById('i-pday').value) || 0;
+        
+        // 1. Basic Payable
+        let bp = (wday > 0) ? (bs / wday * pday) : 0;
+        document.getElementById('i-bp').value = bp.toFixed(2);
+
+        // 2. Variable
+        let vhrs = parseFloat(document.getElementById('i-vhrs').value) || 0;
+        let vrate = parseFloat(document.getElementById('i-vrate').value) || 0;
+        let mv = vhrs * vrate;
+
+        // 3. PF
+        let pf = 0;
+        const isAuto = document.getElementById('pfToggle').checked;
+        if(isAuto) {
+            pf = Math.round(bp * 0.12);
+            document.getElementById('i-pf').value = pf.toFixed(2); // Updates Input if Auto
         } else {
-            pfInput.removeAttribute('readonly');
-            pfInput.style.backgroundColor = "white";
-            pfInfo.style.display = 'none';
-            showToast("PF Manual Mode Enabled");
+            // Manual: Just read the input value
+            pf = parseFloat(document.getElementById('i-pf').value) || 0;
         }
-        
-        calculateAll();
+
+        // 4. Totals
+        let food = parseFloat(document.getElementById('i-food').value) || 0;
+        let esi = parseFloat(document.getElementById('i-esi').value) || 0;
+        let bus = parseFloat(document.getElementById('i-bus').value) || 0;
+
+        let totEarn = bp + mv + food;
+        let totDed = pf + esi + bus;
+        let net = totEarn - totDed;
+
+        updateTable(bs, bp, mv, pf, esi, bus, food, totEarn, totDed, net);
     }
-    
-    // --- 5. CALCULATION ENGINE ---
-    function formatCurrency(num) {
-        return num.toLocaleString('en-IN', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
+
+    function updateTable(bs, bp, mv, pf, esi, bus, food, te, td, net) {
+        // Text
+        const ids = ['i-month', 'i-code', 'i-pfno', 'i-name', 'i-fname', 'i-doj', 'i-wday', 'i-pday', 'i-vhrs'];
+        const targets = ['p-month', 'p-code', 'p-pfno', 'p-name', 'p-fname', 'p-doj', 'p-wday', 'p-pday', 'p-vhrs'];
+        ids.forEach((id, i) => document.getElementById(targets[i]).innerText = document.getElementById(id).value);
+
+        // Numbers
+        document.getElementById('p-bs').innerText = fmt(bs);
+        document.getElementById('p-bp').innerText = fmt(bp);
+        document.getElementById('p-mv').innerText = fmt(mv);
+        document.getElementById('p-food').innerText = fmt(food);
+        document.getElementById('p-pf').innerText = fmt(pf);
+        document.getElementById('p-esi').innerText = fmt(esi);
+        document.getElementById('p-bus').innerText = bus;
+        document.getElementById('p-tot-earn').innerText = fmt(te);
+        document.getElementById('p-tot-ded').innerText = fmt(td);
+        document.getElementById('p-net').innerText = fmt(net);
     }
-    
-    function calculateAll() {
-        try {
-            // Gather inputs
-            const basicStruct = parseFloat(document.getElementById('i-bs').value) || 0;
-            const workDays = parseFloat(document.getElementById('i-wday').value) || 0;
-            const presentDays = parseFloat(document.getElementById('i-pday').value) || 0;
-            
-            // 1. Calculate Basic Payable
-            let basicPayable = 0;
-            if (workDays > 0) {
-                basicPayable = (basicStruct / workDays) * presentDays;
-                basicPayable = Math.round(basicPayable * 100) / 100;
-            }
-            document.getElementById('i-bp').value = basicPayable.toFixed(2);
-            
-            // 2. Calculate Variable Allowance
-            const varHours = parseFloat(document.getElementById('i-vhrs').value) || 0;
-            const varRate = parseFloat(document.getElementById('i-vrate').value) || 0;
-            const varAmount = varHours * varRate;
-            document.getElementById('var-amt-display').innerText = formatCurrency(varAmount);
-            
-            // 3. Calculate PF (auto or manual)
-            let pfAmount = 0;
-            if (autoPF) {
-                pfAmount = Math.round(basicPayable * 0.12 * 100) / 100;
-                document.getElementById('i-pf').value = pfAmount.toFixed(2);
-                document.getElementById('pf-calc-value').innerText = formatCurrency(pfAmount);
-            } else {
-                pfAmount = parseFloat(document.getElementById('i-pf').value) || 0;
-            }
-            
-            // 4. Other amounts
-            const foodAllowance = parseFloat(document.getElementById('i-food').value) || 0;
-            const esiAmount = parseFloat(document.getElementById('i-esi').value) || 0;
-            const busFee = parseFloat(document.getElementById('i-bus').value) || 0;
-            
-            // 5. Calculate totals
-            const totalEarnings = basicPayable + varAmount + foodAllowance;
-            const totalDeductions = pfAmount + esiAmount + busFee;
-            const netPayable = totalEarnings - totalDeductions;
-            
-            // Update net display
-            document.getElementById('net-display').innerText = formatCurrency(netPayable);
-            
-            // Update preview
-            updatePreview(basicStruct, basicPayable, varAmount, pfAmount, 
-                         esiAmount, busFee, foodAllowance, 
-                         totalEarnings, totalDeductions, netPayable);
-            
-        } catch (error) {
-            console.error("Calculation error:", error);
-            showToast("Error in calculation. Please check inputs.", true);
-        }
-    }
-    
-    function updatePreview(bs, bp, mv, pf, esi, bus, food, te, td, net) {
-        // Update text fields
-        const textMap = {
-            'i-month': 'p-month', 'i-code': 'p-code', 'i-pfno': 'p-pfno',
-            'i-name': 'p-name', 'i-fname': 'p-fname', 'i-doj': 'p-doj',
-            'i-wday': 'p-wday', 'i-pday': 'p-pday', 'i-vhrs': 'p-vhrs'
-        };
-        
-        for(let inputId in textMap) {
-            const previewId = textMap[inputId];
-            const value = document.getElementById(inputId).value;
-            document.getElementById(previewId).innerText = value || '-';
-        }
-        
-        // Update numeric fields
-        document.getElementById('p-bs').innerText = formatCurrency(bs);
-        document.getElementById('p-bp').innerText = formatCurrency(bp);
-        document.getElementById('p-mv').innerText = formatCurrency(mv);
-        document.getElementById('p-food').innerText = formatCurrency(food);
-        document.getElementById('p-pf').innerText = formatCurrency(pf);
-        document.getElementById('p-esi').innerText = formatCurrency(esi);
-        document.getElementById('p-bus').innerText = formatCurrency(bus);
-        document.getElementById('p-tot-earn').innerText = formatCurrency(te);
-        document.getElementById('p-tot-ded').innerText = formatCurrency(td);
-        document.getElementById('p-net').innerText = formatCurrency(net);
-    }
-    
-    // Alias for oninput
-    function updatePreview() {
-        calculateAll();
-    }
-    
-    // --- 6. DOWNLOAD FUNCTION ---
+
+    function upd() { calc(); }
+
     function downloadPng() {
-        const paper = document.getElementById("payslip-paper");
-        const loader = document.getElementById("loader");
-        
-        if (typeof html2canvas === 'undefined') {
-            showToast("Error: html2canvas not loaded. Check internet connection.", true);
-            return;
-        }
-        
-        loader.style.display = "flex";
-        
+        const el = document.getElementById("payslip-paper");
+        document.getElementById("loader").style.display = "flex";
         setTimeout(() => {
-            html2canvas(paper, { 
-                scale: 4,
-                backgroundColor: "#ffffff",
-                useCORS: true,
-                logging: false,
-                allowTaint: true,
-                imageTimeout: 15000
-            })
-            .then(canvas => {
-                const link = document.createElement('a');
-                const empName = document.getElementById('i-name').value || 'Employee';
-                const month = document.getElementById('i-month').value || 'Month';
-                const fileName = `Payslip_${empName.replace(/\s+/g, '_')}_${month.replace(/\s+/g, '_')}.png`;
-                
-                link.download = fileName;
-                link.href = canvas.toDataURL("image/png", 1.0);
-                link.click();
-                
-                loader.style.display = "none";
-                showToast(`Payslip downloaded as ${fileName}`);
-            })
-            .catch(err => {
-                console.error("Canvas error:", err);
-                loader.style.display = "none";
-                showToast("Download failed. Please try again.", true);
+            html2canvas(el, { scale: 3, backgroundColor: "#fff" }).then(c => {
+                const a = document.createElement('a');
+                a.download = `Payslip_${document.getElementById('i-name').value}.png`;
+                a.href = c.toDataURL("image/png");
+                a.click();
+                document.getElementById("loader").style.display = "none";
             });
-        }, 300);
+        }, 500);
     }
-    
-    // --- 7. UTILITY FUNCTIONS ---
-    function showToast(message, isError = false) {
-        const toast = document.getElementById('toast');
-        const msg = document.getElementById('toast-msg');
-        
-        msg.innerText = message;
-        toast.className = `toast ${isError ? 'error' : ''}`;
-        toast.classList.add('show');
-        
-        setTimeout(() => {
-            toast.classList.remove('show');
-        }, 3000);
-    }
-    
-    function setupKeyboardShortcuts() {
-        document.addEventListener('keydown', (e) => {
-            // Ctrl+S = Calculate
-            if (e.ctrlKey && e.key === 's') {
-                e.preventDefault();
-                calculateAll();
-                showToast("All values recalculated");
-            }
-            
-            // F9 = Download
-            if (e.key === 'F9') {
-                e.preventDefault();
-                downloadPng();
-            }
-            
-            // 1 = Udamandi, 2 = Gautam
-            if (e.key === '1') {
-                setCompany('udamandi');
-            }
-            if (e.key === '2') {
-                setCompany('gautam');
-            }
-        });
-    }
-    
-    function logout() {
-        if (confirm("Are you sure you want to logout?")) {
-            localStorage.clear();
-            window.location.href = 'index.html';
-        }
-    }
-    
-    // Expose functions globally for debugging
-    window.calculateAll = calculateAll;
-    window.downloadPng = downloadPng;
+
+    function logout() { localStorage.clear(); window.location.href = 'index.html'; }
 </script>
 
 </body>
