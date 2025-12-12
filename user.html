@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uda-Mandi Payroll System</title>
+    <title>Uda-Mandi Enterprise Payroll</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -44,14 +44,20 @@
         .col { flex: 1; }
         label { display: block; font-size: 11px; font-weight: 700; color: #555; margin-bottom: 4px; text-transform: uppercase; }
         
+        /* STANDARD INPUT STYLE */
         input { 
             width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; font-weight: 600;
+            background-color: #fff; /* Default White */
         }
         input:focus { border-color: #1e3c72; outline: none; background: #fff; }
         
-        /* Edit Mode Styles */
-        input:not([readonly]) { background-color: #fff; border: 1px solid #aaa; }
-        input[readonly] { background-color: #e9ecef; color: #666; cursor: not-allowed; border: 1px solid #ddd; }
+        /* READONLY INPUT STYLE (Auto Calculated) */
+        input[readonly] { 
+            background-color: #e9ecef !important; 
+            color: #555; 
+            cursor: not-allowed; 
+            border: 1px solid #ddd; 
+        }
 
         /* Company Select */
         .company-tiles { display: flex; gap: 10px; }
@@ -94,7 +100,7 @@
             z-index: 1;
         }
 
-        /* HEADER (Fixed Wrapping) */
+        /* HEADER (Full Address Fix) */
         .company-header { text-align: center; margin-bottom: 25px; display: none; z-index: 5; position: relative; }
         .company-header.active { display: block; }
         
@@ -103,18 +109,18 @@
             font-size: 30px; 
             font-weight: 900; 
             text-transform: uppercase;
-            color: #222; /* Deep Black */
+            color: #222; 
             margin-bottom: 8px;
             letter-spacing: 0.5px;
         }
         .comp-details { 
             font-size: 14px; 
-            color: #333; /* Dark Grey */
+            color: #333; 
             font-weight: 600; 
             line-height: 1.6;
             margin: 0 auto;
-            white-space: pre-wrap; /* Ensure text wraps */
-            word-wrap: break-word; /* Ensure long addresses wrap */
+            white-space: pre-wrap; 
+            word-wrap: break-word; /* KEY FIX: Forces text to wrap */
             width: 100%;
         }
         .header-line { border-bottom: 2px solid #ccc; width: 100%; margin-top: 15px; }
@@ -283,10 +289,11 @@
         else if(!role) window.location.href = 'index.html';
         
         setCompany('udamandi');
-        togglePF(); // Sync Toggle state
-        calc(); // Initial Calc
+        togglePF(); // Initialize Toggle State
+        calc(); // First Calculation
     });
 
+    // --- 3. COMPANY LOGIC ---
     function setCompany(key) {
         const c = companies[key];
         document.querySelectorAll('.tile').forEach(t => t.classList.remove('active'));
@@ -301,19 +308,27 @@
         document.getElementById('bg-gspl').style.display = c.bg ? 'block' : 'none';
     }
 
-    // --- 3. PF TOGGLE FIX ---
+    // --- 4. PF LOGIC ---
     function togglePF() {
         const isAuto = document.getElementById('pfToggle').checked;
         const pfInput = document.getElementById('i-pf');
-        
-        // This is the key fix: .readOnly property
-        pfInput.readOnly = isAuto; 
-        document.getElementById('pf-hint').style.display = isAuto ? 'block' : 'none';
-        
-        if(isAuto) calc(); // Only calc if turned ON
+        const hint = document.getElementById('pf-hint');
+
+        if(isAuto) {
+            // LOCK INPUT
+            pfInput.setAttribute('readonly', true);
+            pfInput.style.backgroundColor = "#e9ecef";
+            hint.style.display = 'block';
+            calc(); // Force Recalc
+        } else {
+            // UNLOCK INPUT
+            pfInput.removeAttribute('readonly');
+            pfInput.style.backgroundColor = "#fff";
+            hint.style.display = 'none';
+        }
     }
 
-    // --- 4. CALCULATION ---
+    // --- 5. CALCULATION ---
     const fmt = (n) => n.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
     function calc() {
@@ -336,9 +351,10 @@
         const isAuto = document.getElementById('pfToggle').checked;
         if(isAuto) {
             pf = Math.round(bp * 0.12);
-            document.getElementById('i-pf').value = pf.toFixed(2); // Updates Input if Auto
+            // Only update value if auto, otherwise respect user input
+            document.getElementById('i-pf').value = pf.toFixed(2);
         } else {
-            // Manual: Just read the input value
+            // Manual: just read what user typed
             pf = parseFloat(document.getElementById('i-pf').value) || 0;
         }
 
@@ -372,8 +388,6 @@
         document.getElementById('p-tot-ded').innerText = fmt(td);
         document.getElementById('p-net').innerText = fmt(net);
     }
-
-    function upd() { calc(); }
 
     function downloadPng() {
         const el = document.getElementById("payslip-paper");
